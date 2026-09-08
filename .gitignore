@@ -32,6 +32,8 @@ pnpm-debug.log*
 
 # claude code local state
 .claude/settings.local.json
+# scritto dagli hook a ogni verdetto: è traccia locale, non configurazione
+.claude/hooks/guard-log.jsonl
 .claude/scheduled_tasks.lock
 .claude/plans/
 .env*
