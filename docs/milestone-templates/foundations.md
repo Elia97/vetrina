@@ -1,145 +1,141 @@
 ---
-name: "Foundations"
-description: Turn the forked scaffold into this project — branding, environments, design system, SEO, forms, consent and real content.
+name: "Fondamenta"
+description: Trasforma lo scaffold appena creato in questo progetto — branding, ambienti, design system, SEO, form, consenso e contenuti reali.
 ---
 
-# Foundations
+# Fondamenta
 
-Takes the freshly-forked scaffold from placeholders to a project that is
-branded, deployable, indexable and able to receive a lead. Every project needs
-it exactly once, as **Milestone 1** — nothing else can be built on a scaffold
-that still calls itself `astro-template`.
+Porta lo scaffold appena creato dai segnaposto a un progetto con la sua identità, deployabile,
+indicizzabile e capace di ricevere un contatto. Ogni progetto ne ha bisogno esattamente una volta,
+come **Milestone 1**: non si costruisce niente sopra uno scaffold che si chiama ancora
+`astro-template`.
 
-Order is not arbitrary: sub-task 1 renames the project everything else refers
-to, and sub-task 2 makes previews green so the remaining ones can be reviewed
-on a real deployment rather than locally.
+L'ordine non è arbitrario: il sotto-task 1 rinomina il progetto a cui tutti gli altri si
+riferiscono, e il 2 rende verdi le preview, così i rimanenti si rivedono su un deploy vero invece
+che in locale.
 
-Unlike the other blueprints, this one is **transcribed into `docs/ROADMAP.md`
-while the plan is being written**, because the estimate is derived from that
-roadmap and this milestone is part of what gets quoted. By seeding time the
-section already exists, so it is seeded bespoke — `/milestone 1`, not
-`/milestone foundations`.
+A differenza degli altri blueprint, questo si **trascrive in `docs/ROADMAP.md` mentre si scrive il
+piano**, perché la stima si deriva da quella roadmap e questa milestone è parte di ciò che viene
+preventivato. Al momento della semina la sezione esiste già, quindi si semina per via bespoke:
+`/milestone 1`, non `/milestone foundations`.
 
-## Sub-tasks
+## Sotto-task
 
-### 1. chore(scaffold): personalize the template for {{project_name}}
+### 1. chore(scaffold): personalizza il template per {{project_name}}
 
 **Agent:** general-purpose
 **Labels:**
 
-The repo was forked from `Elia97/astro-template` and still carries its
-placeholders. This replaces them — it does not rewrite the scaffold. If the
-production domain is not settled yet, leave an explicit `TODO`; never invent
-one, because a wrong absolute URL silently poisons canonicals and OG tags.
+Il repo nasce da `Elia97/astro-template` e porta ancora i suoi segnaposto. Qui si sostituiscono:
+non si riscrive lo scaffold. Se il dominio di produzione non è ancora deciso, lascia un `TODO`
+esplicito e non inventarne uno — un URL assoluto sbagliato avvelena in silenzio canonical e tag OG.
 
-Re-enable dependabot here: it is paused at repo creation
-(`open-pull-requests-limit: 0`) precisely until this sub-task lands.
+Qui si riattiva dependabot: è in pausa dalla creazione del repo
+(`open-pull-requests-limit: 0`) proprio fino a questo sotto-task.
 
 Checklist:
-- [ ] `package.json#name` and `release-please-config.json` renamed — the name leaks into the changelog
-- [ ] `src/lib/site.ts`: name, url, description, nav/CTA/legal entries
-- [ ] `SITE.url` on the real domain, or an explicit `TODO`
-- [ ] `astro.config.mjs` → `i18n.defaultLocale`/`locales` match the project's languages
-- [ ] `public/favicon.svg`, `public/favicon.ico`, `public/og-default.png` replaced
-- [ ] Dependabot re-enabled (the two `open-pull-requests-limit: 0` lines removed)
-- [ ] `pnpm run ci` and `pnpm run build` green
+- [ ] `package.json#name` e `release-please-config.json` rinominati — il nome trapela nel changelog
+- [ ] `src/lib/site.ts`: nome, url, descrizione, voci di nav, CTA e legali
+- [ ] `SITE.url` sul dominio reale, o un `TODO` esplicito
+- [ ] `astro.config.mjs` → `i18n.defaultLocale` e `locales` corrispondono alle lingue del progetto
+- [ ] `public/favicon.svg`, `public/favicon.ico`, `public/og-default.png` sostituiti
+- [ ] Dependabot riattivato (rimosse le due righe `open-pull-requests-limit: 0`)
+- [ ] `pnpm run ci` e `pnpm run build` verdi
 
-### 2. ci(ops): environments, secrets and release-tag deploys
+### 2. ci(ops): ambienti, secret e deploy da tag di release
 
 **Agent:** ops-agent
 **Labels:**
 
-Development, preview and production on Vercel, CI on every PR, production
-shipping **only from a release tag**. Without `RELEASE_PLEASE_TOKEN` the
-release PR never gets a `ci` check and can never be merged — it is the one
-secret whose absence looks like nothing being wrong.
+Sviluppo, preview e produzione su Vercel, CI su ogni PR, produzione che esce **solo da un tag di
+release**. Senza `RELEASE_PLEASE_TOKEN` la release PR non riceve mai il check `ci` e non si può
+mergiare: è l'unico secret la cui assenza sembra che vada tutto bene.
 
 Checklist:
-- [ ] Vercel project linked; `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID` set
-- [ ] `RELEASE_PLEASE_TOKEN` set (fine-grained PAT: `contents:write` + `pull_requests:write`)
+- [ ] Progetto Vercel collegato; `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID` impostati
+- [ ] `RELEASE_PLEASE_TOKEN` impostato (PAT fine-grained: `contents:write` e `pull_requests:write`)
 - [ ] Ignored Build Step → `bash scripts/vercel-ignore-build.sh`
-- [ ] `bash scripts/bootstrap-github.sh` re-run and green (ruleset, squash-only, Actions permissions)
-- [ ] A push on a branch produces a green preview deployment
+- [ ] `bash scripts/bootstrap-github.sh` rieseguito e verde (ruleset, squash-only, permessi Actions)
+- [ ] Un push su un branch produce un deploy di preview verde
 
-### 3. feat(ui): translate the approved design into tokens and primitives
+### 3. feat(ui): traduci il design approvato in token e primitive
 
 **Agent:** ui-agent
 **Labels:**
 
-The design system rendered in code. **This is not design work**: it is the
-transposition of an approved design into `src/styles/tokens.css` and the UI
-primitives. `tokens.css` is the only file the rebrand touches — the semantic
-names in `light.css`/`dark.css` stay as they are.
+Il design system reso in codice. **Non è lavoro di design**: è la trasposizione di un design
+approvato in `src/styles/tokens.css` e nelle primitive di interfaccia. `tokens.css` è l'unico file
+che il rebranding tocca — i nomi semantici in `light.css` e `dark.css` restano come sono.
 
 Checklist:
-- [ ] Brand palette in `src/styles/tokens.css`; `SITE.themeColor` equal to `--background` in both themes
-- [ ] Webfont wired via the Astro fonts API on `--font-stack-base`/`--font-stack-display`, if any
-- [ ] UI primitives coherent with the design system, no hardcoded values outside the tokens
-- [ ] Motion respects `prefers-reduced-motion`
-- [ ] Dark and light both checked on the real chrome, not only on a component page
+- [ ] Palette del brand in `src/styles/tokens.css`; `SITE.themeColor` uguale a `--background` nei due temi (lo verifica `src/styles/theme-color.test.ts`)
+- [ ] Webfont collegato con l'API font di Astro su `--font-stack-base` e `--font-stack-display`, se ce n'è uno
+- [ ] Primitive coerenti col design system, nessun valore fisso fuori dai token
+- [ ] Le animazioni rispettano `prefers-reduced-motion`
+- [ ] Chiaro e scuro verificati sulla chrome vera, non solo su una pagina di componenti
 
-### 4. feat(seo): canonical, sitemap and structured data for {{domain}}
+### 4. feat(seo): canonical, sitemap e dati strutturati per {{domain}}
 
 **Agent:** seo-agent
 **Labels:**
 
-Head, canonical, Open Graph, sitemap, `robots.txt` and the JSON-LD that
-describes this specific business. Preview deploys must keep their
-`X-Robots-Tag: noindex` — a preview that ranks competes with production.
+Head, canonical, Open Graph, sitemap, `robots.txt` e il JSON-LD che descrive questa attività
+specifica. I deploy di preview devono mantenere il loro `X-Robots-Tag: noindex`: una preview che si
+posiziona fa concorrenza alla produzione.
 
 Checklist:
-- [ ] Absolute canonicals consistent with `SITE.url`
-- [ ] Open Graph with the real `og-default.png` as fallback
-- [ ] `sitemap.xml` and `robots.txt` correct for the project's locales
-- [ ] JSON-LD (Organization/LocalBusiness) with the client's real data
-- [ ] `hreflang` reciprocal with `x-default`, if the project is multilingual
-- [ ] `*.vercel.app` still `noindex`
+- [ ] Canonical assoluti coerenti con `SITE.url`
+- [ ] Open Graph con il vero `og-default.png` come fallback
+- [ ] `sitemap.xml` e `robots.txt` corretti per le lingue del progetto
+- [ ] JSON-LD (`Organization` o `LocalBusiness`) coi dati reali del cliente
+- [ ] `hreflang` reciproci con `x-default`, se il progetto è multilingua
+- [ ] `*.vercel.app` ancora in `noindex`
 
-### 5. feat(forms): wire the contact form to the real inbox
+### 5. feat(forms): collega il form di contatto alla casella vera
 
 **Agent:** forms-agent
 **Labels:**
 
-The form works in dev with no configuration — the vendor no-ops loudly. This
-makes it send for real. Verify the sender domain's DKIM/SPF/DMARC **before**
-go-live: without it production refuses to send by design, so a missing DNS
-record surfaces as silence, not as an error.
+In sviluppo il form funziona senza configurazione, perché il fornitore non fa niente ma lo dice.
+Qui si fa spedire davvero. Verifica DKIM, SPF e DMARC del dominio mittente **prima** del go-live:
+senza, la produzione rifiuta di spedire per costruzione, e un record DNS mancante si manifesta come
+silenzio invece che come errore.
 
 Checklist:
-- [ ] `CONTACT_*` values set; `BREVO_API_KEY` set locally and in the Vercel project (server-only)
-- [ ] Sender domain verified in Brevo (DKIM/SPF/DMARC)
-- [ ] Rate limiting exercised on the deployed preview, not only in unit tests
-- [ ] A real submission arrives in the client's inbox, and the reply-to is usable
+- [ ] Valori `CONTACT_*` impostati; `BREVO_API_KEY` impostata in locale e nel progetto Vercel (solo server)
+- [ ] Dominio mittente verificato in Brevo (DKIM, SPF, DMARC)
+- [ ] Rate limiting provato sulla preview deployata, non solo negli unit test
+- [ ] Un invio vero arriva nella casella del cliente, e il reply-to è utilizzabile
 
-### 6. feat(ops): consent, analytics and the CSP that lets them through
+### 6. feat(ops): consenso, analytics e la CSP che li lascia passare
 
 **Agent:** ops-agent
 **Labels:**
 
-Nothing ships until configured: with no env set the site renders no banner,
-loads no tag and sets no non-essential cookie. **Widening the CSP in
-`vercel.json` is the step that gets forgotten** — `astro dev` never reads that
-file, so everything looks right locally and production shows no banner at all.
+Niente parte finché non è configurato: senza variabili d'ambiente il sito non mostra nessun banner,
+non carica nessun tag e non scrive nessun cookie non essenziale. **Allargare la CSP in
+`vercel.json` è il passo che si dimentica**: `astro dev` non legge mai quel file, quindi in locale
+sembra tutto giusto e in produzione il banner non compare affatto.
 
 Checklist:
-- [ ] `PUBLIC_GTM_ID`, `PUBLIC_IUBENDA_SITE_ID`, `PUBLIC_IUBENDA_COOKIE_POLICY_ID` set as **Plain** vars, never Sensitive
-- [ ] CSP in `vercel.json` widened, and the assertions in `src/vercel-headers.test.ts` updated with it
-- [ ] Verified on a preview, accepting and rejecting, with GA4 Realtime open: nothing reaches Google before opt-in
-- [ ] Consent Mode v2 defaults still denied
+- [ ] `PUBLIC_GTM_ID`, `PUBLIC_IUBENDA_SITE_ID`, `PUBLIC_IUBENDA_COOKIE_POLICY_ID` impostate come variabili **Plain**, mai Sensitive
+- [ ] CSP allargata in `vercel.json`, e le asserzioni di `src/vercel-headers.test.ts` aggiornate insieme
+- [ ] Verificato su una preview, accettando e rifiutando, con GA4 Realtime aperto: prima del consenso a Google non arriva niente
+- [ ] I default di Consent Mode v2 restano negati
 
-### 7. fix(content): real homepage copy, company data and legal pages
+### 7. fix(content): copy vero della homepage, dati societari e pagine legali
 
 **Agent:** content-agent
 **Labels:**
 
-The last placeholders: homepage copy, the company data the legal pages render
-from, and the switch of `/privacy` and `/cookie-policy` from their placeholder
-drafts to the hosted documents. `termini` has no hosted counterpart and stays
-behind its "needs legal review" alert until someone reviews it.
+Gli ultimi segnaposto: il copy della homepage, i dati societari da cui le pagine legali si
+generano, e il passaggio di `/privacy` e `/cookie-policy` dalle bozze segnaposto ai documenti
+ospitati. `termini` non ha un corrispettivo ospitato e resta dietro il suo avviso «da rivedere
+legalmente» finché qualcuno non lo rivede.
 
 Checklist:
-- [ ] `src/content/homepage/*.yml` with real copy, not lorem
-- [ ] Company data (legal name, VAT, registered address, contacts) from `docs/PROJECT.md`
-- [ ] iubenda policy id set — `/privacy` and `/cookie-policy` resolve to the hosted documents
-- [ ] `/termini` reviewed, or its draft alert deliberately left in place
-- [ ] 404 and 500 pages read like this project, not like a template
+- [ ] `src/content/homepage/*.yml` col copy vero, non lorem
+- [ ] Dati societari (ragione sociale, partita IVA, sede legale, contatti) da `docs/PROJECT.md`
+- [ ] Id delle policy iubenda impostati — `/privacy` e `/cookie-policy` risolvono ai documenti ospitati
+- [ ] `/termini` rivisto, o il suo avviso di bozza lasciato lì di proposito
+- [ ] Le pagine 404 e 500 parlano di questo progetto, non di un template

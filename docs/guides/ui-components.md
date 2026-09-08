@@ -1,384 +1,374 @@
-# UI components
+# Componenti di interfaccia
 
-Conventions established by the base scaffold (design tokens, layout chrome).
-Cross-ref: `rendering-performance.md` (motion/reveal lifecycle), `seo.md` (head contract).
+Convenzioni stabilite dallo scaffold di base (token di design, arredo di pagina). Rimandi:
+`rendering-performance.md` (ciclo di vita di animazioni e rivelazioni), `seo.md` (il contratto della
+head).
 
-## Design tokens — three tiers, one rebrand surface
+## Token di design — tre livelli, una sola superficie di rebranding
 
-- `src/styles/tokens.css` — raw oklch primitives, the stacking ladder and
-  `--radius`. **This is the only file to touch when rebranding a fork**, and the
-  `--brand-*` ramp is what makes that literally true: `--primary`, `--accent` and
-  `--ring` map onto it rather than onto `--neutral-*`, so giving a client their
-  colour never means editing `light.css`/`dark.css`. It ships holding the neutral
-  values, so the default look is achromatic — replace the steps, not the roles.
-  Token names follow the Tailwind scale step they hold (`--neutral-700` =
-  Tailwind's neutral-700 value; a mislabeled step is a bug, not a taste choice).
-- **Status roles come in two steps, and so does their foreground.** `destructive`
-  and `success` are each a darker step for light and a lighter one for dark,
-  because no single value clears 4.5:1 on both — and since the same token is both
-  text (`text-destructive`) and fill (`bg-destructive`), the dark theme flips its
-  foreground to a dark one. `src/styles/contrast.test.ts` holds every pair.
-- **`z-*` comes from the ladder in `tokens.css`**, not from a number that
-  happened to work: `--z-raised` < `--z-dropdown` < `--z-header` < `--z-overlay`
-  < `--z-skip-link`. Place a new overlay by reading it, and reach it through the
-  named `z-*` utilities in `globals.css` — never an arbitrary `z-[…]`. The ladder only
-  orders siblings: **any `z-*` on an intermediate wrapper opens a stacking
-  context**, and a popover inside it can never rise above something outside it,
-  whatever number it carries. When an overlay lands under the header, look for a
-  `z-*` on an ancestor before raising the overlay's own.
-- **Timing and easing are tokens like the colours**, and `tokens.css` is the only
-  sheet allowed to spell one out: `--ease-emphasized` and `--duration-slower`
-  live there, the effect sheets consume them. `src/styles/motion.test.ts` holds
-  it — a `cubic-bezier(` or a literal duration in a `transition`/`animation`
-  fails there. A `var(--x, 0.08s)` fallback is exempt: that is one instance's
-  default, not a timing of the system. A fork adding more steps names them off
-  the same two axes; declaring them in `@theme` instead of `:root` also generates
-  the matching `ease-*` utility, which `:root` does not.
-- `src/styles/light.css` / `dark.css` — semantic role mapping (shadcn naming:
-  `--background`, `--primary`, `--destructive`, …). **Never rename these keys**;
-  components and utilities assume them. Dark overrides the same keys under `.dark`.
-- `src/styles/globals.css` — orchestrator: `@import` chain, `@custom-variant dark`
-  (official v4 form `&:where(.dark, .dark *)`), `@theme inline` remap to utilities,
-  base layer, motion CSS.
+- `src/styles/tokens.css` — primitive oklch grezze, la scala di impilamento e `--radius`. **È l'unico
+  file da toccare quando si fa il rebranding di un progetto**, e la rampa `--brand-*` è ciò che lo
+  rende vero alla lettera: `--primary`, `--accent` e `--ring` si appoggiano a lei e non a
+  `--neutral-*`, quindi dare a un cliente il suo colore non significa mai modificare `light.css` o
+  `dark.css`. Arriva coi valori neutri, quindi l'aspetto di default è acromatico: si sostituiscono i
+  gradini, non i ruoli. I nomi dei token seguono il gradino della scala Tailwind che contengono
+  (`--neutral-700` è il valore neutral-700 di Tailwind; un gradino etichettato male è un difetto,
+  non una scelta di gusto).
+- **I ruoli di stato hanno due gradini, e così il loro primo piano.** `destructive` e `success` sono
+  ciascuno un gradino più scuro per il tema chiaro e uno più chiaro per lo scuro, perché nessun
+  valore singolo supera 4,5:1 su entrambi — e dato che lo stesso token è sia testo
+  (`text-destructive`) sia riempimento (`bg-destructive`), il tema scuro gira il suo primo piano su
+  uno scuro. `src/styles/contrast.test.ts` verifica ogni coppia.
+- **Le `z-*` vengono dalla scala in `tokens.css`**, non da un numero che è capitato di far
+  funzionare: `--z-raised` < `--z-dropdown` < `--z-header` < `--z-overlay` < `--z-skip-link`. Un
+  overlay nuovo si colloca leggendola, e si raggiunge attraverso le utility `z-*` nominate in
+  `globals.css`, mai con uno `z-[…]` arbitrario. La scala ordina solo elementi fratelli: **qualunque
+  `z-*` su un contenitore intermedio apre un contesto di impilamento**, e un popover al suo interno
+  non potrà mai salire sopra qualcosa che sta fuori, qualunque numero porti. Quando un overlay
+  finisce sotto l'header, cerca uno `z-*` su un antenato prima di alzare quello dell'overlay.
+- **Tempi e curve sono token come i colori**, e `tokens.css` è l'unico foglio a cui è permesso
+  scriverne uno per esteso: `--ease-emphasized` e `--duration-slower` stanno lì, e i fogli degli
+  effetti li consumano. `src/styles/motion.test.ts` lo verifica: un `cubic-bezier(` o una durata
+  letterale dentro una `transition` o una `animation` ci fallisce. Un fallback `var(--x, 0.08s)` è
+  esente, perché è il default di una singola istanza e non un tempo del sistema. Un progetto che
+  aggiunge altri gradini li nomina sugli stessi due assi; dichiararli in `@theme` invece che in
+  `:root` genera anche la utility `ease-*` corrispondente, cosa che `:root` non fa.
+- `src/styles/light.css` e `dark.css` — la mappatura dei ruoli semantici (nomi shadcn:
+  `--background`, `--primary`, `--destructive`, …). **Queste chiavi non si rinominano mai**: i
+  componenti e le utility le danno per assodate. Il tema scuro sovrascrive le stesse chiavi sotto
+  `.dark`.
+- `src/styles/globals.css` — l'orchestratore: la catena di `@import`, `@custom-variant dark` (nella
+  forma ufficiale v4 `&:where(.dark, .dark *)`), il rimappaggio `@theme inline` verso le utility, il
+  layer di base e il CSS delle animazioni.
 
-Gradient tokens obey the same tier logic — the tier IS the theme decision. A
-gradient that must react to the theme lives in `light.css`/`dark.css` with a dark
-override; a gradient FIXED across themes by explicit product decision lives in
-`tokens.css` with no override. Consume either through Tailwind's arbitrary-property
-syntax `bg-(image:--gradient-name)` — the `image:` cast is required, a gradient is a
-`background-image`, not a color.
+I token dei gradienti seguono la stessa logica di livello — il livello È la decisione sul tema. Un
+gradiente che deve reagire al tema vive in `light.css` e `dark.css` con una sovrascrittura per lo
+scuro; un gradiente FISSO fra i temi per decisione esplicita di prodotto vive in `tokens.css` senza
+sovrascrittura. Entrambi si consumano con la sintassi a proprietà arbitraria di Tailwind
+`bg-(image:--nome-gradiente)`: il cast `image:` è obbligatorio, perché un gradiente è una
+`background-image` e non un colore.
 
-Biome parses Tailwind directives via `css.parser.tailwindDirectives` in
-`biome.json` — don't remove it, `@theme`/`@apply` fail to parse without it.
+Biome interpreta le direttive Tailwind grazie a `css.parser.tailwindDirectives` in `biome.json`: non
+toglierlo, senza quello `@theme` e `@apply` non si leggono.
 
-**[HARD] In an `.astro` file Biome only reaches the frontmatter.** The template
-part comes out byte for byte as written, with three consequences worth knowing
-before trusting a green `pnpm run ci`: Tailwind class order is sorted
-automatically only inside `cn`/`cva` and in `.tsx`, so in `.astro` markup the
-order is yours (and reordering it by hand elsewhere is pure diff noise); the
-accessibility rules never see that markup, so an `<img>` without `alt` passes the
-gate — `astro check` and a Lighthouse audit are what catch it; and the line-count
-rules don't count those files either.
+**[HARD] In un file `.astro` Biome arriva solo al frontmatter.** La parte di template esce byte per
+byte come è scritta, con tre conseguenze che vale la pena conoscere prima di fidarsi di un
+`pnpm run ci` verde: l'ordine delle classi Tailwind viene ordinato in automatico solo dentro `cn` e
+`cva` e nei `.tsx`, quindi nel markup `.astro` l'ordine è affar tuo (e riordinarlo a mano altrove è
+puro rumore nel diff); le regole di accessibilità non vedono mai quel markup, quindi un `<img>`
+senza `alt` passa il gate — a prenderlo sono `astro check` e un audit Lighthouse; e nemmeno le
+regole sul numero di righe contano quei file.
 
-## Dark mode
+## Tema scuro
 
-- Theme = `.dark` class on `<html>`, toggled by `src/components/head/theme-script.astro`
-  (inline anti-FOUC in `<head>`, delegated `[data-theme-toggle]` click handler,
-  re-applied on `astro:after-swap`).
-- Both themes declare `color-scheme` so native UI (form controls, scrollbars)
-  follows the theme.
-- Toggle buttons carry `aria-pressed`, synced by the theme script — new toggles
-  only need the `data-theme-toggle` attribute plus an initial `aria-pressed="false"`.
-- The two `theme-color` metas (`head/icons.astro`) ship with a
-  `prefers-color-scheme` media query — the correct no-JS default, but it ignores
-  the toggle. The script flips `media` between `all` and `not all` so the browser
-  chrome follows the applied theme. It re-runs on `DOMContentLoaded` for a
-  reason: on a cold load the inline script executes in `<head>` *before* the
-  parser reaches those metas, so the first pass finds nothing to sync and the
-  chrome would keep following the system preference.
+- Il tema è la classe `.dark` su `<html>`, commutata da `src/components/head/theme-script.astro`
+  (inline anti-FOUC nell'`<head>`, gestore di click delegato su `[data-theme-toggle]`, riapplicato
+  su `astro:after-swap`).
+- Entrambi i temi dichiarano `color-scheme`, così l'interfaccia nativa (controlli di form, barre di
+  scorrimento) segue il tema.
+- I bottoni di commutazione portano `aria-pressed`, sincronizzato dallo script del tema: un
+  interruttore nuovo ha bisogno solo dell'attributo `data-theme-toggle` più un `aria-pressed="false"`
+  iniziale.
+- I due meta `theme-color` (`head/icons.astro`) arrivano con una media query
+  `prefers-color-scheme`, che è il default corretto senza JavaScript ma ignora l'interruttore. Lo
+  script gira `media` fra `all` e `not all`, così la chrome del browser segue il tema applicato.
+  Rigira su `DOMContentLoaded` per una ragione: su un caricamento a freddo lo script inline gira
+  nell'`<head>` *prima* che il parser arrivi a quei meta, quindi la prima passata non trova niente
+  da sincronizzare e la chrome continuerebbe a seguire la preferenza di sistema.
 
-## Contrast on composite backgrounds
+## Contrasto su sfondi compositi
 
-**Over a gradient, a glass panel or a photo, text does not take opacity — it
-takes a solid token.** An alpha that reads fine over the darkest stop collapses
-over the lightest one: the same `white/55` can go from ~6:1 to ~2.3:1 across one
-gradient, and no alpha short of full opacity recovers 4.5:1 at the light end.
+**Sopra un gradiente, un pannello smerigliato o una foto, il testo non prende opacità: prende un
+token pieno.** Un'alfa che si legge bene sopra la tappa più scura crolla su quella più chiara: lo
+stesso `white/55` può passare da circa 6:1 a circa 2,3:1 lungo un solo gradiente, e nessuna alfa
+sotto l'opacità piena recupera 4,5:1 all'estremo chiaro.
 
-Lighthouse will not catch this. It doesn't compose alpha over a gradient or an
-image, so the page audits clean while failing WCAG 1.4.3 in practice. If a fork
-introduces composite backgrounds, the contract has to live in a unit test that
-computes relative luminance → alpha-over → ratio for each pair, asserted against
-the **worst** stop, not the average one.
+Lighthouse non lo prende. Non compone l'alfa sopra un gradiente o un'immagine, quindi la pagina
+risulta pulita all'audit mentre in pratica viola la WCAG 1.4.3. Se un progetto introduce sfondi
+compositi, il contratto deve vivere in un test unitario che calcola luminanza relativa → alfa sopra
+→ rapporto per ogni coppia, verificato contro la tappa **peggiore**, non contro la media.
 
-- **Borders may stay alpha** — a solid border turns a field into a filled box —
-  but size them against WCAG 1.4.11's 3:1 on *both* sides: the fill inside and
-  the background outside.
-- **The flat token pairs already have that test**: `src/styles/contrast.test.ts`
-  parses `tokens.css` + `light.css`/`dark.css` and asserts every
-  foreground/background pair at 4.5:1 and every control boundary at 3:1, in both
-  themes. A rebrand that drops one below the floor fails there. Two consequences
-  of it worth knowing before "tidying" them back together: `--border` and
-  `--input` are different tokens on purpose (a divider vs a control boundary),
-  and `--destructive` needs a lighter step in dark **with the foreground flipped
-  to a dark one**, because the same token is text (`text-destructive`) and fill
+- **I bordi possono restare in alfa** — un bordo pieno trasforma un campo in una scatola riempita —
+  ma si dimensionano contro il 3:1 della WCAG 1.4.11 su *entrambi* i lati: il riempimento dentro e
+  lo sfondo fuori.
+- **Le coppie di token piatti quel test ce l'hanno già**: `src/styles/contrast.test.ts` legge
+  `tokens.css`, `light.css` e `dark.css` e verifica ogni coppia primo piano/sfondo a 4,5:1 e ogni
+  confine di controllo a 3:1, in entrambi i temi. Un rebranding che ne porta una sotto il pavimento
+  ci fallisce. Due conseguenze da conoscere prima di «riordinarli» rimettendoli insieme: `--border`
+  e `--input` sono token diversi di proposito (un divisorio contro il confine di un controllo), e
+  `--destructive` ha bisogno di un gradino più chiaro nel tema scuro **con il primo piano girato su
+  uno scuro**, perché lo stesso token è testo (`text-destructive`) e riempimento
   (`bg-destructive`).
-- **The one derogation is large text** (≥24px, or ≥18.7px bold), where 1.4.3
-  asks 3:1 rather than 4.5:1 — and only where the floor is asserted against the
-  worst stop. Below that size the derogation doesn't exist.
-- A `bg-clip-text` gradient headline is the legitimate case for alpha: there the
-  transparency *is* the effect, and a solid token would erase it.
+- **L'unica deroga è il testo grande** (≥24px, o ≥18,7px in grassetto), dove la 1.4.3 chiede 3:1
+  invece di 4,5:1 — e solo dove il pavimento è verificato contro la tappa peggiore. Sotto quella
+  dimensione la deroga non esiste.
+- Un titolo con gradiente in `bg-clip-text` è il caso legittimo per l'alfa: lì la trasparenza *è*
+  l'effetto, e un token pieno lo cancellerebbe.
 
-## Chrome content
+## Contenuti dell'arredo
 
-Header/footer/skip-link structure comes from `src/lib/site.ts` (`SITE`): nav,
-CTA, legal links, socials. Copy is NOT there — entries carry i18n dictionary
-keys resolved via `useTranslations(Astro.currentLocale)`
-(`src/i18n/strings/<locale>.ts`). No hardcoded labels in components; internal
-links go through `localizedHref()` so they localize with the site.
+La struttura di header, footer e skip-link viene da `src/lib/site.ts` (`SITE`): nav, CTA, link
+legali, social. I testi NON stanno lì: le voci portano chiavi di dizionario i18n risolte tramite
+`useTranslations(Astro.currentLocale)` (`src/i18n/strings/<lingua>.ts`). Nessuna etichetta fissa nei
+componenti; i link interni passano da `localizedHref()` così si localizzano insieme al sito.
 
-## Tailwind v4 idioms adopted (don't regress to v3 habits)
+## Modi di dire di Tailwind v4 (non tornare alle abitudini della v3)
 
-- **Never `outline-none`.** A `ring` is a box-shadow, and box-shadows are dropped
-  in forced-colors mode: `outline-none` there leaves a control with no focus
-  indicator at all. `focus-visible:outline-hidden` keeps a *transparent* outline
-  that Windows High Contrast repaints, which is why every focus style in the
-  primitives pairs the two.
-- **Prefer `outline` over `ring` for anything not a form control.** An outline
-  sits in the gap and shows the real backdrop; a ring offset has to guess a
-  background colour the component can't know, and gets it wrong the moment the
-  control lands on a gradient or a coloured band. `.focus-ring` (`globals.css`)
-  is the outline-based utility for custom focusables. The primitives keep
-  `focus-visible:ring-2 ring-ring` because there the focus style doubles as a
-  glow around the field border — a legitimate use, not a leftover.
-- Logical properties for the inline axis (`start-4`, `ms-*`) — the template is
-  i18n-ready and must survive an RTL locale.
-- `overflow-wrap: anywhere`, not `break-word`, when a long token must not blow up
-  a flex or grid track: only `anywhere` lowers the box's *minimum* content size,
-  which is what the track is measured against.
-- `min-h-svh` for full-viewport shells (stable on mobile; `dvh` janks on scroll,
-  `100vh` overflows under the expanded URL bar).
-- Current utility names: `backdrop-blur-sm` (bare `backdrop-blur` is the
-  deprecated v3 compat alias).
-- Numeric utilities are dynamic in v4 (`z-100` compiles without config).
+- **Mai `outline-none`.** Un `ring` è una box-shadow, e le box-shadow spariscono in modalità
+  forced-colors: lì `outline-none` lascia un controllo senza nessun indicatore di focus.
+  `focus-visible:outline-hidden` tiene un contorno *trasparente* che il contrasto elevato di Windows
+  ridipinge, ed è il motivo per cui ogni stile di focus nelle primitive accoppia i due.
+- **Preferisci `outline` a `ring` per tutto ciò che non è un controllo di form.** Un contorno sta
+  nello spazio vuoto e mostra lo sfondo vero; un offset di ring deve indovinare un colore di sfondo
+  che il componente non può conoscere, e lo sbaglia nel momento in cui il controllo finisce su un
+  gradiente o su una fascia colorata. `.focus-ring` (`globals.css`) è la utility basata su contorno
+  per i focusabili personalizzati. Le primitive tengono `focus-visible:ring-2 ring-ring` perché lì
+  lo stile di focus funge anche da alone attorno al bordo del campo: è un uso legittimo, non un
+  residuo.
+- Proprietà logiche sull'asse inline (`start-4`, `ms-*`): il template è pronto per l'i18n e deve
+  sopravvivere a una lingua da destra a sinistra.
+- `overflow-wrap: anywhere`, non `break-word`, quando una parola lunga non deve far esplodere una
+  traccia flex o grid: solo `anywhere` abbassa la dimensione *minima* di contenuto della scatola,
+  che è quella su cui la traccia viene misurata.
+- `min-h-svh` per i gusci a viewport intero (stabile su mobile; `dvh` scatta durante lo scroll, e
+  `100vh` deborda sotto la barra degli indirizzi espansa).
+- Nomi di utility attuali: `backdrop-blur-sm` (il `backdrop-blur` nudo è l'alias di compatibilità v3,
+  deprecato).
+- Le utility numeriche sono dinamiche in v4 (`z-100` compila senza configurazione).
 
-## Accessibility patterns in the chrome
+## Pattern di accessibilità nell'arredo
 
-- `src/components/layout/skip-link.astro`: first focusable element, targets
-  `<main id="main-content" tabindex="-1">` (tabindex is what makes real focus
-  move). Hidden via `sr-only`, restored with `focus:`-prefixed utilities —
-  remember `not-sr-only` resets padding, so padding must also be focus-prefixed.
-- Icon glyphs are `aria-hidden` with the label on the control; text-presentation
-  variation selector (`&#xFE0E;`) on codepoints WebKit would render as emoji.
-- Overlay building blocks (for menus/dialogs a fork adds):
-  `lib/overlay/trap-focus.ts` (`cycleFocus` — call from the container's keydown,
-  Tab wraps at both ends) and `lib/overlay/scroll-lock.ts` (reference-counted
-  `lockScroll`/`unlockScroll`; `resetScrollLock()` on `astro:after-swap` so locks
-  never leak across view transitions).
-- **[HARD] Every programmatic `focus()` takes `{ preventScroll: true }`.** The
-  browser scrolls a focused element into view: opening a panel scrolls its own
-  container, and restoring focus on close jumps the page to wherever the previous
-  element sits — which, after any scrolling, is off screen. `route-focus.ts` and
-  `mobile-nav.ts` both do this.
-- **Bind an overlay's toggle to `click`, not `pointerup`.** On touch the
-  `pointerup` fires first and the `click` that follows lands on whatever is now
-  under the finger, reopening what was just closed.
-- **A full-screen `<dialog>` is its own backdrop as far as the event target
-  goes.** The dialog element fills the viewport, so a click outside the content
-  targets the *dialog*, never `::backdrop` — compare against the content's
-  bounding box instead of testing the target for the backdrop.
-- **A `<video>` with its source still attached keeps buffering after the overlay
-  closes.** Detach it (or pause and clear `src`) on close, or a closed lightbox
-  keeps pulling bytes.
-- **Focus after a client-side navigation** (`lib/a11y/route-focus.ts`, bound once
-  in the layout). `<ClientRouter />` restores focus only inside
-  `[data-astro-transition-persist]` subtrees and the template has none, so without
-  this every navigation drops focus to `<body>` (WCAG 2.4.3). The hash exception
-  and why it is not `createMotionBinding` are documented at the binder.
+- `src/components/layout/skip-link.astro`: è il primo elemento focusabile e punta a
+  `<main id="main-content" tabindex="-1">` (è il tabindex a far muovere davvero il focus). Nascosto
+  con `sr-only` e ripristinato con utility prefissate `focus:` — ricorda che `not-sr-only` azzera il
+  padding, quindi anche il padding va prefissato con `focus:`.
+- I glifi delle icone sono `aria-hidden` con l'etichetta sul controllo; il selettore di variazione
+  testuale (`&#xFE0E;`) va sui codepoint che WebKit renderebbe come emoji.
+- Mattoni per gli overlay (per menu e dialog che un progetto aggiunge):
+  `lib/overlay/trap-focus.ts` (`cycleFocus`, da chiamare dal keydown del contenitore, con il Tab che
+  cicla a entrambi i capi) e `lib/overlay/scroll-lock.ts` (`lockScroll` e `unlockScroll` con
+  conteggio dei riferimenti; `resetScrollLock()` su `astro:after-swap`, così i blocchi non si
+  trascinano fra le view transition).
+- **[HARD] Ogni `focus()` programmatico prende `{ preventScroll: true }`.** Il browser porta in vista
+  l'elemento che riceve il focus: aprire un pannello fa scorrere il suo stesso contenitore, e
+  ripristinare il focus alla chiusura fa saltare la pagina dove sta l'elemento precedente — che,
+  dopo un qualsiasi scorrimento, è fuori schermo. Lo fanno sia `route-focus.ts` sia `mobile-nav.ts`.
+- **L'interruttore di un overlay si aggancia a `click`, non a `pointerup`.** Sul touch il
+  `pointerup` scatta per primo e il `click` che segue atterra su qualunque cosa si trovi ora sotto
+  il dito, riaprendo quello che si era appena chiuso.
+- **Un `<dialog>` a schermo intero è il proprio sfondo, per quanto riguarda il bersaglio
+  dell'evento.** L'elemento dialog riempie il viewport, quindi un click fuori dal contenuto ha come
+  bersaglio il *dialog*, mai `::backdrop`: si confronta col rettangolo del contenuto invece di
+  verificare se il bersaglio è lo sfondo.
+- **Un `<video>` con la sorgente ancora attaccata continua a bufferizzare dopo la chiusura
+  dell'overlay.** Va staccata (o messo in pausa e svuotato `src`) alla chiusura, altrimenti un
+  lightbox chiuso continua a scaricare byte.
+- **Il focus dopo una navigazione lato client** (`lib/a11y/route-focus.ts`, agganciato una volta nel
+  layout). `<ClientRouter />` ripristina il focus solo dentro i sottoalberi
+  `[data-astro-transition-persist]`, e il template non ne ha, quindi senza questo ogni navigazione
+  butta il focus su `<body>` (WCAG 2.4.3). L'eccezione per l'hash e il motivo per cui non usa
+  `createMotionBinding` sono documentati accanto al binder.
 
-## Smooth scrolling (when a fork adds it)
+## Scorrimento morbido (quando un progetto lo aggiunge)
 
-The template does not ship a scroll library. Three projects have added the same one
-— `lenis`, on `^1.3` — each landing on the same wrapper over `createMotionBinding`
-and `prefersReducedMotion`, which are already here. What they had to find out:
+Il template non porta nessuna libreria di scroll. Tre progetti hanno aggiunto la stessa — `lenis`, su
+`^1.3` — arrivando ognuno allo stesso wrapper attorno a `createMotionBinding` e
+`prefersReducedMotion`, che qui ci sono già. Quello che hanno dovuto scoprire:
 
-- **The cleanup is empty on purpose.** The instance has to survive a view
-  transition: destroying it on `astro:before-swap` leaves the next page scrolling
-  natively for the frames before setup runs, which reads as a stutter on every
-  navigation. What the setup does instead is call `resize()` when an instance is
-  already running — the document under it has changed.
-- **The `raf` loop stops itself** by returning without rescheduling when the
-  instance is gone. A loop that keeps calling `raf()` on a destroyed instance is
-  the usual leak here, and it costs a frame's work on every tick for the rest of
-  the session.
-- **[HARD] Reduced motion has to destroy, not skip.** Honouring the preference at
-  setup time is not enough: the media query can flip while the page is open, and
-  the listener must tear the instance down and rebuild it on the way back. A
-  smooth-scroll library that keeps running under `prefers-reduced-motion: reduce`
-  is an accessibility defect no gate here catches.
-- It takes over scrolling globally, so `scroll-behavior: smooth` in CSS and any
-  `scrollIntoView({ behavior: 'smooth' })` stop being the thing that moves the
-  page — route them through the instance instead of leaving both in play.
+- **La pulizia è vuota di proposito.** L'istanza deve sopravvivere a una view transition:
+  distruggerla su `astro:before-swap` lascia la pagina successiva a scorrere in modo nativo per i
+  fotogrammi che precedono il setup, e si legge come uno scatto a ogni navigazione. Quello che fa il
+  setup, invece, è chiamare `resize()` quando un'istanza è già in esecuzione, perché il documento
+  sotto è cambiato.
+- **Il ciclo `raf` si ferma da solo** tornando senza riprogrammarsi quando l'istanza non c'è più. Un
+  ciclo che continua a chiamare `raf()` su un'istanza distrutta è la perdita tipica qui, e costa il
+  lavoro di un fotogramma a ogni tick per tutto il resto della sessione.
+- **[HARD] Il reduced motion deve distruggere, non saltare.** Onorare la preferenza al momento del
+  setup non basta: la media query può cambiare a pagina aperta, e l'ascoltatore deve smontare
+  l'istanza e ricostruirla al ritorno. Una libreria di scorrimento morbido che continua a girare
+  sotto `prefers-reduced-motion: reduce` è un difetto di accessibilità che nessun gate qui prende.
+- Si impossessa dello scorrimento a livello globale, quindi `scroll-behavior: smooth` nel CSS e
+  qualunque `scrollIntoView({ behavior: 'smooth' })` smettono di essere ciò che muove la pagina:
+  vanno instradati attraverso l'istanza invece di lasciarli entrambi in gioco.
 
-## Named view transitions (when a fork adds them)
+## View transition nominate (quando un progetto le aggiunge)
 
-The template ships `<ClientRouter />` with its default cross-fade and **no named
-groups**. Once a fork starts naming elements, each rule below is a failure that is
-easier to inherit than to rediscover.
+Il template porta `<ClientRouter />` col suo dissolvenza incrociata di default e **nessun gruppo
+nominato**. Nel momento in cui un progetto comincia a nominare elementi, ognuna delle regole qui
+sotto è un guasto che è più facile ereditare che riscoprire.
 
-**Surfaces and text are two behaviours, not one.**
+**Superfici e testo sono due comportamenti, non uno.**
 
-- *Surfaces* (bands, cards, covers) cross-fade **simultaneously and
-  complementarily** while they morph: same duration, same easing, opposite
-  keyframes, so the two opacities always sum to 1. Sequencing the fades (old out,
-  *then* new in) reopens the blank flash. The fade isn't decoration — it hides
-  the fact that two snapshots of different proportions can't line up while the
-  group interpolates; without it the scaling reads as a tear.
-- *Text and chrome* must **not** cross-fade: old discarded on the first frame,
-  new opaque from the first frame. Cross-fading text prints two *different*
-  headings on top of each other. A band's heading also skips the geometric morph
-  — it has to land in place, not fly in from wherever it sat on the previous page.
-- Consequence: **a new band is split into two groups**, one for the surface and
-  one for the text container. Keeping them in a single group is what produces the
-  smeared double heading.
+- Le *superfici* (fasce, card, copertine) fanno dissolvenza incrociata **simultanea e
+  complementare** mentre si trasformano: stessa durata, stessa curva, keyframe opposti, così le due
+  opacità sommano sempre a 1. Mettere le dissolvenze in sequenza (prima esce la vecchia, *poi* entra
+  la nuova) riapre il lampo bianco. La dissolvenza non è decorazione: nasconde il fatto che due
+  istantanee di proporzioni diverse non possono allinearsi mentre il gruppo interpola, e senza di
+  lei il ridimensionamento si legge come uno strappo.
+- *Testo e arredo* **non** devono fare dissolvenza incrociata: il vecchio si scarta al primo
+  fotogramma, il nuovo è opaco dal primo fotogramma. Incrociare il testo stampa due titoli *diversi*
+  uno sopra l'altro. Il titolo di una fascia salta anche la trasformazione geometrica: deve atterrare
+  al suo posto, non arrivare in volo da dove stava nella pagina precedente.
+- Conseguenza: **una fascia nuova si divide in due gruppi**, uno per la superficie e uno per il
+  contenitore del testo. Tenerli in un gruppo solo è ciò che produce il doppio titolo sbavato.
 
-Rules that keep it from breaking:
+Regole che evitano che si rompa:
 
-- **A duplicated `view-transition-name` on one page invalidates the entire
-  transition.** Per-slug names are safe only while each slug appears once — a
-  "related items" list must exclude the current one.
-- **Declare the stacking, don't inherit it.** Paint order defaults to the capture
-  DOM, which isn't comparable between two different pages: a full-width band ends
-  up over the very thing flying into it. Order from the bottom: root, band
-  surfaces, everything that travels page to page, band text, chrome.
-- **Guard named elements that are off-screen.** Leaving a scrolled page, a named
-  element is captured out of view and its group slides it in on the new page.
-  Clear the name on `astro:before-preparation` for elements outside the viewport.
-- **Static names only, never per-slug lists in CSS.** A per-slug name can't carry
-  a behaviour in the stylesheet. For a title that flies, assign one static name
-  at click time to the clicked source only.
-- **`transition:persist` is not the alternative for chrome.** A header that
-  changes classes per page would keep the previous page's paint. Astro's
-  `transition:animate="none"` doesn't help either: it emits into `@layer astro`,
-  which loses against non-layered wildcards.
+- **Un `view-transition-name` duplicato in una pagina invalida l'intera transizione.** I nomi per
+  slug sono sicuri solo finché ogni slug compare una volta: un elenco di «contenuti correlati» deve
+  escludere quello corrente.
+- **Dichiara l'impilamento, non ereditarlo.** L'ordine di disegno ricade sul DOM catturato, che non
+  è confrontabile fra due pagine diverse: una fascia a tutta larghezza finisce sopra proprio ciò che
+  ci sta volando dentro. Si ordina dal basso: radice, superfici delle fasce, tutto ciò che viaggia da
+  una pagina all'altra, testo delle fasce, arredo.
+- **Proteggi gli elementi nominati che sono fuori schermo.** Lasciando una pagina già scorsa, un
+  elemento nominato viene catturato fuori vista e il suo gruppo lo fa scivolare dentro sulla pagina
+  nuova. Il nome si toglie su `astro:before-preparation` per gli elementi fuori dal viewport.
+- **Solo nomi statici, mai elenchi per slug nel CSS.** Un nome per slug non può portare un
+  comportamento nel foglio di stile. Per un titolo che vola, si assegna un solo nome statico al
+  momento del click, e solo alla sorgente cliccata.
+- **`transition:persist` non è l'alternativa per l'arredo.** Un header che cambia classi da una
+  pagina all'altra terrebbe il disegno della pagina precedente. Nemmeno
+  `transition:animate="none"` di Astro aiuta: emette dentro `@layer astro`, che perde contro i
+  selettori jolly non stratificati.
 
-## UI primitives (`src/components/ui/`)
+## Primitive di interfaccia (`src/components/ui/`)
 
-Native `.astro` files using `cva` variants + `cn()` (`src/lib/utils.ts`,
-clsx + tailwind-merge) — shadcn's API shape without the React/Radix runtime:
+File `.astro` nativi che usano le varianti di `cva` più `cn()` (`src/lib/utils.ts`, clsx e
+tailwind-merge): la forma dell'API di shadcn senza il runtime React o Radix.
 
-- Variants are exported from the component's frontmatter
-  (`import Button, { buttonVariants } from '@/components/ui/button.astro'`)
-  for the rare case where only the classes are needed.
-- Polymorphism replaces Radix `asChild`: `<Button as="a" href=...>`. The `as`
-  union is explicit (`'button' | 'a'`) rather than Astro's generic
-  `Polymorphic` helper — `astro check` (0.9.x) doesn't resolve generic Props
-  at call sites; don't switch back without verifying that's fixed.
-- Compound families live in a folder with a barrel
-  (`ui/card/{card,header,…}.astro` + `index.ts`), so consumption is a
-  shadcn-shaped one-liner: `import { Card, CardHeader } from '@/components/ui/card'`.
-  Props typing survives the `.ts` re-export (verified against `astro check`).
-  Simple primitives stay flat files.
-- Compound primitives (unopinionated LEGO, caller owns structure) vs named
-  slots (fixed layout, component owns structure): primitives use the former;
-  opinionated page sections are where named slots belong.
-- Every primitive accepts a `class` override, merged last through `cn()` —
-  callers can restyle without forking the primitive.
-- New primitives follow the same recipe; keep variant strings on semantic
-  tokens only (never raw palette values) and `focus-visible:outline-hidden`
-  (see the idioms above).
-- Layout lives in `Container` + `Section` only, never hand-written: page sections
-  compose `<Section><Container>…</Container></Section>` and generator templates
-  must emit that shape. Both primitives document the width/rhythm rationale and
-  the rare narrower block's nested `max-w-*` escape hatch in their own headers.
-- Button sizes are one t-shirt scale, `sm/md/lg/xl` plus square `icon-*`
-  twins (`md` is the default — no `default` size key; variant names DO keep
-  shadcn's `default`). Beyond the shadcn set: `variant="soft"` is a low-emphasis
-  filled control (semantic tokens only, NO baked text color — an icon/social glyph
-  inherits `currentColor`), and a `shape` axis (`default`/`pill`) swaps only the box
-  radius (`pill` = `rounded-full`).
-- Form fields compose the `Field` compound (`ui/field/`: `Field` +
-  `FieldLabel` + `FieldContent` + `FieldError`, vertical/horizontal
-  orientation) around the flat controls (`input.astro`, `textarea.astro`,
-  `select.astro`). `FieldError` is the only part with behaviour attached — see
-  `forms-email.md` § Validation surface for its contract and the test guarding it.
-- `Select` is the reference progressive-enhancement primitive: the native
-  `<select>` renders first and stays the form-facing source of truth; the
-  script layer (`select-behavior.ts`) swaps in a styled trigger + listbox
-  (roving focus, `aria-expanded`/`aria-selected`, Escape/Tab/outside-click)
-  and re-dispatches `change` on the native element. New stateful primitives
-  follow this shape: no-JS baseline first, behavior in a sibling
-  `*-behavior.ts` bound via `createMotionBinding`
-  (see `rendering-performance.md`).
-- Icons come from `@lucide/astro` (build-time SVG, zero client JS): default
-  `stroke-width={1}`, size via Tailwind (`size-4`/`size-5`), `aria-hidden` by
-  default with the accessible label on the control.
+- Le varianti si esportano dal frontmatter del componente
+  (`import Button, { buttonVariants } from '@/components/ui/button.astro'`) per il caso raro in cui
+  servano solo le classi.
+- Il polimorfismo sostituisce l'`asChild` di Radix: `<Button as="a" href=...>`. L'unione di `as` è
+  esplicita (`'button' | 'a'`) invece dell'helper generico `Polymorphic` di Astro, perché
+  `astro check` (0.9.x) non risolve le Props generiche nei punti di chiamata: non tornare indietro
+  senza aver verificato che sia stato corretto.
+- Le famiglie composte vivono in una cartella con un barrel (`ui/card/{card,header,…}.astro` più
+  `index.ts`), così il consumo è una riga in forma shadcn:
+  `import { Card, CardHeader } from '@/components/ui/card'`. La tipizzazione delle Props sopravvive
+  alla riesportazione dal `.ts` (verificato con `astro check`). Le primitive semplici restano file
+  piatti.
+- Primitive composte (mattoncini senza opinioni, dove la struttura è di chi chiama) contro slot
+  nominati (layout fisso, dove la struttura è del componente): le primitive usano le prime, e gli
+  slot nominati sono il posto delle sezioni di pagina con un'opinione.
+- Ogni primitiva accetta una sovrascrittura `class`, fusa per ultima da `cn()`: chi chiama può
+  ristilare senza forkare la primitiva.
+- Le primitive nuove seguono la stessa ricetta; le stringhe delle varianti restano su token
+  semantici (mai valori grezzi di palette) e su `focus-visible:outline-hidden` (vedi i modi di dire
+  qui sopra).
+- Il layout vive solo in `Container` e `Section`, mai scritto a mano: le sezioni di pagina compongono
+  `<Section><Container>…</Container></Section>`, e i template dei generatori devono emettere quella
+  forma. Entrambe le primitive documentano nelle proprie intestazioni la ragione di larghezze e
+  ritmo, e la via d'uscita del raro blocco più stretto con un `max-w-*` annidato.
+- Le dimensioni dei bottoni sono una sola scala a taglie, `sm/md/lg/xl` più i gemelli quadrati
+  `icon-*` (`md` è il default, e non esiste una chiave `default` per la dimensione; i nomi delle
+  varianti invece il `default` di shadcn lo mantengono). Oltre l'insieme shadcn: `variant="soft"` è
+  un controllo riempito a bassa enfasi (solo token semantici, NESSUN colore di testo incorporato —
+  un'icona o un glifo social eredita `currentColor`), e un asse `shape` (`default`/`pill`) cambia
+  solo il raggio della scatola (`pill` è `rounded-full`).
+- I campi di form compongono la famiglia `Field` (`ui/field/`: `Field`, `FieldLabel`, `FieldContent`
+  e `FieldError`, con orientamento verticale o orizzontale) attorno ai controlli piatti
+  (`input.astro`, `textarea.astro`, `select.astro`). `FieldError` è l'unica parte con un
+  comportamento attaccato: il suo contratto e il test che lo presidia stanno in `forms-email.md` §
+  La superficie di validazione.
+- `Select` è la primitiva di riferimento per il miglioramento progressivo: il `<select>` nativo si
+  rende per primo e resta la fonte di verità verso il form; lo strato di script
+  (`select-behavior.ts`) inserisce un trigger e una listbox stilati (focus rotante,
+  `aria-expanded` e `aria-selected`, Escape, Tab e click fuori) e ridispaccia `change`
+  sull'elemento nativo. Le primitive con stato nuove seguono questa forma: prima la linea di base
+  senza JavaScript, poi il comportamento in un `*-behavior.ts` fratello agganciato con
+  `createMotionBinding` (vedi `rendering-performance.md`).
+- Le icone vengono da `@lucide/astro` (SVG in fase di build, zero JS lato client): `stroke-width={1}`
+  di default, dimensione con Tailwind (`size-4`, `size-5`), `aria-hidden` per default e l'etichetta
+  accessibile sul controllo.
 
-If a fork needs a genuinely stateful component (Dialog, Calendar, …), see the
-islands gotchas in `ARCHITECTURE.md`.
+Se un progetto ha davvero bisogno di un componente con stato (Dialog, Calendar, …), le trappole
+delle isole stanno in `ARCHITECTURE.md`.
 
-## Page-section layout patterns
+## Pattern di layout delle sezioni di pagina
 
-### Full-bleed bands — break out of `Container`
+### Fasce a tutta pagina — uscire da `Container`
 
-Some bands must span (near) the full viewport instead of the breakpoint-snapped
-`Container` width (a full-bleed CTA banner, a footer). Wrap them in
-`<Section spacing="none">` (or a bare landmark like `<footer>`) **without**
-`Container` — Container would cap them at the snapped width and defeat the intent.
-This is the inverse of the "rare narrower block" note under UI primitives: there you
-nest a `max-w-*` wrapper to go narrower; here you drop Container to go wider. The
-band owns its content width from the inside (internal padding or an inner `container
-mx-auto`); a `rounded-* overflow-hidden` card clips its gradient/background image to
-the radius.
+Alcune fasce devono coprire (quasi) tutto il viewport invece della larghezza di `Container`
+agganciata ai breakpoint (un banner di chiamata all'azione a tutta larghezza, un footer). Si
+avvolgono in `<Section spacing="none">` (o in un landmark nudo come `<footer>`) **senza**
+`Container`, che altrimenti le limiterebbe alla larghezza agganciata vanificando l'intento. È
+l'inverso della nota sul «raro blocco più stretto» fra le primitive: lì si annida un contenitore
+`max-w-*` per stringere, qui si toglie Container per allargare. La fascia possiede la larghezza del
+proprio contenuto dall'interno (padding interno o un `container mx-auto` annidato); una card
+`rounded-* overflow-hidden` ritaglia il suo gradiente o la sua immagine di sfondo sul raggio.
 
-### Shared opinionated shells vs `ui/` primitives
+### Gusci condivisi con un'opinione, contro le primitive di `ui/`
 
-When the same layout with a decorative background repeats across pages, extract a
-top-level shell (`src/components/*.astro`) instead of re-pasting the markup. A shell
-is an opinionated scaffold (fixed structure + slot), **not** a `ui/` primitive: the
-shell owns what's identical (decorative background, fixed structure), the consumer
-keeps what's page-specific (content, transition names, layout hooks) in the slot or
-its own outer wrapper. This is the named-slot half of the primitives split above —
-reach for a shell precisely when the structure is fixed and shared, for a compound
-`ui/` primitive when the caller must own the structure.
+Quando lo stesso layout con uno sfondo decorativo si ripete su più pagine, si estrae un guscio di
+primo livello (`src/components/*.astro`) invece di ricopiare il markup. Un guscio è
+un'impalcatura con un'opinione (struttura fissa più uno slot), **non** una primitiva di `ui/`: il
+guscio possiede quello che è identico (sfondo decorativo, struttura fissa), e chi lo consuma tiene
+nello slot o in un proprio contenitore esterno quello che è specifico della pagina (contenuti, nomi
+di transizione, agganci di layout). È la metà «slot nominati» della divisione fra primitive qui
+sopra: si ricorre a un guscio proprio quando la struttura è fissa e condivisa, e a una primitiva
+composta di `ui/` quando la struttura deve essere di chi chiama.
 
-### Brand/social icons — not in `@lucide/astro`
+### Icone di marchi e social — non stanno in `@lucide/astro`
 
-`@lucide/astro` ships no brand/social glyphs (LinkedIn, X, …). Inline the raw
-`<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">` path verbatim —
-never substitute a generic fallback icon — and put the accessible label on the
-enclosing link (`aria-label`), not on the `aria-hidden` glyph. Each network needs its
-own path; don't share one placeholder across networks. Host it in a
-`<Button as="a" variant="soft" size="icon-*">` slot rather than a hand-built `<a>`.
+`@lucide/astro` non porta nessun glifo di marchio o social (LinkedIn, X, …). Si mette inline il path
+grezzo `<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">` parola per parola — mai
+sostituendolo con un'icona generica di ripiego — e l'etichetta accessibile va sul link che lo
+contiene (`aria-label`), non sul glifo `aria-hidden`. Ogni rete vuole il suo path: non condividere un
+segnaposto fra reti diverse. Si ospita in uno slot `<Button as="a" variant="soft" size="icon-*">`
+invece che in un `<a>` costruito a mano.
 
-### Presentational shells — content or backend still pending
+### Gusci di presentazione — contenuti o backend ancora da fare
 
-A section can ship its final layout before its backend or real copy exists. Make the
-placeholder unmistakably inert instead of faking a working control:
+Una sezione può arrivare col suo layout definitivo prima che esistano il backend o i testi veri. Il
+segnaposto va reso inequivocabilmente inerte invece di fingere un controllo che funziona:
 
-- An uncabled form uses `type="button"` (never `type="submit"`) so it cannot post.
-- A purely decorative image (e.g. a wordmark echoing adjacent text) takes `alt=""`
-  so AT skips it.
-- Leave a comment pointing at the milestone/decision that will wire the shell up, so
-  it isn't mistaken for finished work.
+- un form non collegato usa `type="button"` (mai `type="submit"`), così non può inviare niente;
+- un'immagine puramente decorativa (per esempio un logotipo che ripete il testo accanto) prende
+  `alt=""`, così le tecnologie assistive la saltano;
+- lascia un commento che punti alla milestone o alla decisione che collegherà il guscio, così non lo
+  si scambia per lavoro finito.
 
-### Pinning content in unequal-height columns
+### Ancorare il contenuto in colonne di altezza diversa
 
-In a multi-column band whose columns hold different amounts of content, make each
-column a `flex flex-col` and push its trailing block (e.g. a legal/copyright row)
-down with `lg:mt-auto` (add `lg:pt-*` for a minimum gap). Trailing blocks then align
-across columns regardless of body height above them. Gate at `lg:` so the stacked
-mobile columns keep their natural flow.
+In una fascia a più colonne le cui colonne portano quantità diverse di contenuto, ogni colonna
+diventa un `flex flex-col` e il suo blocco finale (per esempio una riga legale o di copyright) si
+spinge in basso con `lg:mt-auto` (più un `lg:pt-*` per uno spazio minimo). I blocchi finali si
+allineano così fra le colonne a prescindere dall'altezza del corpo sopra di loro. Il gate a `lg:`
+serve perché su mobile, con le colonne impilate, il flusso naturale resti quello.
 
-### Accessible disclosure (expandable cards)
+### Espansione accessibile (card che si aprono)
 
-Vanilla, no framework. Use `aria-expanded` (this is a disclosure), NOT
-`aria-pressed` (that's a toggle-button state). When several may be open at once,
-each toggle is its own tab stop — no roving tabindex.
+Senza framework. Si usa `aria-expanded`, perché questa è un'espansione, NON `aria-pressed`, che è lo
+stato di un bottone a due posizioni. Quando più d'una può essere aperta insieme, ogni interruttore è
+una tappa di tabulazione a sé: niente tabindex rotante.
 
-- **Don't wrap a semantic card in a `<button>`.** A button flattens its subtree
-  (descendants go presentational), so an inner `<h3>`, role and text lose their
-  semantics — the heading vanishes from the rotor, and with an `aria-label` on the
-  button the descendant text is never announced. The card looks right and is silent
-  to AT.
-- **Fix — stretched transparent button.** Keep the card a semantic container
-  (`<article>` + a real `<h3>` + body) and overlay a transparent
-  `<button class="absolute inset-0 …">` for the full-card hit area. The content stays
-  exposed to AT; the button carries `aria-expanded`, `aria-controls` (pointing at the
-  `id`'d expandable region) and an `sr-only` label. Because the button IS the card's
-  box, its focus ring draws the card outline — same "whole card is clickable" UX
-  without the flattening.
-- **Drive visuals off a data flag.** A `data-active` (or similar) attribute on the
-  container drives the open/closed visuals via `group-data-*` variants; a click flips
-  it and the toggle's `aria-expanded` in lockstep.
-- **Contrast on filled open states.** Text landing on a saturated filled surface must
-  use the full-opacity foreground token — a reduced-alpha (`/80`) foreground over a
-  saturated fill drops under the 4.5:1 AA floor.
-- **`min-h-0` when clipping a flex child.** A flex item defaults to `min-height:auto`
-  and refuses to shrink below its content; `min-h-0` is mandatory on any flex child
-  that must clip via `overflow-hidden` (e.g. a fixed-height detail window).
-- **No-JS baseline.** The pre-script state must be substantive: ship sections open,
-  or make the collapsed state itself a complete summary rather than a truncated
-  teaser, so nothing essential needs the toggle. Behavior binds through the same
-  sibling `*-behavior.ts` + `createMotionBinding` lifecycle as the stateful
-  primitives (bind-once, torn down on the view-transition swap). This is essential
-  interaction — do NOT gate it on reduced-motion.
+- **Non avvolgere una card semantica in un `<button>`.** Un bottone appiattisce il proprio
+  sottoalbero (i discendenti diventano di presentazione), quindi un `<h3>` interno, il suo ruolo e
+  il suo testo perdono semantica — il titolo sparisce dal rotore, e con un `aria-label` sul bottone
+  il testo dei discendenti non viene annunciato affatto. La card sembra giusta ed è muta per le
+  tecnologie assistive.
+- **Correzione: bottone trasparente steso sopra.** La card resta un contenitore semantico
+  (`<article>` più un vero `<h3>` più il corpo) e sopra si mette un
+  `<button class="absolute inset-0 …">` trasparente per l'area cliccabile intera. Il contenuto resta
+  esposto alle tecnologie assistive; il bottone porta `aria-expanded`, `aria-controls` (che punta
+  alla regione espandibile con il suo `id`) e un'etichetta `sr-only`. Poiché il bottone È la scatola
+  della card, il suo anello di focus disegna il contorno della card: la stessa esperienza «tutta la
+  card è cliccabile» senza l'appiattimento.
+- **I visivi si guidano da un attributo dato.** Un `data-active` (o simile) sul contenitore guida i
+  visivi aperto/chiuso attraverso le varianti `group-data-*`; un click lo gira insieme
+  all'`aria-expanded` dell'interruttore, in coppia.
+- **Contrasto sugli stati aperti riempiti.** Il testo che atterra su una superficie riempita e satura
+  deve usare il token di primo piano a piena opacità: un primo piano ad alfa ridotta (`/80`) sopra un
+  riempimento saturo scende sotto il pavimento AA di 4,5:1.
+- **`min-h-0` quando si ritaglia un figlio flex.** Un elemento flex ha `min-height:auto` di default e
+  si rifiuta di rimpicciolirsi sotto il proprio contenuto; `min-h-0` è obbligatorio su qualunque
+  figlio flex che debba ritagliare con `overflow-hidden` (per esempio una finestra di dettaglio ad
+  altezza fissa).
+- **Linea di base senza JavaScript.** Lo stato prima dello script dev'essere sostanziale: si
+  consegnano le sezioni aperte, oppure si fa in modo che lo stato chiuso sia già un riassunto
+  completo e non un'anteprima troncata, così niente di essenziale dipende dall'interruttore. Il
+  comportamento si aggancia con lo stesso ciclo di vita delle primitive con stato — un
+  `*-behavior.ts` fratello più `createMotionBinding`, agganciato una volta e smontato allo scambio
+  della view transition. Questa è interazione essenziale: NON metterla dietro il reduced motion.

@@ -1,42 +1,42 @@
-# Client brief — <CLIENT_NAME>
+# Brief del cliente — <CLIENT_NAME>
 
-> The client's voice, immutable: not a work plan (that's `ROADMAP.md`) nor a list of open decisions (that's `DECISIONS.md`). Update it only when the brief itself changes, never when the plan does.
+> La voce del cliente, immutabile: non è un piano di lavoro (quello è `ROADMAP.md`) né un elenco di decisioni aperte (quello è `DECISIONS.md`). Si aggiorna solo quando cambia il brief, mai quando cambia il piano.
 
-## The business
+## L'attività
 
-<!-- Who the client is, what they sell, positioning, what the site is FOR (lead generation? catalog? booking?). 2-5 sentences. -->
+<!-- Chi è il cliente, cosa vende, come si posiziona, a cosa SERVE il sito (generare contatti? catalogo? prenotazioni?). Da due a cinque frasi. -->
 
-## Scope
+## Perimetro
 
-<!-- What this project includes — and, just as important, what is explicitly OUT of scope. Bullet the exclusions: they prevent scope creep months later. -->
+<!-- Cosa comprende questo progetto — e, altrettanto importante, cosa ne resta esplicitamente FUORI. Le esclusioni vanno elencate: sono quelle che mesi dopo impediscono al perimetro di allargarsi da solo. -->
 
-## Company data
+## Dati aziendali
 
-<!-- Legal name, VAT number, registered address, contacts — the values that feed `src/lib/company.ts` and the legal pages. Mark anything still unconfirmed. -->
+<!-- Ragione sociale, partita IVA, sede legale, contatti — i valori che alimentano `src/lib/company.ts` e le pagine legali. Segna quello che non è ancora confermato. -->
 
-## Constraints
+## Vincoli
 
-<!-- Hard requirements from the client's side: brand assets that must be used as-is, regulatory constraints, deadlines tied to external events, integrations that already exist. -->
+<!-- I requisiti non negoziabili che vengono dal cliente: materiali di marca da usare così come sono, vincoli normativi, scadenze legate a eventi esterni, integrazioni che esistono già. -->
 
-## Provenance
+## Provenienza
 
-<!-- Where the material comes from: previous site, brand manual, meeting notes. Link or path each source so future sessions can re-verify claims. Keep the primary sources tracked under `docs/sources/`. -->
+<!-- Da dove viene il materiale: sito precedente, manuale di marca, appunti di riunione. Ogni fonte con il suo link o percorso, così una sessione futura può riverificare quello che qui è affermato. Le fonti primarie restano tracciate sotto `docs/sources/`. -->
 
 ---
 ---
 
-# Our annotations
+# Le nostre annotazioni
 
-> From here on this is **no longer the client's voice**. Everything of ours lives below this line and never above it — six months from now this separation is the only thing that tells "the client asked for it" apart from "we inferred it".
+> Da qui in giù **non è più la voce del cliente**. Tutto ciò che è nostro sta sotto questa riga e mai sopra — fra sei mesi questa separazione è l'unica cosa che distingue «l'ha chiesto il cliente» da «l'abbiamo dedotto noi».
 
-<!-- One subsection per finding, each naming what it costs. The recurring kinds, in rough order of how much they turn out to be worth:
+<!-- Una sottosezione per ogni ritrovamento, ognuna con quello che costa. I tipi ricorrenti, in ordine grossolano di quanto valgono:
 
-- **Contradictions in the brief** — two paragraphs that cannot both be satisfied. State both readings, say which one the estimate assumed, and say what the other one would cost.
-- **Risks nobody named** — the failure that is invisible in the brief because the client does not know it exists (a payment account that may not be approved for the merchandise category, a deadline that depends on someone else's deliverable).
-- **Requirements to reformulate** — asks that are literally implementable but wrong for the user, where a better equivalent exists. Bring it as a solution, not an objection, and record it as an open decision.
-- **What is missing before this can be quoted** — mark the blocking ones. A question without a number attached is a curiosity; one with a day count is a negotiating position.
-- **What the brief does NOT ask for** — the features that invite themselves in later. Declaring them out of scope now costs nothing; contesting them after delivery costs the relationship.
+- **Contraddizioni nel brief** — due capoversi che non possono essere soddisfatti entrambi. Dichiara le due letture, di' quale ha assunto la stima e cosa costerebbe l'altra.
+- **Rischi che nessuno ha nominato** — il guasto che nel brief è invisibile perché il cliente non sa che esiste (un conto di pagamento che potrebbe non essere approvato per quella categoria merceologica, una scadenza che dipende dalla consegna di qualcun altro).
+- **Richieste da riformulare** — quello che è letteralmente implementabile ma sbagliato per l'utente, dove esiste un equivalente migliore. Si porta come soluzione, non come obiezione, e si registra come decisione aperta.
+- **Cosa manca prima di poter fare un preventivo** — segna quali bloccano. Una domanda senza un numero attaccato è una curiosità; una con le giornate è una posizione negoziale.
+- **Cosa il brief NON chiede** — le funzioni che si invitano da sole più avanti. Dichiararle fuori perimetro adesso non costa niente; contestarle dopo la consegna costa il rapporto.
 
 -->
 
-<!-- TEMPLATE: fill this in at project kickoff from the client's own words. Remove this comment and the placeholder notes once filled in. -->
+<!-- TEMPLATE: da compilare all'avvio del progetto con le parole del cliente. Togli questo commento e le note segnaposto una volta compilato. -->

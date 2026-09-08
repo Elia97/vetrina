@@ -1,55 +1,56 @@
-<!-- BLUEPRINT — copy to docs/MEETING-<date>.md (gitignored) and fill in.
-Delete every one of these comments as you go. -->
+<!-- IMPALCATURA — si copia in docs/MEETING-<data>.md (gitignored) e si riempie.
+Ogni commento come questo va cancellato strada facendo. -->
 
-# Meeting with \<counterpart\> — \<DD/MM/YYYY\> · internal agenda
+# Riunione con \<controparte\> — \<GG/MM/AAAA\> · scaletta interna
 
-> **Internal document, never shared.** It holds the figure to keep in your pocket next to the one
-> that goes on the table.
+> **Documento interno, mai condiviso.** Porta la cifra da tenere in tasca accanto a quella che va
+> sul tavolo.
 >
-> Reference: `docs/ESTIMATE.md` v\<N\> — **\<total\> days**, of which **\<n\>** for \<phase 1\>.
+> Riferimento: `docs/ESTIMATE.md` v\<N\> — **\<totale\> giornate**, di cui **\<n\>** per \<fase 1\>.
 
-**The measure of success:** \<n\> answers, the boundary of the work drawn, and the assumptions
-written down. **If the only thing that comes out is the price, the meeting went badly.**
+**La misura del successo:** \<n\> risposte, il perimetro del lavoro tracciato, e le assunzioni messe
+per iscritto. **Se l'unica cosa che esce è il prezzo, la riunione è andata male.**
 
 ---
 
-## 0. What has to come out of the room
+## 0. Cosa deve uscire dalla stanza
 
-<!-- Rank by what it is worth, not by the order you will ask. Attach the day value to each: it is
-what turns a question into something the other side can decide. -->
+<!-- Ordina per quanto vale, non per l'ordine in cui chiederai. Attacca a ciascuna il valore in
+giornate: è quello che trasforma una domanda in qualcosa che l'altro può decidere. -->
 
-1. 🔴 \<question\> — worth \<n\> days.
-2. 🔴 \<question\> — worth \<what it puts at risk\>.
-3. **The boundary and the assumptions, in writing.** Not a question: the condition under which
-   this number exists. Who produces what you do not produce — **and by when**.
+1. 🔴 \<domanda\> — vale \<n\> giornate.
+2. 🔴 \<domanda\> — vale \<cosa mette a rischio\>.
+3. **Il perimetro e le assunzioni, per iscritto.** Non è una domanda: è la condizione a cui questo
+   numero esiste. Chi produce quello che non produci tu — **ed entro quando**.
 
-## 1. Opening — how to frame it, in one minute
+## 1. Apertura — come impostarla, in un minuto
 
-<!-- Acknowledge the brief's own structure if it has one: showing it was actually read buys more
-than a summary. Then, immediately, the two conditions — because they are what makes the number
-defensible. Stating them first turns any later slippage into a foreseen circumstance; stating
-them in month three makes the same sentence sound like an excuse. -->
+<!-- Riprendi la struttura del brief se ne ha una: mostrare di averlo letto davvero compra più di
+un riassunto. Poi, subito, le due condizioni — perché sono quelle che rendono difendibile il
+numero. Dichiararle all'inizio trasforma ogni slittamento successivo in una circostanza prevista;
+dichiararle al terzo mese fa suonare la stessa frase come una scusa. -->
 
-> *"\<framing, in your own words\>"*
+> *"\<come la imposti, con le tue parole\>"*
 
-## 2. The blocking questions, in this order
+## 2. Le domande che bloccano, in quest'ordine
 
-| # | Question | Why it blocks |
+| # | Domanda | Perché blocca |
 | --- | --- | --- |
-| **1** | \<verbatim, the way you will actually say it\> | \<the days or the risk it carries\> |
+| **1** | \<testuale, come la dirai davvero\> | \<le giornate o il rischio che porta\> |
 
-<!-- Write them verbatim. A blocking question asked as an aside gets an answer given as an aside. -->
+<!-- Scrivile testuali. Una domanda che blocca, fatta di sfuggita, riceve una risposta di
+sfuggita. -->
 
-## 3. What is conceded, and what is not
+## 3. Cosa si concede e cosa no
 
-<!-- Decide before the room, not in it. Typically: the phasing is negotiable, the calibration
-("minimum effort, no contingency") is not, and neither is the point at which the days start
-counting. -->
+<!-- Deciso prima della stanza, non dentro. Di solito: la fasatura è negoziabile, la calibrazione
+(«sforzo minimo, nessun contingency») no, e nemmeno il momento da cui le giornate cominciano a
+contare. -->
 
-## 4. What gets written down before anyone leaves
+## 4. Cosa si mette per iscritto prima che qualcuno esca
 
-- \<decision\> → goes into `docs/DECISIONS.md`, or is removed from it if it was resolved.
-- \<change to the plan\> → goes into `docs/ROADMAP.md`, and the estimate is re-derived from it.
+- \<decisione\> → va in `docs/DECISIONS.md`, o ne esce se è stata risolta.
+- \<modifica al piano\> → va in `docs/ROADMAP.md`, e da lì si riderivano le giornate della stima.
 
-<!-- After the meeting: update ROADMAP.md first, then re-derive ESTIMATE.md from it and bump its
-version. Never the other way round. -->
+<!-- Dopo la riunione: prima si aggiorna ROADMAP.md, poi si riderivano ESTIMATE.md e la sua
+versione. Mai il contrario. -->

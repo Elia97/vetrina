@@ -1,56 +1,51 @@
-# Proposal templates
+# Blueprint dei documenti commerciali
 
-Blueprints for the two documents that are written **before** a project is
-approved, and that stay **out of version control** once written.
+Impalcature dei due documenti che si scrivono **prima** che un progetto sia approvato, e che una
+volta scritti restano **fuori dal controllo di versione**.
 
-## Why they live here and not as `docs/ESTIMATE.md`
+## Perché stanno qui e non come `docs/ESTIMATE.md`
 
-`.gitignore` excludes `docs/ESTIMATE.md`, `docs/MEETING-*.md` and `docs/*.pdf`
-— the repo tracks what gets built, not what gets quoted. A scaffold shipped at
-those paths would therefore be ignored and never reach a fork. Keeping the
-blueprints under a tracked path is what makes them travel.
+`.gitignore` esclude `docs/ESTIMATE.md`, `docs/MEETING-*.md` e `docs/*.pdf`: il repo traccia quello
+che si costruisce, non quello che si preventiva. Un'impalcatura consegnata a quei percorsi sarebbe
+quindi ignorata e non arriverebbe mai in un progetto nuovo. Tenerla sotto un percorso tracciato è
+ciò che la fa viaggiare.
 
-## Use
+## Uso
 
 ```sh
 cp docs/proposal-templates/estimate.md docs/ESTIMATE.md
 cp docs/proposal-templates/meeting.md  docs/MEETING-$(date +%F).md
 ```
 
-Then render the PDF that actually gets sent:
+Poi si genera il PDF che viene davvero mandato:
 
 ```sh
-md2pdf docs/ESTIMATE.md docs/Estimate-<project>-<date>.pdf
+md2pdf docs/ESTIMATE.md docs/Stima-<progetto>-<data>.pdf
 ```
 
-The blueprints are in English like the rest of this repo; the delivered
-documents are written in the client's language.
+## L'accoppiata che non deve divergere
 
-## The pairing that must not drift
-
-| Document | Tracked | Audience | Contains |
+| Documento | Tracciato | Destinatario | Contiene |
 |---|:-:|---|---|
-| `docs/ROADMAP.md` | ✅ | whoever implements | milestones, sub-tasks, **days** |
-| `docs/ESTIMATE.md` | ❌ | whoever pays | the same days, argued |
-| `docs/MEETING-<date>.md` | ❌ | **nobody but you** | what to ask, in what order |
+| `docs/ROADMAP.md` | ✅ | chi implementa | milestone, sotto-task, **giornate** |
+| `docs/ESTIMATE.md` | ❌ | chi paga | le stesse giornate, argomentate |
+| `docs/MEETING-<data>.md` | ❌ | **nessuno tranne te** | cosa chiedere, e in che ordine |
 
-`ESTIMATE.md` is **derived from** `ROADMAP.md`, never written before it. If the
-two disagree on a number, the roadmap is right and the estimate is stale.
+`ESTIMATE.md` è **derivato da** `ROADMAP.md`, mai scritto prima. Se i due non concordano su un
+numero, ha ragione la roadmap e la stima è vecchia.
 
-`MEETING-*.md` is internal by construction: it holds the figure to keep in your
-pocket next to the one on the table. It is never shared, never attached, never
-pasted into an email.
+`MEETING-*.md` è interno per costruzione: porta la cifra da tenere in tasca accanto a quella sul
+tavolo. Non si condivide, non si allega, non si incolla in una mail.
 
-## What decides the form of the estimate
+## Cosa decide la forma della stima
 
-Two shapes, and the recipient decides which:
+Due forme, e la sceglie il destinatario:
 
-- **days only** — a client operating under a framework agreement where rates
-  apply to days accrued over a period, not to this project. Putting a total in
-  would mean guessing it, and would make the estimate incomparable with the
-  others.
-- **days and amount** — a direct client, who is buying a piece of work rather
-  than a unit of valuation.
+- **solo giornate** — un cliente che opera sotto un accordo quadro, dove le tariffe si applicano
+  alle giornate maturate in un periodo e non a questo progetto. Metterci un totale significherebbe
+  indovinarlo, e renderebbe la stima non confrontabile con le altre.
+- **giornate e importo** — un cliente diretto, che compra un lavoro e non un'unità di
+  valorizzazione.
 
-The blueprint carries both; delete the one that does not apply. Rates live
-outside this repo.
+L'impalcatura le porta entrambe: si cancella quella che non si applica. Le tariffe vivono fuori da
+questo repo.

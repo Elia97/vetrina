@@ -1,83 +1,81 @@
-# Milestone templates
+# Impalcature di milestone
 
-Reusable milestone blueprints, consumed by `/milestone <template-name>`
+Blueprint riutilizzabili di milestone, consumati da `/milestone <nome-template>`
 (`.claude/commands/milestone.md`).
 
-## File format
+## Formato del file
 
-Front-matter (YAML, minimal on purpose):
+Frontmatter (YAML, volutamente minimo):
 
 ```yaml
 ---
-name: "<milestone name, may contain {{placeholder}} tokens>"
-description: <one-line summary>
+name: "<nome della milestone, può contenere token {{segnaposto}}>"
+description: <riassunto in una riga>
 ---
 ```
 
-No separate `placeholders` list — `/milestone` scans the body for distinct
-`{{snake_case}}` tokens and asks about each one directly (one batched
-`AskUserQuestion` call), using the surrounding text as context. Declaring
-placeholders twice would just be a second place for them to drift out of sync.
+Nessun elenco `placeholders` separato: `/milestone` cerca nel corpo i token `{{snake_case}}`
+distinti e li chiede direttamente, in una sola chiamata a `AskUserQuestion`, usando come contesto il
+testo che li circonda. Dichiarare i segnaposto due volte sarebbe solo un secondo posto da cui
+possono divergere.
 
-Body:
+Corpo:
 
-- One `# <name>` heading, 1-3 sentences: what this milestone delivers, when to
-  reach for it.
-- A `## Sub-tasks` section, one block per sub-task:
+- una sola intestazione `# <nome>`, con una o tre frasi: cosa consegna questa milestone e quando ha
+  senso tirarla in ballo;
+- una sezione `## Sotto-task`, un blocco per sotto-task:
 
   ```markdown
-  ### <N>. <Conventional-Commit-shaped title, e.g. "feat(content): add {{x}}">
+  ### <N>. <titolo in forma Conventional Commit, es. "feat(content): aggiungi {{x}}">
 
   **Agent:** <content-agent | ui-agent | seo-agent | forms-agent | perf-rendering-agent | ops-agent | general-purpose>
-  **Labels:** <a GitHub label, or leave empty>
+  **Labels:** <una label GitHub, oppure vuoto>
 
-  <1-3 sentences of scope/context — becomes the issue body's prose.>
+  <una o tre frasi di ambito e contesto: diventano la prosa del corpo della issue.>
 
   Checklist:
   - [ ] ...
   ```
 
-Parsing contract `/milestone` relies on:
-- The ordinal `<N>. ` prefix is stripped; the rest of the heading becomes the
-  literal GitHub issue title, verbatim, after placeholder substitution.
-- `**Agent:**` / `**Labels:**` are recognized by exact line prefix. Labels may
-  be empty (skip `--label` entirely).
-- Everything else in the block (prose + checklist) becomes the issue body,
-  prefixed with two HTML comments (invisible in GitHub's rendered view, read
-  by `/pr`):
+Il contratto di lettura su cui `/milestone` conta:
+
+- il prefisso ordinale `<N>. ` viene tolto, e il resto dell'intestazione diventa il titolo letterale
+  della issue GitHub, parola per parola, dopo la sostituzione dei segnaposto;
+- `**Agent:**` e `**Labels:**` si riconoscono dal prefisso esatto di riga. Le label possono essere
+  vuote, e in quel caso `--label` si omette del tutto;
+- tutto il resto del blocco (prosa più checklist) diventa il corpo della issue, preceduto da due
+  commenti HTML — invisibili nella vista di GitHub e letti da `/pr`:
   ```
-  <!-- milestone-template: <this-file's-slug> -->
-  <!-- suggested-agent: <same value as **Agent:** above> -->
+  <!-- milestone-template: <slug di questo file> -->
+  <!-- suggested-agent: <lo stesso valore di **Agent:** qui sopra> -->
   ```
-  This is how `/pr` reuses `/milestone`'s agent-selection logic without
-  duplicating code — slash commands can't import each other, so the
-  suggestion travels inside the issue body instead.
+  È così che `/pr` riusa la logica di scelta dell'agente di `/milestone` senza duplicarne il codice:
+  due slash command non possono importarsi a vicenda, quindi il suggerimento viaggia dentro il corpo
+  della issue.
 
-## What NOT to do
+## Cosa non fare
 
-- Never invent a GitHub label purely to group a milestone's issues — the
-  native GitHub Milestone object is the grouping mechanism. `**Labels:**` is
-  only for ordinary GitHub labels (enhancement, bug, ...), never for grouping.
-- Don't over-fragment into one-line sub-tasks — each becomes its own issue and
-  PR; keep the grain at "coherent, reviewable unit of work."
+- Non inventare mai una label GitHub solo per raggruppare le issue di una milestone: il
+  raggruppamento è l'oggetto Milestone nativo. `**Labels:**` serve per le label ordinarie
+  (enhancement, bug, …), mai per raggruppare.
+- Non frammentare in sotto-task da una riga: ognuno diventa una issue e una PR, e la grana giusta è
+  «unità di lavoro coerente e rivedibile».
 
-## Which path seeds which
+## Quale percorso semina cosa
 
-`/milestone <template-name>` **appends a milestone that is not in the roadmap
-yet** — it numbers it `1 + the highest ## Milestone N heading present`. So it
-fits a blueprint reached for mid-project, not one already written into the plan.
+`/milestone <nome-template>` **accoda una milestone che nella roadmap non c'è ancora**, numerandola
+come `1 + la più alta intestazione ## Milestone N presente`. Va bene per un blueprint tirato in
+ballo a progetto avviato, non per uno già scritto nel piano.
 
-`/milestone <N>` seeds a `## Milestone N` section **that already exists**. That
-is the path for everything planned up front, `foundations` included: running the
-template path against a roadmap that already carries the section would create a
-duplicate one number higher.
+`/milestone <N>` semina una sezione `## Milestone N` **che esiste già**. È il percorso per tutto
+quello che è stato pianificato prima, `foundations` compresa: lanciare il percorso template su una
+roadmap che porta già la sezione creerebbe un doppione un numero più avanti.
 
-## Available templates
+## Template disponibili
 
-- `foundations.md` — Milestone 1 of every project: branding, environments,
-  design system, SEO, forms, consent, real content. Transcribed into the roadmap
-  while the plan is written (the estimate is derived from it), then seeded with
-  `/milestone 1`. Nothing else can be built on a scaffold that still calls
-  itself `astro-template`.
-- `content-section.md` — new content-collection-backed section (listing +
-  detail pages + SEO), parametrized by section/collection/route name.
+- `foundations.md` — la Milestone 1 di ogni progetto: branding, ambienti, design system, SEO, form,
+  consenso, contenuti reali. Si trascrive nella roadmap mentre si scrive il piano (la stima si
+  deriva da lì) e poi si semina con `/milestone 1`. Non si costruisce niente sopra uno scaffold che
+  si chiama ancora `astro-template`.
+- `content-section.md` — una sezione nuova basata su una content collection (listing, pagine di
+  dettaglio e SEO), parametrizzata sui nomi di sezione, collezione e rotta.

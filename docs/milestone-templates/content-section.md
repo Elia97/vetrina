@@ -1,79 +1,76 @@
 ---
-name: "{{section_name}} section"
-description: New content collection with listing + detail pages, wired into SEO/sitemap.
+name: "Sezione {{section_name}}"
+description: Nuova content collection con pagine di listing e dettaglio, collegata a SEO e sitemap.
 ---
 
-# {{section_name}} section
+# Sezione {{section_name}}
 
-Adds a new content-collection-backed section (listing + detail pages) end to
-end: schema, pages, SEO plumbing. Reach for this when the client needs a
-recurring content type (blog, case studies, FAQ, portfolio...) beyond the
-homepage.
+Aggiunge dall'inizio alla fine una sezione basata su una content collection — listing e pagine di
+dettaglio — con schema, pagine e impianto SEO. Si tira in ballo quando al cliente serve un tipo di
+contenuto ricorrente (blog, casi studio, FAQ, portfolio…) oltre alla homepage.
 
-## Sub-tasks
+## Sotto-task
 
-### 1. feat(content): add {{collection_name}} content collection schema
+### 1. feat(content): aggiungi lo schema della content collection {{collection_name}}
 
 **Agent:** content-agent
 **Labels:** enhancement
 
-Zod schema for {{collection_name}} (title, description, publishedAt, cover
-image, tags, draft flag), loader registered in `content.config.ts`, 2 example
-entries as seed content.
+Schema Zod per {{collection_name}} (titolo, descrizione, `publishedAt`, immagine di copertina, tag,
+flag di bozza), loader registrato in `content.config.ts`, 2 voci di esempio come contenuto iniziale.
 
 Checklist:
-- [ ] Schema in `content.config.ts` with typed frontmatter
-- [ ] 2 example entries under `src/content/{{collection_name}}/`
-- [ ] `astro sync` + `pnpm run typecheck` clean
+- [ ] Schema in `content.config.ts` con frontmatter tipizzato
+- [ ] 2 voci di esempio sotto `src/content/{{collection_name}}/`
+- [ ] `astro sync` e `pnpm run typecheck` puliti
 
-### 2. feat({{collection_name}}): add listing page
+### 2. feat({{collection_name}}): aggiungi la pagina di listing
 
 **Agent:** ui-agent
 **Labels:** enhancement
 
-`/{{route_segment}}/` index page, reusing existing `ui/card` primitives,
-chronological order, empty-state when no entries exist yet.
+Pagina indice `/{{route_segment}}/`, che riusa le primitive `ui/card` esistenti, in ordine
+cronologico, con lo stato vuoto quando ancora non c'è nessuna voce.
 
 Checklist:
 - [ ] `src/pages/{{route_segment}}/index.astro`
-- [ ] Empty-state UI
-- [ ] Accessible markup (heading hierarchy, landmark)
+- [ ] Interfaccia per lo stato vuoto
+- [ ] Markup accessibile (gerarchia dei titoli, landmark)
 
-### 3. feat({{collection_name}}): add detail page
+### 3. feat({{collection_name}}): aggiungi la pagina di dettaglio
 
 **Agent:** ui-agent
 **Labels:** enhancement
 
-`/{{route_segment}}/[slug]/` via `getStaticPaths`, renders the entry body,
-back-link to the listing. Rendering strategy (prerender vs SSR) per
-`docs/guides/rendering-performance.md` if it exists.
+`/{{route_segment}}/[slug]/` via `getStaticPaths`, che rende il corpo della voce e riporta al
+listing. La strategia di rendering (prerender o SSR) segue `docs/guides/rendering-performance.md`,
+se esiste.
 
 Checklist:
 - [ ] `src/pages/{{route_segment}}/[slug].astro`
-- [ ] Explicit `prerender` choice with rationale
-- [ ] 404 for unknown/draft slugs
+- [ ] Scelta esplicita di `prerender`, con la ragione
+- [ ] 404 per slug sconosciuti o in bozza
 
-### 4. feat(seo): sitemap + metadata for {{collection_name}}
+### 4. feat(seo): sitemap e metadati per {{collection_name}}
 
 **Agent:** seo-agent
 **Labels:** enhancement
 
-Canonical/OG/JSON-LD (Article or CollectionPage) on listing+detail, sitemap
-inclusion, noindex on draft entries.
+Canonical, OG e JSON-LD (`Article` o `CollectionPage`) su listing e dettaglio, inclusione nella
+sitemap, `noindex` sulle voci in bozza.
 
 Checklist:
-- [ ] JSON-LD on detail pages
-- [ ] Draft entries excluded from sitemap / noindex
-- [ ] OG image fallback to `public/og-default.png` when entry has none
+- [ ] JSON-LD sulle pagine di dettaglio
+- [ ] Voci in bozza escluse dalla sitemap e in `noindex`
+- [ ] Immagine OG che ricade su `public/og-default.png` quando la voce non ne ha una
 
-### 5. docs(guides): codify {{collection_name}} patterns
+### 5. docs(guides): codifica i pattern di {{collection_name}}
 
 **Agent:** general-purpose
 **Labels:**
 
-Update (or create) `docs/guides/content-collections.md` with the schema/loader
-pattern established above, so future sections reuse it instead of
-re-deriving it.
+Aggiorna (o crea) `docs/guides/content-collections.md` col pattern di schema e loader stabilito qui
+sopra, così le sezioni future lo riusano invece di riderivarlo.
 
 Checklist:
-- [ ] `docs/guides/content-collections.md` updated
+- [ ] `docs/guides/content-collections.md` aggiornato

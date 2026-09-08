@@ -1,169 +1,158 @@
 # SEO
 
-Conventions established by the centralized head (`src/components/head/head.astro`).
+Convenzioni stabilite dalla head centralizzata (`src/components/head/head.astro`).
 
-## Head contract
+## Il contratto della head
 
-- `head.astro` is the single place for title/description/canonical/OG/Twitter/
-  JSON-LD/hreflang. Pages pass SEO props to the **layout**
-  (`src/layouts/main.astro`), which forwards them — pages never render
-  `head.astro` directly.
-- Internally it's a thin orchestrator: URL/meta resolution is a pure function
-  (`head/seo.ts` → `resolveHeadSeoMeta`, unit-tested in `head/seo.test.ts`);
-  rendering is split per concern (`head/{alternates,og,twitter,json-ld}.astro`).
-  Extend by adding meta to the right subcomponent — don't grow the orchestrator.
-- `<meta charset>` and `<meta viewport>` live in the **layout**, before the
-  inline theme script: the encoding declaration must sit within the first
-  1024 bytes of the document. Don't move them into `head.astro`.
+- `head.astro` è l'unico posto per titolo, descrizione, canonical, OG, Twitter, JSON-LD e hreflang.
+  Le pagine passano le prop SEO al **layout** (`src/layouts/main.astro`), che le inoltra: una pagina
+  non rende mai `head.astro` direttamente.
+- Dentro è un orchestratore sottile: la risoluzione di URL e meta è una funzione pura (`head/seo.ts`
+  → `resolveHeadSeoMeta`, coperta da `head/seo.test.ts`), e il rendering è diviso per competenza
+  (`head/{alternates,og,twitter,json-ld}.astro`). Si estende aggiungendo meta al sottocomponente
+  giusto, non facendo crescere l'orchestratore.
+- `<meta charset>` e `<meta viewport>` stanno nel **layout**, prima dello script inline del tema: la
+  dichiarazione di codifica deve stare entro i primi 1024 byte del documento. Non spostarli dentro
+  `head.astro`.
 
-## URL policy (canonical / hreflang)
+## Politica degli URL (canonical e hreflang)
 
-- `trailingSlash: 'never'` in `astro.config.mjs` is the sitewide policy. The
-  Vercel adapter turns it into a platform-level 308 (`/(.*)/$ → /$1`) — don't
-  add manual redirects.
-- Canonical **and** hreflang alternates are both built via `getAbsoluteLocaleUrl`
-  on a locale-agnostic path (`localeAgnosticPath` in `src/i18n/path.ts`:
-  current locale prefix stripped, localized segments canonicalized, trailing
-  slash normalized), then re-localized per locale (`translatePath`). Never
-  hand-build a canonical from raw `Astro.url.pathname`: raw paths and
-  `astro:i18n` URLs disagree on slashes and locale prefixes, and Google
-  ignores hreflang that doesn't point at the canonical.
-- `SITE.localeTags` maps locale **codes** (for object locale entries that's
-  `codes[0]`, not `path`) to BCP 47 tags used for `lang`, `hreflang` and
-  `og:locale` (underscore form). `x-default` points at the default locale.
-- **[HARD] Never emit an `hreflang` pointing at a 404.** Google discards the
-  *whole* cluster when one alternate is dead — every language of that page, not
-  just the broken one — and no gate here sees it: it surfaces in Search Console
-  weeks later. A page without a translation emits no link for that language.
-- Under `exactOptionalPropertyTypes` that means **omitting the key**, not setting
-  it to `undefined`: `...(twin ? { en: twin } : {})`.
-- A sitemap's `xhtml:link` alternates pair **by identical path after the locale
-  prefix**, so localized slugs never pair up there. With localized routing the
-  hreflang that counts is the one in the `<head>`; the sitemap does not make up
-  for it.
+- `trailingSlash: 'never'` in `astro.config.mjs` è la politica di tutto il sito. L'adapter Vercel la
+  trasforma in un 308 a livello di piattaforma (`/(.*)/$ → /$1`): non aggiungere redirect a mano.
+- Canonical **e** alternate hreflang si costruiscono entrambi con `getAbsoluteLocaleUrl` su un
+  percorso indipendente dalla lingua (`localeAgnosticPath` in `src/i18n/path.ts`: prefisso della
+  lingua corrente tolto, segmenti localizzati riportati alla forma canonica, slash finale
+  normalizzato), e poi si rilocalizzano per lingua (`translatePath`). Non costruire mai un canonical
+  a mano da `Astro.url.pathname` grezzo: i percorsi grezzi e gli URL di `astro:i18n` non concordano
+  su slash e prefissi di lingua, e Google ignora un hreflang che non punta al canonical.
+- `SITE.localeTags` mappa i **codici** di lingua (per le voci oggetto è `codes[0]`, non `path`) sui
+  tag BCP 47 usati per `lang`, `hreflang` e `og:locale` (in forma con underscore). `x-default` punta
+  alla lingua di default.
+- **[HARD] Non emettere mai un `hreflang` che punta a un 404.** Google scarta l'**intero** gruppo
+  quando un alternate è morto — ogni lingua di quella pagina, non solo quella rotta — e nessun gate
+  qui se ne accorge: viene fuori in Search Console settimane dopo. Una pagina senza traduzione non
+  emette nessun link per quella lingua.
+- Sotto `exactOptionalPropertyTypes` questo significa **omettere la chiave**, non metterla a
+  `undefined`: `...(twin ? { en: twin } : {})`.
+- Gli alternate `xhtml:link` di una sitemap si accoppiano **per percorso identico dopo il prefisso
+  di lingua**, quindi con slug localizzati non si accoppiano mai. Con il routing localizzato
+  l'hreflang che conta è quello nella `<head>`: la sitemap non rimedia.
 
 ## JSON-LD
 
-Pass structured data as objects via the layout's `jsonLd` prop.
-`head/json-ld.astro` escapes `<` (as the unicode escape) before `set:html` —
-content can't close the script element early. Never `set:html` raw
-`JSON.stringify` output anywhere else. The sitewide schemas (Organization, built
-from `COMPANY` + `SITE`, and WebSite) are declared inline in
-`src/pages/index.astro` and live on the homepage only. `src/lib/seo/json-ld.ts`
-ships the two list builders — `buildBreadcrumbList` and `buildItemList` — which
-absolutize their URLs against `SITE.url`; a fork adds its own entity builders
-there.
+I dati strutturati si passano come oggetti tramite la prop `jsonLd` del layout. `head/json-ld.astro`
+codifica `<` (nella forma unicode) prima di `set:html`, così il contenuto non può chiudere in
+anticipo l'elemento script. Non usare mai `set:html` sull'output grezzo di `JSON.stringify` da
+nessun'altra parte. Gli schemi di tutto il sito (`Organization`, costruito da `COMPANY` e `SITE`, e
+`WebSite`) sono dichiarati inline in `src/pages/index.astro` e vivono solo sulla homepage.
+`src/lib/seo/json-ld.ts` porta i due costruttori di liste — `buildBreadcrumbList` e `buildItemList` —
+che rendono assoluti i loro URL rispetto a `SITE.url`; un progetto ci aggiunge i costruttori delle
+proprie entità.
 
-For a listing → detail route pair, the **listing** emits `BreadcrumbList` +
-an `ItemList` of its children (the catalog); each **detail** emits the
-single-entity schema (`Service`, `Article`, …) + its own `BreadcrumbList`.
-Don't replicate the full entity on the listing — the authoritative instance
-belongs to its detail URL.
+Per una coppia di rotte listing e dettaglio, il **listing** emette `BreadcrumbList` più un
+`ItemList` dei suoi figli (il catalogo); ogni **dettaglio** emette lo schema della singola entità
+(`Service`, `Article`, …) e il proprio `BreadcrumbList`. Non replicare l'entità intera sul listing:
+l'istanza autorevole appartiene al suo URL di dettaglio.
 
-### One company, one entity (when a fork adds a second)
+### Una società, un'entità (quando un progetto ne aggiunge una seconda)
 
-The moment the company appears in more than one place — a `LocalBusiness` on the
-contact page, or a compact reference used as `author`/`publisher`/`provider` —
-the nodes need stable `@id`s (`${SITE.url}/#organization`) and the secondary one
-hangs off the first via `parentOrganization`.
+Nel momento in cui la società compare in più di un posto — un `LocalBusiness` sulla pagina contatti,
+o un riferimento compatto usato come `author`, `publisher` o `provider` — i nodi hanno bisogno di
+`@id` stabili (`${SITE.url}/#organization`), e il secondario si aggancia al primo con
+`parentOrganization`.
 
-- **The `@id` is an identifier, not a navigable URL.** That fragment resolves to
-  nothing, deliberately.
-- **[HARD] The same `@id` merges the nodes**, so `name` and `legalName` must be
-  **identical** in the compact reference and in the full node — differing, the
-  merge yields one entity carrying two names.
-- **A `logo` must sit on a light background.** Google paints it on its own white
-  panel, where a white-on-transparent wordmark disappears. Assert the file exists
-  in `public/` from a test: a 404 logo fails silently, like the manifest icons
-  above.
-- **A `name` coming from a content field goes through a single-line normalizer.**
-  YAML block scalars keep their newlines, and one reaching a `<title>` or a
-  schema `name` prints there verbatim.
+- **L'`@id` è un identificatore, non un URL navigabile.** Quel frammento non risolve a niente, ed è
+  voluto.
+- **[HARD] Lo stesso `@id` fonde i nodi**, quindi `name` e `legalName` devono essere **identici** nel
+  riferimento compatto e nel nodo completo: se differiscono, la fusione produce un'entità sola con
+  due nomi.
+- **Un `logo` deve stare su fondo chiaro.** Google lo dipinge sul proprio pannello bianco, dove un
+  logotipo bianco su trasparente sparisce. Verifica da un test che il file esista in `public/`: un
+  logo che risponde 404 fallisce in silenzio, come le icone del manifest qui sotto.
+- **Un `name` che viene da un campo di contenuto passa da un normalizzatore a riga singola.** Gli
+  scalari a blocco di YAML tengono i loro a capo, e uno che arriva a un `<title>` o al `name` di uno
+  schema ci finisce stampato tale e quale.
 
-## OG / social
+## OG e social
 
-- OG and Twitter image URLs are always absolute, built from `SITE.url`.
-- `public/og-default.png` is a solid-color 1200×630 placeholder — **replace it
-  per fork**, and keep `SITE.defaultOgImage` pointing at a file that exists
-  (a dead og:image fails social card validators).
-- **A generated OG image is cached forever.** `@vercel/og` answers
-  `cache-control: public, immutable, max-age=31536000`, so editing the template
-  updates neither the images already served nor the copies the social networks
-  hold. A refresh needs a *new URL*, not a new deploy.
+- Gli URL delle immagini OG e Twitter sono sempre assoluti, costruiti da `SITE.url`.
+- `public/og-default.png` è un segnaposto 1200×630 a tinta unita: **si sostituisce in ogni
+  progetto**, tenendo `SITE.defaultOgImage` puntato su un file che esiste (un `og:image` morto fa
+  fallire i validatori delle social card).
+- **Un'immagine OG generata è in cache per sempre.** `@vercel/og` risponde con
+  `cache-control: public, immutable, max-age=31536000`, quindi modificare il template non aggiorna
+  né le immagini già servite né le copie che i social tengono. Per rinfrescarle serve un *URL
+  nuovo*, non un deploy nuovo.
 
-## Icons, manifest & theme-color
+## Icone, manifest e theme-color
 
-`head/icons.astro` carries the document's identity — favicons, the manifest link
-and the browser-chrome colour — and is rendered once from `head.astro`.
+`head/icons.astro` porta l'identità del documento — favicon, link al manifest e colore della chrome
+del browser — e viene reso una volta sola da `head.astro`.
 
-- **The manifest is built, not authored.** `src/lib/seo/manifest.ts` derives it from
-  `SITE` (name, description, lang, colours) and
-  `src/pages/site.webmanifest.ts` serves it prerendered, so the installed
-  identity can't drift from the site's own.
-- **`id`, `start_url` and `scope` are pinned at `/`.** Changing `id` makes
-  browsers treat the site as a different app: an existing install stops updating
-  and the prompt comes back.
-- **`manifest.test.ts` holds every declared icon to actually existing.** An icon
-  listed but not shipped is a 404 the browser only reports at install time,
-  where nobody is looking — which is why the list is short rather than
-  aspirational.
-- **Out of the box the manifest is valid but not installable.** It declares the
-  SVG favicon only; Chrome's install prompt wants a raster of at least 192px.
-  A fork adds `/icon-192.png`, `/icon-512.png` and a maskable 512 (content
-  inside the centered 80% safe zone, opaque — Android's adaptive mask clips the
-  rest) and lists them in `ICONS`.
-- **`SITE.themeColor` must equal `--background`** in `light.css`/`dark.css`, or
-  the browser chrome and the page disagree at the seam. It's hex, not oklch:
-  `<meta name="theme-color">` is parsed by the browser UI layer, where support
-  is narrower than in CSS.
+- **Il manifest si costruisce, non si scrive.** `src/lib/seo/manifest.ts` lo deriva da `SITE` (nome,
+  descrizione, lingua, colori) e `src/pages/site.webmanifest.ts` lo serve prerenderizzato, così
+  l'identità installata non può divergere da quella del sito.
+- **`id`, `start_url` e `scope` sono fissati su `/`.** Cambiare `id` fa sì che i browser trattino il
+  sito come un'altra applicazione: un'installazione esistente smette di aggiornarsi e il prompt
+  ricompare.
+- **`manifest.test.ts` verifica che ogni icona dichiarata esista davvero.** Un'icona elencata ma non
+  consegnata è un 404 che il browser segnala solo al momento dell'installazione, dove non guarda
+  nessuno — ed è il motivo per cui l'elenco è corto invece che velleitario.
+- **Così com'è, il manifest è valido ma non installabile.** Dichiara solo la favicon SVG, mentre il
+  prompt di installazione di Chrome vuole un raster di almeno 192px. Un progetto aggiunge
+  `/icon-192.png`, `/icon-512.png` e una 512 maskable (contenuto dentro la zona sicura centrale
+  dell'80%, opaca — la maschera adattiva di Android taglia il resto) e le elenca in `ICONS`.
+- **`SITE.themeColor` deve essere uguale a `--background`** in `light.css` e `dark.css`, altrimenti
+  la chrome del browser e la pagina non concordano sulla giuntura — lo verifica
+  `src/styles/theme-color.test.ts`, che risolve i token e converte oklch in esadecimale. È in
+  esadecimale e non in oklch:
+  `<meta name="theme-color">` lo interpreta lo strato di interfaccia del browser, dove il supporto è
+  più stretto che nel CSS.
 
-## Sitemap & robots
+## Sitemap e robots
 
-- `@astrojs/sitemap` (astro.config.mjs) emits `sitemap-index.xml` at build
-  time — dev never serves it. Its locale map mirrors `SITE.localeTags`.
-- **A media sitemap needs its own endpoint.** The integration's `serialize` hook
-  cannot emit a `<video:…>` or `<image:…>` namespace: its `SitemapItem` type is a
-  `Pick` of `url|lastmod|changefreq|priority|links` and nothing else. Emit that
-  sitemap from a route of its own and attach it through `customSitemaps`.
-- **Media schema fields carry the platform's limits, enforced at build.** Google
-  caps a video `name` at 100 characters and a `description` at 2048: put those in
-  the Zod schema rather than truncating at serialization — failing the build
-  beats shipping a silently cut string into the XML. Same rule for the JSON-LD
-  and the sitemap describing the **same** set: resolve both from one function, or
-  they drift into describing different media.
-- Only **prerendered** routes end up in the sitemap: keep indexable pages
-  prerendered (the default), or list on-demand URLs via the integration's
-  `customPages`.
-- `src/pages/robots.txt.ts` (prerendered) points crawlers at the sitemap and
-  reads its disallow list from `crawl-policy.ts`: per-response indexing control
-  does NOT belong there (crawlers cache robots.txt).
-- **`src/lib/seo/crawl-policy.ts` is the single source of truth**, feeding
-  `robots.txt`, the sitemap `filter` and the middleware. Two lists:
-  `ROBOTS_DISALLOWED_PATHS` (blocked at the crawler, never fetched) and
-  `NOINDEX_PATHS` (crawlable, kept out of the index — the page still has to pass
-  `noindex` to the layout: **the meta tag is what carries the signal**, and the
-  only mechanism that works on a prerendered page). Both feed
-  `SITEMAP_EXCLUDED_PATHS`, both ship empty, and matching is by subtree and has
-  to stay that way — `/area-riservata` covers `/area-riservata/documenti`. An
-  exact match would leave every child indexable while nothing fails, which is
-  why `matchesSubtree` carries a `[HARD]` note.
-- `X-Robots-Tag` from `src/middleware.ts` also reads `NOINDEX_PATHS`, but only
-  ever reaches a **non-HTML SSR response** (a generated feed, a JSON endpoint)
-  where no meta tag can exist. It does not run for a prerendered page.
-- Exclusion is only for routes that **are** built but must stay unindexed.
-  A route never enumerated by `getStaticPaths` in production (e.g. a draft
-  gated out by a visibility predicate) needs neither side: only prerendered
-  routes reach the sitemap, so a URL that's never built can't appear in it —
-  no `filter` required.
+- `@astrojs/sitemap` (in `astro.config.mjs`) emette `sitemap-index.xml` in fase di build: in
+  sviluppo non viene mai servito. La sua mappa delle lingue rispecchia `SITE.localeTags`.
+- **Una sitemap di media vuole un endpoint suo.** L'hook `serialize` dell'integrazione non può
+  emettere un namespace `<video:…>` o `<image:…>`: il suo tipo `SitemapItem` è un `Pick` di
+  `url|lastmod|changefreq|priority|links` e nient'altro. Quella sitemap si emette da una rotta
+  propria e si aggancia con `customSitemaps`.
+- **I campi degli schemi dei media portano i limiti della piattaforma, imposti in build.** Google
+  taglia il `name` di un video a 100 caratteri e la `description` a 2048: quei limiti vanno nello
+  schema Zod invece che in un troncamento al momento della serializzazione — far fallire la build è
+  meglio che spedire nell'XML una stringa tagliata in silenzio. Stessa regola per il JSON-LD e la
+  sitemap che descrivono lo **stesso** insieme: si risolvono entrambi da una funzione sola, o
+  finiscono per descrivere media diversi.
+- Nella sitemap finiscono solo le rotte **prerenderizzate**: le pagine indicizzabili restano
+  prerenderizzate (che è il default), oppure gli URL on-demand si elencano con `customPages`.
+- `src/pages/robots.txt.ts` (prerenderizzato) indirizza i crawler alla sitemap e legge la sua lista
+  di disallow da `crawl-policy.ts`: il controllo dell'indicizzazione per singola risposta NON sta lì
+  (i crawler mettono in cache robots.txt).
+- **`src/lib/seo/crawl-policy.ts` è la fonte unica di verità** e alimenta `robots.txt`, il `filter`
+  della sitemap e il middleware. Due liste: `ROBOTS_DISALLOWED_PATHS` (bloccate al crawler, mai
+  scaricate) e `NOINDEX_PATHS` (scansionabili, tenute fuori dall'indice — la pagina deve comunque
+  passare `noindex` al layout: **è il meta tag a portare il segnale**, ed è l'unico meccanismo che
+  funziona su una pagina prerenderizzata). Entrambe alimentano `SITEMAP_EXCLUDED_PATHS`, entrambe
+  arrivano vuote, e la corrispondenza è per sottoalbero e deve restare tale — `/area-riservata`
+  copre `/area-riservata/documenti`. Una corrispondenza esatta lascerebbe indicizzabile ogni figlio
+  senza che niente fallisca, ed è il motivo per cui `matchesSubtree` porta una nota `[HARD]`.
+- Anche `X-Robots-Tag` da `src/middleware.ts` legge `NOINDEX_PATHS`, ma arriva soltanto a una
+  **risposta SSR non HTML** (un feed generato, un endpoint JSON) dove nessun meta tag può esistere.
+  Su una pagina prerenderizzata non gira.
+- L'esclusione serve solo per le rotte che **vengono** costruite ma devono restare fuori
+  dall'indice. Una rotta che in produzione `getStaticPaths` non enumera mai (per esempio una bozza
+  tenuta fuori da un predicato di visibilità) non ha bisogno né dell'una né dell'altra: nella
+  sitemap arrivano solo le rotte prerenderizzate, quindi un URL mai costruito non può comparirci, e
+  nessun `filter` serve.
 
-## Preview deploys
+## Deploy di preview
 
-A `has: host` header rule in `vercel.json` sets `X-Robots-Tag: noindex, nofollow`
-on every `*.vercel.app` host — preview/branch deploys must never compete with the
-production domain in search indexes. Nothing to configure per fork.
+Una regola di header `has: host` in `vercel.json` mette `X-Robots-Tag: noindex, nofollow` su ogni
+host `*.vercel.app`: i deploy di preview e di branch non devono mai fare concorrenza al dominio di
+produzione negli indici. Non c'è niente da configurare per progetto.
 
-It lives at the edge, **not** in `src/middleware.ts`: for a prerendered page the
-middleware runs once at build time and its response headers are discarded into a
-static file, so a middleware check would have covered only on-demand routes.
-`src/vercel-robots.test.ts` pins the rule and asserts it never matches the custom
-domain — the failure that would drop the live site out of every index.
+Vive sul bordo e **non** in `src/middleware.ts`: per una pagina prerenderizzata il middleware gira
+una volta sola in fase di build e le sue intestazioni di risposta finiscono scartate dentro un file
+statico, quindi un controllo nel middleware avrebbe coperto solo le rotte on-demand.
+`src/vercel-robots.test.ts` fissa la regola e verifica che non corrisponda mai al dominio
+personalizzato — il guasto che farebbe sparire il sito vivo da ogni indice.

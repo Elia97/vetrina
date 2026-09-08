@@ -1,28 +1,28 @@
-# Open decisions
+# Decisioni aperte
 
-> Only **open** decisions, not a history — that lives in `git log`. Once a decision is resolved, remove it from here and reflect the outcome in the relevant docs (`ARCHITECTURE.md`, guides in `docs/guides/`).
+> Solo le decisioni **aperte**, non una cronistoria — quella sta in `git log`. Quando una decisione si chiude, si toglie da qui e l'esito finisce nei documenti che gli competono (`ARCHITECTURE.md`, le guide in `docs/guides/`).
 
-Informational, not blocking: agents read this as context before starting a milestone, but it doesn't prevent starting.
+Informative e non bloccanti: gli agenti leggono questo file come contesto prima di iniziare una milestone, ma non impedisce di iniziare.
 
-Group open decisions under the milestone they gate; keep a trailing **Informativa (non bloccante)** bucket for things agents should know but that don't block any milestone.
+Le decisioni aperte si raggruppano sotto la milestone che bloccano; in coda resta un contenitore **Informativa (non bloccante)** per quello che conviene sapere ma non blocca nessuna milestone.
 
-Two markers, and only these two:
+Due marcatori, e solo questi due:
 
-- **🔴** on what blocks the estimate or the implementation — everything else is ordinary open ground.
-- **the day value**, wherever the answer moves the number (`D1 — what "full-custom" means: 6 days, across M2, M3, M6`). A question without a number is a curiosity; a question with one is a decision the client can actually take.
+- **🔴** su ciò che blocca la stima o l'implementazione — tutto il resto è terreno aperto ordinario.
+- **le giornate**, ovunque la risposta sposti il numero (`D1 — cosa vuol dire "full-custom": 6 giornate, fra M2, M3 e M6`). Una domanda senza un numero è una curiosità; una con il numero è una decisione che il cliente può davvero prendere.
 
-Only what **changes the code** belongs here. Commercial open points live in the estimate, not in this file.
+Qui dentro sta solo ciò che **cambia il codice**. I punti aperti commerciali vivono nella stima, non in questo file.
 
-<!-- TEMPLATE — replace the examples below with real open decisions.
+<!-- TEMPLATE — sostituisci gli esempi qui sotto con le decisioni aperte vere.
 
 ## Milestone 2
 
-### Email provider for the contact form
-Resend vs Postmark — pending budget confirmation from the client. Blocks sub-task 2.x.
+### Fornitore email per il form di contatto
+Resend o Postmark — in attesa che il cliente confermi il budget. Blocca il sotto-task 2.x.
 
 ## Informativa (non bloccante)
 
-### Evocative imagery for hero/sections
-Abstract placeholder treatments for v1.0.0; real photography is a post-launch improvement.
+### Immagini evocative per hero e sezioni
+Trattamenti astratti segnaposto per la v1.0.0; la fotografia vera è un miglioramento post-lancio.
 
 -->

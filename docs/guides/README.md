@@ -1,12 +1,10 @@
-# Guides
+# Guide
 
-Domain-specific pattern references for this project, consulted by the vertical agents in `.claude/agents/`.
+Riferimenti di pattern per dominio di questo progetto, consultati dagli agenti verticali in
+`.claude/agents/`.
 
-A guide is written only once a pattern has proved durable in real work, never speculatively. Filenames map to the vertical agents:
+Una guida si scrive solo quando un pattern ha dimostrato di reggere nel lavoro vero, mai in
+anticipo.
 
-- `content-collections.md` — content-agent
-- `ui-components.md` — ui-agent
-- `seo.md` — seo-agent
-- `forms-email.md` — forms-agent
-- `rendering-performance.md` — perf-rendering-agent
-- `deploy-ops.md` — ops-agent
+Quale guida serve a quale dominio, e quale agente la legge, sta nella tabella di
+`docs/ARCHITECTURE.md` § I domini — che è l'unico posto in cui quella corrispondenza vive.
