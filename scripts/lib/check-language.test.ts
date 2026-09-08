@@ -1,98 +1,97 @@
 import { describe, expect, it } from 'vitest'
 
-import { classify, findingFor, isStable, proseOf } from './check-language.ts'
+import { classify, findingsFor, isScanned, tally } from './check-language.ts'
 
-// Long enough to clear MIN_HITS: under it the classifier declines to judge, which the
-// third case below covers.
-const italian = [
-  'Questa guida non è una traduzione: descrive che cosa fa il codice quando una sezione viene aggiunta.',
-  'Ogni regola sta nella sezione che la riguarda, con il file e il simbolo, e non è una previsione.',
-  'Quando il codice cambia, questo documento cambia con lui: senza quel passaggio la guida mente.',
-].join(' ')
-const english = [
-  'This guide is not a translation: it describes what the code does when a section is added.',
-  'Every rule sits in the section that carries it, with the file and the symbol, and is never a prediction.',
-  'When the code changes this document changes with it: without that step the guide lies.',
-].join(' ')
+describe('isScanned', () => {
+  it.each([
+    ['docs/guides/ui-components.md', true],
+    ['src/lib/site.ts', true],
+    ['astro.config.mjs', true],
+    ['docs/ROADMAP.md', true],
+    ['docs/sources/cliente.md', false],
+    ['CHANGELOG.md', false],
+    ['src/i18n/strings/en.ts', false],
+    ['src/pages/index.astro', true],
+  ])('%s → %s', (path, expected) => {
+    expect(isScanned(path)).toBe(expected)
+  })
+})
 
-describe('isStable', () => {
-  it.each(['CLAUDE.md', 'docs/ARCHITECTURE.md', 'docs/guides/seo.md', '.claude/commands/pr.md', 'src/lib/site.ts'])(
-    'covers %s',
-    (path) => {
-      expect(isStable(path)).toBe(true)
-    },
-  )
-
-  it.each(['scripts/lhci-local.sh', 'scripts/check-comments.mjs', 'scripts/lib/bundle-budget.ts'])(
-    'covers %s, where the drift goes unnoticed',
-    (path) => {
-      expect(isStable(path)).toBe(true)
-    },
-  )
-
-  // A shell script is read whole — its echoes are the substance — while a .ts or .mjs is read
-  // through its comments, the way src/ is: a message string is the project talking to itself.
-  it('reads a shell script whole and a script module through its comments', () => {
-    expect(proseOf('scripts/x.sh', '# commento\necho "ciao"')).toContain('echo')
-    expect(proseOf('scripts/x.mjs', '// a comment\nconst s = `messaggio in italiano`')).not.toContain('messaggio')
+describe('tally', () => {
+  it('conta le parole accentate', () => {
+    expect(tally('già perché è più').italian).toBe(4)
   })
 
-  // The living documents follow the project's own language, so they are never judged —
-  // and so do the translation dictionaries, which are user-facing copy under src/.
-  it.each([
-    'docs/ROADMAP.md',
-    'docs/DECISIONS.md',
-    'docs/PROJECT.md',
-    '.claude/plans/pr-1-x.md',
-    'README.md',
-    'src/i18n/strings/it.ts',
-    'src/i18n/dictionaries/it.ts',
-  ])('leaves %s alone', (path) => {
-    expect(isStable(path)).toBe(false)
+  it('non conta il codice citato, gli URL, i riferimenti puntati e i prefissi', () => {
+    // Resta solo "su", che è italiano davvero.
+    expect(tally('vedi `this.cache` e this.has() su https://the.example.com/with/the non-null')).toEqual({
+      italian: 1,
+      english: 0,
+    })
   })
 })
 
 describe('classify', () => {
-  it('reads Italian prose as Italian', () => {
-    expect(classify(italian)).toBe('italian')
+  it('resta indeciso con pochi indizi', () => {
+    expect(classify({ italian: 1, english: 2 })).toBe('undecided')
   })
 
-  it('reads English prose as English', () => {
-    expect(classify(english)).toBe('english')
+  it('vuole una maggioranza netta per dire inglese', () => {
+    expect(classify({ italian: 5, english: 6 })).toBe('italian')
+    expect(classify({ italian: 2, english: 8 })).toBe('english')
   })
 
-  it('refuses to judge a sample too short to carry the signal', () => {
-    expect(classify('Ciao.')).toBe('undecided')
-  })
-})
-
-describe('proseOf', () => {
-  it('keeps only the comments of a source file', () => {
-    const source = ['// questo commento non è in inglese', 'const value = 1', '/* neither is questo */'].join('\n')
-
-    expect(proseOf('src/lib/x.ts', source)).toBe('// questo commento non è in inglese\n/* neither is questo */')
+  it('decide un commento troppo corto per la soglia, se non ha niente di italiano', () => {
+    expect(classify({ italian: 0, english: 1 })).toBe('english')
   })
 
-  it('takes a markdown file whole', () => {
-    expect(proseOf('docs/guides/seo.md', '# Title\n\nBody.')).toBe('# Title\n\nBody.')
+  it('resta indeciso su un commento corto che non porta nessun indizio', () => {
+    expect(classify({ italian: 0, english: 0 })).toBe('undecided')
   })
 })
 
-describe('findingFor', () => {
-  it('reports an Italian file that travels', () => {
-    expect(findingFor('docs/guides/seo.md', italian)).toContain('reads as Italian')
+describe('findingsFor', () => {
+  it('vede un commento breve in inglese, che da solo non raggiunge la soglia', () => {
+    const source = '// Native UI follows the theme\nexport const x = 1\n'
+    expect(findingsFor('src/lib/x.ts', source)).toHaveLength(1)
   })
 
-  it('passes an English one', () => {
-    expect(findingFor('docs/guides/seo.md', english)).toBeNull()
+  it('lascia stare lo stesso commento in italiano', () => {
+    const source = "// L'interfaccia nativa segue il tema\nexport const x = 1\n"
+    expect(findingsFor('src/lib/x.ts', source)).toEqual([])
   })
 
-  it('passes a file whose comments are English while the code is not prose', () => {
-    const source = [
-      '// The gate reads the emitted chunks and nothing else, so this is what it sees.',
-      'const a = 1',
-    ].join('\n')
+  it('ignora i blocchi di codice nei markdown', () => {
+    const md =
+      'Questa guida spiega come avviare il progetto e cosa serve.\n\n```ts\n// this is the config that has the flags of the app\n```\n'
+    expect(findingsFor('docs/guida.md', md)).toEqual([])
+  })
 
-    expect(findingFor('src/lib/x.ts', source)).toBeNull()
+  it('segnala un README tutto inglese', () => {
+    const md = '# UI\n\nThis package contains the shared components used by the apps. It is not published.\n'
+    expect(findingsFor('docs/guides/ui-components.md', md)).toHaveLength(1)
+  })
+
+  it('segnala il singolo commento inglese con la sua riga', () => {
+    const src = 'const a = 1\n// Ensure the cache is warm before the first request hits the handler\nconst b = 2'
+    expect(findingsFor('src/a.ts', src).map((f) => f.line)).toEqual([2])
+  })
+
+  it('segnala ogni commento breve alla sua riga', () => {
+    const src =
+      '// the cache\nconst a = 1\n// the handler\nconst b = 2\n// the worker\nconst c = 3\n// the router and the rest'
+    expect(findingsFor('src/a.ts', src).map((f) => f.line)).toEqual([1, 3, 5, 7])
+  })
+
+  it('somma i commenti misti, che nessuno da solo decide', () => {
+    const src =
+      '// the cache and il worker\nconst a = 1\n// the handler and il resto\nconst b = 2\n// the router and il gestore'
+    expect(findingsFor('src/a.ts', src).map((f) => f.message)).toEqual([expect.stringContaining('nel complesso')])
+  })
+
+  it('lascia in pace i commenti italiani che citano codice', () => {
+    const src =
+      '// se `this.cache` è vuoto, `map.has` ritorna false\nconst a = 1\n// il gestore non è idempotente per scelta'
+    expect(findingsFor('src/a.ts', src)).toEqual([])
   })
 })

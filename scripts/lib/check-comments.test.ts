@@ -1,93 +1,136 @@
 import { describe, expect, it } from 'vitest'
 
-import { isComment, isNoisy, report, styleOf } from './check-comments.ts'
+import { isNoisy, report } from './check-comments.ts'
+import { commentBlocks, type Line, styleOf } from './comment-syntax.ts'
 
-describe('styleOf', () => {
+const lines = (src: string): Line[] => src.split('\n').map((text, i) => ({ n: i + 1, text }))
+const messages = (file: string, src: string) => report(file, lines(src)).findings.map((f) => `${f.line}: ${f.message}`)
+
+describe('commentBlocks', () => {
+  it('tiene insieme le righe interne di un blocco anche senza asterisco', () => {
+    const blocks = commentBlocks(lines('/*\n  uno\n  due\n*/\nconst x = 1'), 'slash')
+    expect(blocks).toHaveLength(1)
+    expect(blocks[0]?.lines.map((l) => l.n)).toEqual([1, 2, 3, 4])
+  })
+
+  it('riconosce i commenti HTML solo negli .astro', () => {
+    expect(commentBlocks(lines('<!-- x -->'), 'astro')).toHaveLength(1)
+    expect(commentBlocks(lines('<!-- x -->'), 'slash')).toHaveLength(0)
+  })
+
+  it('un commento in coda non forma un blocco e ignora le stringhe con //', () => {
+    const blocks = commentBlocks(lines('const a = 1 // nota\nconst u = "http://x"'), 'slash')
+    expect(blocks).toEqual([{ lines: [{ n: 1, text: '// nota' }], trailing: true }])
+  })
+
   it.each([
-    ['.github/workflows/ci.yml', 'hash'],
-    ['scripts/x.sh', 'hash'],
-    ['src/styles/globals.css', 'css'],
-    ['src/lib/site.ts', 'slash'],
-  ])('reads %s as %s', (file, expected) => {
-    expect(styleOf(file)).toBe(expected)
+    ['const m = "L\'esperienza non è disponibile" // nota', '// nota'],
+    ["const s = 'a \\' b' // nota", '// nota'],
+    // biome-ignore lint/suspicious/noTemplateCurlyInString: il ${} nella stringa è il caso in prova
+    ['const t = `a ${"b"} c` // nota', '// nota'],
+    ['const x = 1 /* nota */', '/* nota */'],
+    ['const u = "http://x"', null],
+    ['const r = /https?:\\/\\//', null],
+  ])('in coda: %s', (src, expected) => {
+    const [block] = commentBlocks(lines(src), 'slash')
+    expect(block?.lines[0]?.text ?? null).toBe(expected)
+  })
+
+  it('in YAML "#" apre un commento solo dopo uno spazio', () => {
+    expect(commentBlocks(lines('url: http://x#frag'), 'hash')).toHaveLength(0)
+    expect(commentBlocks(lines('key: "a # b" # nota'), 'hash')[0]?.lines[0]?.text).toBe('# nota')
+  })
+
+  it('nel CSS il selettore universale non è un commento', () => {
+    expect(commentBlocks(lines('* { margin: 0 }\n*:not(.x) { }'), 'css')).toHaveLength(0)
   })
 })
 
-describe('isComment', () => {
-  it.each(['// line', '/* block', '* continuation', '{/* astro */}'])('reads %s as a comment', (line) => {
-    expect(isComment(line, 'slash')).toBe(true)
+describe('report: lunghezza del blocco', () => {
+  it('conta solo le righe di prosa, non i delimitatori né le direttive', () => {
+    expect(messages('a.ts', '/*\n * una riga\n */')).toEqual([])
+    expect(messages('a.ts', '// biome-ignore lint/x: motivo\n// una\n// due')).toEqual([])
+    expect(messages('a.ts', '/*\n  uno\n  due\n  tre\n*/')).toEqual(['1: blocco di 3 righe di prosa (max 2)'])
   })
 
-  it('reads # as a comment only in hash-style files, and never a shebang', () => {
-    expect(isComment('# yaml', 'hash')).toBe(true)
-    expect(isComment('# yaml', 'slash')).toBe(false)
-    expect(isComment('#!/usr/bin/env node', 'hash')).toBe(false)
-  })
-
-  // `*` opens the universal selector, so in CSS only a closing `*/` is comment tail.
-  it.each(['* {', '*:not([hidden])', '*, *::before'])('reads %s as CSS code', (line) => {
-    expect(isComment(line, 'css')).toBe(false)
-    expect(isComment(line, 'slash')).toBe(true)
-  })
-
-  it('still reads a closing block tail in CSS', () => {
-    expect(isComment('*/', 'css')).toBe(true)
-  })
-
-  it('reads code as code', () => {
-    expect(isComment('const a = 1', 'slash')).toBe(false)
+  it('un marcatore esenta la sua riga, non il blocco', () => {
+    expect(messages('a.ts', '// uno\n// [HARD] due\n// tre\n// quattro')).toHaveLength(1)
   })
 })
 
-describe('report', () => {
-  const lines = (...texts: string[]) => texts.map((text, i) => ({ n: i + 1, text }))
-
-  it('flags a comment block past two lines', () => {
-    const { findings } = report('src/a.ts', lines('// a', '// b', '// c', '// d', 'const a = 1'))
-
-    expect(findings).toHaveLength(1)
-    expect(findings[0]).toContain('block of 4 lines')
-  })
-
-  it('exempts a directive line without exempting the prose around it', () => {
-    const withDirective = report('src/a.ts', lines('// a', '// b', '// biome-ignore lint/x: y'))
-    const proseAroundIt = report('src/a.ts', lines('// a', '// b', '// c', '// [HARD] x'))
-
-    expect(withDirective.findings).toEqual([])
-    expect(proseAroundIt.findings[0]).toContain('block of 4 lines')
-  })
-
-  it('flags a comment narrating the change instead of the code, in either language', () => {
-    expect(report('src/a.ts', lines('// replaces the old helper')).findings[0]).toContain('narrates the change')
-    expect(report('src/a.ts', lines('// sostituisce il vecchio helper')).findings[0]).toContain('narrates the change')
-  })
-
-  it('leaves alone a comment describing the code as it is', () => {
-    const { findings } = report('src/a.ts', lines('// Brevo answers 204 for a contact already subscribed'))
-
-    expect(findings).toEqual([])
-  })
-
-  it('counts the comment lines of the file', () => {
-    const result = report('src/a.ts', lines('// a', 'const a = 1'))
-
-    expect(result).toMatchObject({ comments: 1, total: 2 })
-  })
-
-  it('closes a block still open at the end of the file', () => {
-    const { findings } = report('src/a.ts', lines('// a', '// b', '// c', '// d'))
-
-    expect(findings[0]).toContain('block of 4 lines')
+describe('report: tempo verbale', () => {
+  it.each([
+    ['// questo non più usato', true],
+    ['// accetta non più di 3 tentativi', false],
+    ['// ora lo usa il worker', true],
+    ['// ora loro sono contenti', false],
+    ['// vedi #12', true],
+    ['// colore #123456', false],
+    ['const x = 1 // prima era 2', true],
+    ['key: value # previously unused', true],
+  ])('%s → %s', (src, flagged) => {
+    const file = src.startsWith('key') ? 'a.yml' : 'a.ts'
+    expect(messages(file, src).some((m) => m.includes('racconta'))).toBe(flagged)
   })
 })
 
 describe('isNoisy', () => {
-  it('ignores short files, where the ratio says nothing', () => {
-    expect(isNoisy({ findings: [], comments: 20, total: 39 })).toBe(false)
+  it('ignora i file corti e conta solo le righe che sono commento', () => {
+    const short = report('a.ts', lines('// a\n// b\nconst x = 1'))
+    expect(isNoisy(short)).toBe(false)
+    const long = report('a.ts', lines(Array.from({ length: 50 }, (_, i) => (i < 10 ? '// c' : 'x')).join('\n')))
+    expect(isNoisy(long)).toBe(true)
+  })
+})
+
+describe('styleOf', () => {
+  it.each([
+    ['docker-compose.yml', 'hash'],
+    ['deploy.sh', 'hash'],
+    ['globals.css', 'css'],
+    ['Card.astro', 'astro'],
+    ['index.ts', 'slash'],
+  ])('%s usa i commenti in stile %s', (file, atteso) => {
+    expect(styleOf(file)).toBe(atteso)
+  })
+})
+
+describe('aperture di commento per stile', () => {
+  const conta = (file: string, testo: string) => report(file, lines(testo)).comments
+
+  it('in CSS le due barre non aprono un commento', () => {
+    expect(conta('a.css', '// non è un commento\n')).toBe(0)
+    expect(conta('a.css', '/* questo sì */\n')).toBe(1)
   })
 
-  it('flags a long file where comments pass 15% of the lines', () => {
-    expect(isNoisy({ findings: [], comments: 10, total: 40 })).toBe(true)
-    expect(isNoisy({ findings: [], comments: 6, total: 40 })).toBe(false)
+  it('riconosce il commento JSX, che apre con una graffa', () => {
+    expect(conta('a.tsx', '{/* commento */}\n')).toBe(1)
+  })
+
+  it('in uno script shell lo shebang non è un commento', () => {
+    expect(conta('a.sh', '#!/usr/bin/env bash\n# questo sì\n')).toBe(1)
+  })
+
+  it('in Astro riconosce il commento del markup', () => {
+    expect(conta('a.astro', '<!-- commento -->\n')).toBe(1)
+  })
+})
+
+describe('ordine dei ritrovamenti', () => {
+  // Il report ordina per riga: senza, un blocco lungo trovato dopo un verbo al passato uscirebbe
+  // prima di lui, e chi legge l'elenco non ritrova la sequenza del file.
+  it("elenca i problemi nell'ordine in cui compaiono nel file", () => {
+    const sorgente = [
+      '// Prima riga di prosa lunga che continua',
+      '// su una seconda riga di prosa',
+      '// e anche su una terza riga di prosa.',
+      'const a = 1',
+      '// In precedenza questo controllo non esisteva.',
+      'const b = 2',
+    ].join('\n')
+
+    const righe = report('a.ts', lines(sorgente)).findings.map((f) => f.line)
+    expect(righe).toEqual([...righe].sort((x, y) => x - y))
+    expect(righe.length).toBeGreaterThan(1)
   })
 })

@@ -60,7 +60,7 @@ describe('gen:component guards', () => {
     expect(validate('component', 'name', 'PriceCard')).toBe(true)
   })
 
-  // `plop component X ''` skips the prompt default, so the bypass path reaches validate with ''.
+  // `plop component X ''` salta il default del prompt, quindi il percorso di bypass arriva a validate con ''.
   it('rejects an area that dash-cases to nothing', () => {
     expect(validate('component', 'area', '...')).toMatch(/at least one letter or digit/)
   })
@@ -69,7 +69,7 @@ describe('gen:component guards', () => {
     expect(validate('component', 'area', 'marketing')).toBe(true)
   })
 
-  // plop expands the handlebars itself, so the action carries the template, not the final path.
+  // I handlebars li espande plop, quindi l'azione porta il template e non il percorso finale.
   it('dash-cases both the area and the name in its path template', () => {
     const [add] = addActions(actionsFor(component().config, { name: 'PriceCard', area: 'Marketing Pages' }))
 

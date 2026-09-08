@@ -1,12 +1,12 @@
 #!/usr/bin/env node
-// The only check that sees what the edge actually serves — src/vercel-headers.test.ts only pins vercel.json.
+// L'unico controllo che vede cosa serve davvero il bordo: src/vercel-headers.test.ts fissa solo vercel.json.
 
 import process from 'node:process'
 
 import { SITE } from '../src/lib/site.ts'
 import { runChecks, waitForAlias } from './lib/smoke-production.ts'
 
-// The apex, not the *.vercel.app URL `vercel deploy` prints: vercel.json's `has: host` rule puts noindex there.
+// L'apice, non l'URL *.vercel.app che stampa `vercel deploy`: lì la regola `has: host` di vercel.json mette noindex.
 const baseUrl = (process.argv[2] ?? SITE.url).replace(/\/+$/, '')
 
 if (process.argv[2] === undefined && new URL(SITE.url).host === 'example.com') {

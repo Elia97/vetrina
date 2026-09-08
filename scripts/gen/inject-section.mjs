@@ -1,5 +1,5 @@
-// Insertion goes ABOVE each marker: below it, Biome's organizeImports adopts the marker as leading
-// trivia of the new import and relocates it into the sorted block. (.astro is not ts-morph-parseable.)
+// L'inserimento va SOPRA ogni marcatore: sotto, l'organizeImports di Biome adotta il marcatore come
+// trivia iniziale del nuovo import e lo sposta nel blocco ordinato. (.astro non è leggibile da ts-morph.)
 import { existsSync, readFileSync, writeFileSync } from 'node:fs'
 import { Project, SyntaxKind } from 'ts-morph'
 

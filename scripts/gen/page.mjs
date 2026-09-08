@@ -18,7 +18,7 @@ export default function pageGenerator(plop) {
         type: 'input',
         name: 'name',
         message: 'Page path (e.g. about-us, or nested like legal/privacy):',
-        // change-case strips punctuation, so '...' is non-empty yet dash-cases to ''.
+        // change-case toglie la punteggiatura, quindi '...' non è vuoto ma in dash-case diventa ''.
         validate: (value) =>
           pathSegments(plop, value).length > 0 || 'Page path must contain at least one letter or digit',
       },

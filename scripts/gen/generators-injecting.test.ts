@@ -5,7 +5,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import collectionGenerator from './collection.mjs'
 import sectionGenerator from './section.mjs'
 
-// collection.mjs and section.mjs capture `process.cwd()` at registration, so the chdir has to precede it.
+// collection.mjs e section.mjs catturano `process.cwd()` alla registrazione, quindi il chdir deve precederla.
 let original: string
 
 beforeEach(() => {
@@ -21,7 +21,7 @@ afterEach(() => {
 const run = (action: unknown, answers: Record<string, string | boolean>, plop: unknown) =>
   (action as FunctionAction)(answers, null, plop as never)
 
-/** The three function actions in order: pre-flight, injection, post-gen — never invoked, it shells out to `astro sync`. */
+/** Le tre azioni funzione in ordine: pre-volo, iniezione, post-gen — mai invocata, lancia `astro sync`. */
 const steps = (actions: unknown[]) => {
   const functions = actions.filter((action) => typeof action === 'function')
   expect(functions).toHaveLength(3)

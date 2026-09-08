@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Bundle budget gate over dist/client — needs a completed `astro build`.
+// Gate del budget di bundle su dist/client — richiede un `astro build` completato.
 
 import { readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'

@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from 'vitest'
 
 import { checkPages, checkSecurityHeaders, type Fetcher, PAGES, waitForAlias } from './smoke-production'
 
-// The content-type the edge really serves for each `type` PAGES declares.
+// Il content-type che il bordo serve davvero per ogni `type` dichiarato da PAGES.
 const SERVED_CONTENT_TYPE: Record<string, string> = {
   'text/html': 'text/html; charset=utf-8',
   'text/plain': 'text/plain; charset=utf-8',

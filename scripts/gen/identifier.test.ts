@@ -7,7 +7,7 @@ describe('isValidIdentifier', () => {
     expect(isValidIdentifier(name)).toBe(true)
   })
 
-  // camelCase('new feature') is `new`: a reserved word reachable from an ordinary section name.
+  // camelCase('new feature') dà `new`: una parola riservata raggiungibile da un nome di sezione ordinario.
   it.each(['new', 'class', 'return', 'typeof', 'enum', 'await'])('rejects the reserved word %s', (name) => {
     expect(isValidIdentifier(name)).toBe(false)
   })

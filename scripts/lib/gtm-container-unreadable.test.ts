@@ -1,5 +1,5 @@
-// What the reader does with a condition it cannot interpret: reporting such a trigger
-// as understood would turn an unknown into a silent "covered".
+// Cosa fa il lettore con una condizione che non sa interpretare: riportare un trigger simile
+// come compreso trasformerebbe un ignoto in un silenzioso "coperto".
 import { describe, expect, it } from 'vitest'
 
 import type { ContainerResource } from './gtm-container'
