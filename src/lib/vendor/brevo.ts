@@ -2,8 +2,8 @@ import { getSecret } from 'astro:env/server'
 
 const BREVO_API = 'https://api.brevo.com/v3'
 
-// [HARD] `fetch` has no default timeout, and three of these run in parallel — keep
-// this well under `maxDuration` in vercel.json.
+// [HARD] `fetch` non ha nessun timeout di default, e tre di queste girano in parallelo:
+// tienilo ben sotto il `maxDuration` di vercel.json.
 const REQUEST_TIMEOUT_MS = 8_000
 
 interface EmailAddress {

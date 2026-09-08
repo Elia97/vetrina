@@ -24,8 +24,8 @@ describe('getTrackingConfig — the off state', () => {
     expect(await loadWith({ PUBLIC_GTM_ID: GTM })).toBeNull()
   })
 
-  // GTM without a banner is the unlawful combination: non-essential cookies with
-  // nowhere to refuse them.
+  // GTM senza banner è la combinazione illecita: cookie non essenziali senza nessun posto
+  // in cui rifiutarli.
   it('is null with a CMP but no GTM container', async () => {
     expect(await loadWith({ PUBLIC_IUBENDA_SITE_ID: SITE_ID })).toBeNull()
   })

@@ -4,8 +4,8 @@ import { describe, expect, it } from 'vitest'
 
 import { SITE } from '@/lib/site'
 
-// vercel.json only takes effect at the edge and `astro dev` never reads it, so CI
-// is the only place these two rules are exercised at all.
+// vercel.json ha effetto solo sul bordo e `astro dev` non lo legge mai, quindi la CI è
+// l'unico posto in cui queste due regole vengono provate.
 
 type HasCondition = { type: string; value?: string }
 type Redirect = {
@@ -24,8 +24,8 @@ const apex = new URL(SITE.url).host
 const wwwRedirect = config.redirects?.find((rule) => rule.has?.some((cond) => cond.type === 'host'))
 
 describe('vercel.json www → apex redirect', () => {
-  // [HARD] Checked against SITE.url, never a literal: a fork that rebrands and
-  // forgets vercel.json fails here.
+  // [HARD] Verificato contro SITE.url, mai un letterale: un fork che cambia marchio e
+  // dimentica vercel.json fallisce qui.
   it('redirects the www host of SITE.url, whatever that is', () => {
     expect(wwwRedirect, 'no host-conditioned redirect in vercel.json').toBeDefined()
 
@@ -44,14 +44,14 @@ describe('vercel.json www → apex redirect', () => {
     expect(wwwRedirect?.destination).toBe(`${SITE.url}/:path*`)
   })
 
-  // Vercel emits a 308 for `permanent: true` — permanent and method-preserving.
+  // Vercel emette un 308 per `permanent: true` — permanente e che preserva il metodo.
   it('is permanent', () => {
     expect(wwwRedirect?.permanent).toBe(true)
   })
 })
 
 describe('vercel.json function region', () => {
-  // Left unset, Vercel defaults to iad1 (Washington); the audience is European.
+  // Lasciata vuota, Vercel usa iad1 (Washington); il pubblico è europeo.
   it('pins functions to fra1', () => {
     expect(config.regions).toEqual(['fra1'])
   })

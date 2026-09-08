@@ -8,11 +8,11 @@ import { SITE } from '@/lib/site'
 
 const manifest = buildWebManifest()
 
-// vitest's cwd is the project root, and `public/` is a fixed top-level directory.
+// La cwd di vitest è la radice del progetto, e `public/` è una cartella di primo livello fissa.
 const publicFile = (src: string) => join(process.cwd(), 'public', src)
 
 describe('web manifest', () => {
-  // A declared-but-missing icon is a 404 the browser only reports at install time.
+  // Un'icona dichiarata ma mancante è un 404 che il browser segnala solo al momento dell'installazione.
   it('declares only icons that exist in public/', () => {
     expect(manifest.icons.length).toBeGreaterThan(0)
     for (const icon of manifest.icons) {

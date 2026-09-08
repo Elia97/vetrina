@@ -5,15 +5,15 @@ import { SITE } from '@/lib/site'
 
 import astroConfig from '../../astro.config.mjs'
 
-// astro.config.mjs, SITE.localeTags and test/stubs/astro-config-client.ts hold the
-// same locale list, cannot import each other, and drift between them is silent.
+// astro.config.mjs, SITE.localeTags e test/stubs/astro-config-client.ts portano lo stesso
+// elenco di lingue, non possono importarsi a vicenda, e la deriva fra loro è silenziosa.
 
 type LocaleEntry = string | { path: string; codes: string[] }
 
 const i18n = (astroConfig as { i18n?: { defaultLocale: string; locales: LocaleEntry[] } }).i18n
 
-// Astro's APIs speak codes; for an object entry that is codes[0] — same
-// normalisation as src/components/head/seo.ts.
+// Le API di Astro parlano di codici; per una voce oggetto è codes[0], con la stessa
+// normalizzazione di src/components/head/seo.ts.
 function codesOf(locales: readonly LocaleEntry[]): string[] {
   return locales.map((locale) => (typeof locale === 'string' ? locale : (locale.codes[0] ?? locale.path)))
 }

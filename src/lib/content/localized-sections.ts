@@ -3,7 +3,7 @@ import { type CollectionEntry, getCollection } from 'astro:content'
 
 type Sectioned = 'homepage'
 
-/* v8 ignore next -- astro:config/client is injected by Astro on every render; the fallback guards a module that cannot be missing */
+/* v8 ignore next -- astro:config/client lo inietta Astro a ogni render; il ripiego protegge un modulo che non può mancare */
 const DEFAULT_LOCALE = i18n?.defaultLocale ?? 'it'
 
 export async function loadLocalizedSections<C extends Sectioned>(

@@ -14,7 +14,7 @@ export interface ConsentModeUpdate {
 
 export type GtagFn = (...args: unknown[]) => void
 
-// iubenda's purpose ids in the CS preference object, not ours.
+// Sono gli id di finalità di iubenda nell'oggetto delle preferenze CS, non i nostri.
 const PURPOSE_MEASUREMENT = '4'
 const PURPOSE_MARKETING = '5'
 
@@ -22,7 +22,7 @@ export function mapPreferenceToConsentMode(pref: ConsentPreference): ConsentMode
   const purposes = pref.purposes
   const hasGranularPurposes = purposes !== undefined && Object.keys(purposes).length > 0
 
-  // iubenda sends "accept all" as consent=true with no granular purposes.
+  // iubenda manda "accetta tutto" come consent=true senza finalità granulari.
   if (pref.consent === true && !hasGranularPurposes) {
     return {
       ad_storage: 'granted',

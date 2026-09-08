@@ -12,15 +12,15 @@ import { SITE } from './src/lib/site'
 export default defineConfig({
   site: SITE.url,
   output: 'static',
-  // Astro's default 'ignore' resolves both /page and /page/, giving the two forms
-  // competing self-canonicals. head.astro normalizes to whatever is set here.
+  // Il default 'ignore' di Astro risolve sia /pagina sia /pagina/, dando alle due forme
+  // canonical concorrenti. head.astro normalizza su quello che si imposta qui.
   trailingSlash: 'never',
-  // The documented `hover` default does nothing on touch. Astro bounds the cost of
-  // `viewport` by skipping links scrolled past quickly and honouring Save-Data.
+  // Il default `hover` documentato non fa niente su touch. Astro limita il costo di
+  // `viewport` saltando i link scorsi in fretta e rispettando Save-Data.
   prefetch: { prefetchAll: true, defaultStrategy: 'viewport' },
 
-  // Above the 8s the Brevo client allows itself, far below the platform default of
-  // minutes. It applies to the one `_render` function, which also serves /_image.
+  // Sopra gli 8s che il client Brevo si concede, molto sotto il default di piattaforma
+  // che è di minuti. Vale per l'unica funzione `_render`, che serve anche /_image.
   adapter: vercel({ maxDuration: 20 }),
   i18n: {
     defaultLocale: 'it',
@@ -30,11 +30,11 @@ export default defineConfig({
     },
   },
   integrations: [
-    // Before the adapter: it rewrites the HTML under dist/client, which the adapter
-    // then copies into .vercel/output/static.
+    // Prima dell'adapter: riscrive l'HTML sotto dist/client, che l'adapter poi copia
+    // in .vercel/output/static.
     cspIntegration(),
-    // Emits sitemap-index.xml, which src/pages/robots.txt.ts points crawlers at.
-    // Exclusions go in src/lib/seo/crawl-policy.ts, never here.
+    // Emette sitemap-index.xml, a cui src/pages/robots.txt.ts indirizza i crawler.
+    // Le esclusioni stanno in src/lib/seo/crawl-policy.ts, mai qui.
     sitemap({
       filter: (page) => !isExcludedFromSitemap(page),
       i18n: {
@@ -48,8 +48,8 @@ export default defineConfig({
   },
   env: {
     schema: {
-      // Optional on purpose: without the key src/lib/vendor/brevo.ts no-ops in dev
-      // and refuses in production. See docs/guides/forms-email.md.
+      // Facoltativa di proposito: senza la chiave src/lib/vendor/brevo.ts non fa niente
+      // in sviluppo e rifiuta in produzione. Vedi docs/guides/forms-email.md.
       BREVO_API_KEY: envField.string({
         context: 'server',
         access: 'secret',
@@ -70,15 +70,15 @@ export default defineConfig({
         access: 'public',
         default: 'info@example.com',
       }),
-      // Not a kill switch: BotID classifies either way, this only picks what happens
-      // to a request it calls a bot — false observes and logs, true rejects.
+      // Non è un interruttore: BotID classifica comunque, questo sceglie solo cosa
+      // succede a una richiesta che chiama bot — false osserva e registra, true rifiuta.
       BOTID_ENFORCE: envField.boolean({
         context: 'server',
         access: 'public',
         default: false,
       }),
-      // Create these Plain on Vercel, never Sensitive: a Sensitive var reaches a
-      // prebuilt pull as the literal "[SENSITIVE]".
+      // Su Vercel si creano Plain, mai Sensitive: una variabile Sensitive arriva a un
+      // pull prebuilt come la stringa letterale "[SENSITIVE]".
       PUBLIC_GTM_ID: envField.string({
         context: 'client',
         access: 'public',

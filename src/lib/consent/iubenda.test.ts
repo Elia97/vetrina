@@ -28,14 +28,14 @@ function boot(overrides: Partial<BootstrapDeps> = {}) {
 }
 
 describe('buildCsConfiguration', () => {
-  // Numbers, not strings: iubenda's own widget rejects the string form silently.
+  // Numeri, non stringhe: il widget di iubenda rifiuta in silenzio la forma stringa.
   it('converts the ids to numbers', () => {
     const cfg = buildCsConfiguration({ ...CONFIG, onPreference: vi.fn() })
     expect(cfg.siteId).toBe(1234567)
     expect(cfg.cookiePolicyId).toBe(7654321)
   })
 
-  // [HARD] Continued browsing is not consent under the Garante's 2021 guidelines.
+  // [HARD] La navigazione continuata non è consenso secondo le linee guida 2021 del Garante.
   it('never accepts consent on continued browsing', () => {
     expect(buildCsConfiguration({ ...CONFIG, onPreference: vi.fn() }).consentOnContinuedBrowsing).toBe(false)
   })
@@ -105,7 +105,7 @@ describe('bootstrapIubenda — wiring', () => {
     expect(gate.applyPreference).toHaveBeenCalledWith(pref)
   })
 
-  // Never connected: appending for real would have happy-dom fetch the CDN from a unit test.
+  // Mai collegato davvero: appendere farebbe scaricare la CDN a happy-dom da uno unit test.
   it('appends an async script tag when no loader is injected', () => {
     const appended: HTMLScriptElement[] = []
     const doc = {

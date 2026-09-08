@@ -8,13 +8,13 @@ import LegalDocFallback from './legal-doc-fallback.astro'
 
 interface Props {
   kind: LegalDocKind
-  /** Sanitized upstream by getLegalDoc — never pass unsanitized HTML here. */
+  /** Ripulito a monte da getLegalDoc: non passare mai HTML non ripulito qui. */
   html: string | null
 }
 
 const { kind, html } = Astro.props
 
-// The iubenda no-markup document ships unthemed HTML, its own h1 included.
+// Il documento no-markup di iubenda arriva come HTML senza tema, h1 compreso.
 const proseClass = [
   'text-foreground leading-relaxed',
   '[&_h1]:mb-6 [&_h1]:font-bold [&_h1]:text-4xl [&_h1]:tracking-tight',

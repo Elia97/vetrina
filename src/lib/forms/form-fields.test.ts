@@ -13,8 +13,8 @@ function messageFor(
   return result.success ? undefined : result.error?.issues[0]?.message
 }
 
-// Zod's built-in messages are English ("Invalid email") and reach the user verbatim,
-// so every message the form can emit has to come from the dictionary.
+// I messaggi predefiniti di Zod sono in inglese ("Invalid email") e arrivano all'utente tali
+// e quali, quindi ogni messaggio che il form può emettere deve venire dal dizionario.
 describe('validation messages come from the dictionary', () => {
   it('reports an invalid email in the site language', () => {
     expect(messageFor(emailField, 'not-an-email')).toBe(dictionary['forms.error.emailInvalid'])
@@ -36,8 +36,8 @@ describe('validation messages come from the dictionary', () => {
   })
 })
 
-// [HARD] Parity with the markup: a field carrying `required` must fail here on
-// an empty submit. The form is novalidate, so nothing else enforces it.
+// [HARD] Parità col markup: un campo che porta `required` deve fallire qui su un invio
+// vuoto. Il form è novalidate, quindi non lo impone nient'altro.
 describe('required parity with the markup', () => {
   const valid = {
     firstName: 'Ada',

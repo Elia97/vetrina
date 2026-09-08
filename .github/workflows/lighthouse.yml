@@ -3,7 +3,7 @@ name: Lighthouse CI
 on:
   workflow_dispatch:
   schedule:
-    - cron: '0 4 * * 1' # Monday 04:00 UTC, on the default branch only
+    - cron: '0 4 * * 1' # Lunedì 04:00 UTC, solo sul branch di default
   pull_request:
     types: [labeled, synchronize]
 

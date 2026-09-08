@@ -1,5 +1,5 @@
-// Parsing innerHTML, happy-dom ignores a `selected` attribute and reports the first
-// enabled option, so the current value is assigned instead.
+// Leggendo innerHTML, happy-dom ignora un attributo `selected` e riporta la prima opzione
+// abilitata, quindi il valore corrente si assegna a mano.
 export function renderSelect({ value = '', required = true } = {}): void {
   document.body.innerHTML = `
     <label for="topic">Argomento</label>

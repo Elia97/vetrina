@@ -1,4 +1,4 @@
-// A stub that stops behaving like the thing it replaces makes every test leaning on it lie.
+// Uno stub che diverge dal modulo per cui sta fa mentire ogni test che ci si appoggia.
 import { describe, expect, it } from 'vitest'
 
 import { actions } from './astro-actions'

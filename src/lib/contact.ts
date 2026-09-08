@@ -7,8 +7,8 @@ import { useTranslations } from '@/i18n/translate'
 
 const t = useTranslations()
 
-// [HARD] `required` in the markup means required here: the form is `novalidate`
-// (contact-form.astro), so this schema is the only gate that runs on a submit.
+// [HARD] `required` nel markup significa obbligatorio qui: il form è `novalidate`
+// (contact-form.astro), quindi questo schema è l'unico gate che gira su un invio.
 export const contactSchema = z.object({
   ...honeypotShape,
   firstName: requiredText(t('forms.error.firstNameRequired')).max(100, {
@@ -18,7 +18,7 @@ export const contactSchema = z.object({
     error: t('forms.error.lastNameTooLong'),
   }),
   email: emailField,
-  // Optional in the markup too — the only field the form doesn't insist on.
+  // Facoltativo anche nel markup: è l'unico campo su cui il form non insiste.
   message: z
     .string()
     .trim()

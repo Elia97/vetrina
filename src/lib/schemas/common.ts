@@ -1,10 +1,10 @@
 import { z } from 'astro/zod'
 
-// [HARD] Content schemas are strict: a plain `z.object` STRIPS unknown keys, so a
-// typo'd field vanishes from the page with a green build.
+// [HARD] Gli schemi di contenuto sono stretti: un `z.object` normale SCARTA le chiavi
+// sconosciute, quindi un campo scritto male sparisce dalla pagina con la build verde.
 
-// [HARD] `URL.canParse` accepts `javascript:` and `data:`, and `//evil.example` reads
-// as relative while leaving the site — both reach an `href` unescaped.
+// [HARD] `URL.canParse` accetta `javascript:` e `data:`, e `//evil.example` si legge come
+// relativo pur portando fuori dal sito: entrambi arrivano a un `href` senza escaping.
 const CTA_PROTOCOLS: readonly string[] = ['http:', 'https:', 'mailto:', 'tel:']
 
 function isAllowedCtaUrl(value: string): boolean {

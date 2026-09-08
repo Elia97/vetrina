@@ -4,8 +4,8 @@ import { SITE } from '@/lib/site'
 
 const CMP_ENV = { PUBLIC_GTM_ID: 'GTM-TEST', PUBLIC_IUBENDA_SITE_ID: '1234567' }
 
-// vi.resetModules() gives a fresh registry: the container has to be imported from
-// it, not from the outer one, or it renders a component another instance compiled.
+// vi.resetModules() dà un registro nuovo: il container va importato da lì e non da quello
+// esterno, altrimenti rende un componente compilato da un'altra istanza.
 async function renderFooter(env: Record<string, string> = {}) {
   vi.resetModules()
   for (const [key, value] of Object.entries(env)) vi.stubEnv(key, value)
@@ -40,7 +40,7 @@ describe('footer.astro', () => {
   })
 })
 
-// [HARD] GDPR: the link must track the CMP in both directions (src/lib/consent/iubenda.ts).
+// [HARD] GDPR: il link deve seguire la CMP in entrambe le direzioni (src/lib/consent/iubenda.ts).
 describe('the cookie-preferences link', () => {
   it('is absent when no CMP is configured, which is how the template ships', async () => {
     expect(cmpLink(await renderFooter())).toBeNull()

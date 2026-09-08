@@ -1,4 +1,4 @@
-// The lock itself is CSS on `html[data-scroll-locked]` (src/styles/globals.css).
+// Il blocco vero è CSS su `html[data-scroll-locked]` (src/styles/globals.css).
 
 let locks = 0
 

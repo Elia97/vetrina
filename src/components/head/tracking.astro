@@ -1,6 +1,6 @@
 ---
-// The origins these scripts need ship from src/lib/csp/directives.ts: a new vendor
-// goes there and in src/lib/csp/csp.test.ts, never in vercel.json.
+// Le origini che questi script richiedono arrivano da src/lib/csp/directives.ts: un
+// fornitore nuovo va lì e in src/lib/csp/csp.test.ts, mai in vercel.json.
 import { i18n } from 'astro:config/client'
 
 import { getTrackingConfig } from '@/lib/analytics/tracking'
@@ -12,30 +12,16 @@ const lang = Astro.currentLocale ?? i18n?.defaultLocale ?? 'it'
 {
   config && (
     <>
-      {/* Resource hints, split by gate.
-
-          [HARD] dns-prefetch, never preconnect, for googletagmanager: preconnect
-          opens TCP+TLS, which sends SNI and the visitor's IP to Google BEFORE
-          opt-in — the exact invariant the consent gate exists to hold. A DNS
-          lookup only asks the visitor's own resolver.
-
-          iubenda is different: the CMP loads on every page by definition,
-          pre-consent, so warming the connection costs nothing that isn't spent
-          anyway. No `crossorigin` on either: these load as plain scripts, and
-          an anonymous connection wouldn't be reused. */}
+      {/* [HARD] dns-prefetch, mai preconnect, per googletagmanager: preconnect apre TCP e
+          TLS, mandando SNI e IP a Google prima del consenso (docs/guides/rendering-performance.md). */}
       <link rel="preconnect" href="https://cdn.iubenda.com" />
       <link rel="dns-prefetch" href="https://cdn.iubenda.com" />
       <link rel="dns-prefetch" href="https://cs.iubenda.com" />
       <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
 
-      {/* [HARD] Consent Mode defaults, and they must be the FIRST thing to touch
-          dataLayer — a tag that queues ahead of them runs unrestricted. Hence
-          is:inline and this position: it has to execute synchronously, before
-          the module scripts below and before the CMP.
-
-          All four keys start denied; `wait_for_update` gives the CMP 500ms to
-          answer before tags act on the default. The gate then sends
-          `consent: update` (src/lib/consent/gate.ts) once the user chooses. */}
+      {/* [HARD] I default del Consent Mode devono essere la PRIMA cosa che tocca dataLayer:
+          un tag che si accoda prima di loro gira senza restrizioni. Da cui is:inline e questa
+          posizione. */}
       <script is:inline>
         window.dataLayer = window.dataLayer || []
         function gtag() {
@@ -53,8 +39,8 @@ const lang = Astro.currentLocale ?? i18n?.defaultLocale ?? 'it'
         gtag('set', 'url_passthrough', true)
       </script>
 
-      {/* The only seam where server-resolved env reaches the bundled bootstraps
-          below — plain data, no logic. */}
+      {/* L'unica cucitura in cui l'ambiente risolto lato server arriva agli avvii
+          impacchettati qui sotto: dati semplici, nessuna logica. */}
       <script
         is:inline
         define:vars={{
@@ -70,8 +56,8 @@ const lang = Astro.currentLocale ?? i18n?.defaultLocale ?? 'it'
         import { bootstrapAnalytics } from '@/lib/analytics/bootstrap'
         import { bootstrapIubenda } from '@/lib/consent/iubenda'
 
-        // Analytics first: a stored preference drains the queue as soon as iubenda
-        // loads, and a callback registered after that never runs.
+        // Prima l'analytics: una preferenza già salvata svuota la coda appena iubenda si
+        // carica, e una callback registrata dopo non gira più.
         bootstrapAnalytics()
         bootstrapIubenda()
       </script>

@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { HONEYPOT_FIELD } from '@/lib/forms/honeypot'
 
-// buildPayload maps by control NAME: a renamed control silently sends an empty string.
+// buildPayload mappa per NOME del controllo: un controllo rinominato invia in silenzio una stringa vuota.
 function renderForm(): HTMLFormElement {
   document.body.innerHTML = `
     <form data-contact-form>
@@ -18,8 +18,8 @@ function renderForm(): HTMLFormElement {
   return document.querySelector('form') as HTMLFormElement
 }
 
-// Both imports must follow vi.resetModules(): a spy on an earlier `astro:actions`
-// sits on a different object than the module under test binds to.
+// Entrambi gli import devono seguire vi.resetModules(): una spia su un `astro:actions`
+// precedente sta su un oggetto diverso da quello a cui si aggancia il modulo in prova.
 async function bindWithSpy() {
   const { actions } = await import('astro:actions')
   const spy = vi.spyOn(actions, 'contact').mockResolvedValue({} as never)

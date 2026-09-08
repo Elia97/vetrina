@@ -1,8 +1,8 @@
-// Routes are file-named in the default locale (src/pages/contatti.astro → /contatti);
-// a secondary locale renames only the public segment: `en: { contatti: 'contact' }`.
+// Le rotte prendono il nome dai file nella lingua di default (src/pages/contatti.astro →
+// /contatti); una lingua secondaria rinomina solo il segmento pubblico: `en: { contatti: 'contact' }`.
 const SEGMENTS_BY_LOCALE: Record<string, Record<string, string>> = {}
 
-/* v8 ignore next 2 -- dead while SEGMENTS_BY_LOCALE ships empty; it wakes up at locale #2, and applySegmentMap already covers the mapping it delegates to */
+/* v8 ignore next 2 -- morto finché SEGMENTS_BY_LOCALE arriva vuoto; si sveglia alla seconda lingua, e applySegmentMap copre già la mappatura a cui delega */
 const CANONICAL_BY_LOCALE: Record<string, Record<string, string>> = Object.fromEntries(
   Object.entries(SEGMENTS_BY_LOCALE).map(([locale, segments]) => [
     locale,
@@ -19,7 +19,7 @@ export function applySegmentMap(pathname: string, map: Record<string, string>): 
 }
 
 export function translatePath(pathname: string, locale: string): string {
-  /* v8 ignore start -- same: dead while the map ships empty, alive at locale #2 */
+  /* v8 ignore start -- lo stesso: morto finché la mappa è vuota, vivo alla lingua #2 */
   const segments = SEGMENTS_BY_LOCALE[locale]
   if (!segments) return pathname
   return applySegmentMap(pathname, segments)
@@ -27,7 +27,7 @@ export function translatePath(pathname: string, locale: string): string {
 }
 
 export function canonicalizePath(pathname: string, locale: string): string {
-  /* v8 ignore start -- same: dead while the map ships empty, alive at locale #2 */
+  /* v8 ignore start -- lo stesso: morto finché la mappa è vuota, vivo alla lingua #2 */
   const canonical = CANONICAL_BY_LOCALE[locale]
   if (!canonical) return pathname
   return applySegmentMap(pathname, canonical)

@@ -2,8 +2,8 @@ import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
 
-// The opaque prefix is Vercel's, byte-for-byte from /docs/botid/get-started: a typo
-// disables the bot check silently, and `astro dev` never reads vercel.json.
+// Il prefisso opaco è di Vercel, byte per byte da /docs/botid/get-started: un errore di
+// battitura disattiva il controllo bot in silenzio, e `astro dev` non legge mai vercel.json.
 
 type Rewrite = { source: string; destination: string }
 type HeaderEntry = { key: string; value: string }
@@ -31,7 +31,7 @@ describe('vercel.json BotID proxy', () => {
   it('relaxes X-Frame-Options to SAMEORIGIN on the proxy path, after the global DENY', () => {
     const index = config.headers.findIndex((rule) => rule.source === `${BOTID_PREFIX}/:path*`)
     expect(config.headers[index]?.headers).toEqual([{ key: 'X-Frame-Options', value: 'SAMEORIGIN' }])
-    // Vercel applies the last matching header rule.
+    // Vercel applica l'ultima regola di header che fa match.
     expect(index).toBeGreaterThan(config.headers.findIndex((rule) => rule.source === '/(.*)'))
   })
 })

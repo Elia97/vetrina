@@ -1,93 +1,136 @@
-Reusable Astro template (personal/freelance use). Rules under `[HARD]` are non-negotiable — don't work around them for convenience, even if they seem to block a task.
+Template Astro riutilizzabile (uso personale e freelance). Le regole sotto `[HARD]` non si negoziano: non si aggirano per comodità, nemmeno quando sembrano bloccare un compito.
 
-## Stack and conventions
+## Da dove si comincia
 
-- **Package manager**: pnpm via corepack only — version pinned in `packageManager` (`package.json`). No npm/yarn, no global installs. What actually stops `yarn` is corepack shimming it; **nothing stops `npm install`** — corepack does not shim npm, and npm ignores `package-manager-strict` in `.npmrc` ("Unknown project config"). Treat the npm ban as a convention to keep, not a guardrail that fires.
-- **Node**: version pinned in `.nvmrc` — respect it, don't assume a different version.
-- **Formatter/linter**: Biome only (`biome.json`) — no ESLint/Prettier. Style: 2 spaces, single quotes, no semicolons, trailing commas.
-- **TypeScript**: `astro/tsconfigs/strictest`. If `noUncheckedIndexedAccess`/`exactOptionalPropertyTypes` flag an error, fix it in the code — don't relax the config to make it go away.
-- **Rendering**: `output: "static"` — pages are prerendered by default. A page that needs per-request data opts out with `export const prerender = false` explicit in the frontmatter. The server comes from the adapter, not from this setting: actions and on-demand routes work either way.
-- **Deploy**: Vercel, via `@astrojs/vercel`.
-- **Reading the tree**: `docs/ARCHITECTURE.md` § Repository layout labels every path `machinery` / `config` / `chrome` / `seed` / `example`. Touch machinery to fix a defect, not to tidy; extend the `example` pattern rather than inventing a second one, and don't delete a `seed` path — the generators write into it.
-- **Comments — the default is not to write one.** Good names, short functions and explicit types carry most of the code on their own, and every comment is one more thing that ages. You comment in the **particular cases**, which are these and no others:
-  - a **vendor quirk** the code can't reveal (a 204 that means success, a field the API accepts and ignores);
-  - an **invariant the language can't express**: a value that is a contract with something external, a mandatory call order, a coupling between two files the type system doesn't hold;
-  - **why a chosen constant has that value**, when it isn't arbitrary (why 8 seconds and not 30, why that threshold);
-  - a **workaround for an external bug**, with the link to the upstream issue;
-  - a **silent trap**, where getting it wrong raises no error and just behaves wrong (security, GDPR, SEO).
-  - **That list is closed.** It doesn't extend by analogy: "explaining the design choice", "helping whoever reads next", "saying why this value/class/order" are not entries in it — a reason that the code already shows is not a fact worth a line.
-  - **The test, applied to every comment you write**: does it carry a fact you could go and check **somewhere other than this file** — vendor docs, a measured number, a browser's behaviour, a named line in another module? If yes it stays; if no it goes, however well written it is.
-  - **An API behaving as documented is not a quirk.** `querySelectorAll` matching descendants, `cloneNode(true)` copying children: that's documented semantics — the reader knows it or looks it up in a minute. A quirk is the platform doing the **opposite** of what the docs or common sense promise: Safari refusing `play()` on a non-muted video, Firefox not exposing `wheelDeltaY`, a `focus()` that scrolls its container.
-  - **If you're explaining what an identifier is, the name is missing.** "How far the titles sink below the orb" above `SINK_VH` doesn't say why 0.12 — it translates the name, and the fix is to rename (`TITLES_SINK_BELOW_ORB_VH`), not to comment. "Why a chosen constant has that value" means **where the number comes from** — measured, imposed by a spec, derived from another measure — not what it stands for.
-  - **If a test already holds the constraint, the comment is prose restating a test.** One of the two runs and fails when the code moves; the other doesn't. Write the test, and at most point at its file instead of summarising it.
-  - **Anything provisional is a `TODO`**, not a caption: "until the client sends the 9:16 cut" is a pending commitment — mark it, or the first cleanup sweeps it away along with the prose around it. A `TODO` says **what to do and where**, otherwise it's noise wearing a label.
-  - **A comment is not a substitute for shared code.** If it says "keep this the same as that" — same typography as the other card, same value as the other constant — that constraint belongs in the code: a shared component, an imported constant, a token, at worst a test that fails when the two drift. In prose it binds nobody, nothing runs it, and the day the copies diverge it sits there stating something false. If you can't centralise it right now, what you have is a **`TODO`** naming the duplication and where it lives, not a caption describing it and leaving it there. A coupling is worth stating as a fact only when it's **unavoidable** (an attribute another module reads, a value that must match an external config), and it gets named precisely — file and symbol, not "same as the other page".
-  - **Predictions about our own code are not facts.** "If these two diverge the front splits", "without this the layout breaks", "inverted, the text would touch the edges": they sound like invariants, but they're inferences any reader draws from the code, and they rot the moment the code moves. The giveaway is the conditional — *would break, would overflow, would be unreadable*. A fact is in the present and comes from outside.
-  - **Form**: present tense, about the code **as it is now**. A comment is a caption of the current state, not a record of how it got there.
-  - **Never**: narrate the change ("used to be X", "now instead", "no longer", "removed in #NN", "replaces Y") · restate what the code does · repeat the commit message · banners and dividers · JSDoc on already-readable signatures · comment a test instead of naming it so it explains itself.
-  - **Always kept**, because removing them changes behaviour: `biome-ignore`, `@ts-*`, `/// <reference …>`, `@vitest-environment`, `@public` (fallow), `TODO`/`FIXME`, `[HARD]` markers, shebangs.
-  - **One line, two at the very most** — and that's a ceiling, not a target. More than that isn't a comment but documentation: it belongs in `docs/` (with the code pointing at it), or the code needs to get clearer. A long block is almost always one fact wrapped in three sentences that restate the code: keep the fact, drop the rest.
-  - Applies everywhere, **tests, config files and workflows included** — that's where the drift goes unnoticed.
-  - History lives in `git log` and `docs/DECISIONS.md`, and that's where it gets looked up: `git log -S`, `git blame`.
-  - **Before handing off, sweep your own diff** and delete the comments that don't pass the test — including the ones a vertical agent wrote for you. This pass is not optional: writing one comment fewer costs nothing, leaving one in costs every reader after you.
-  - Before the gates: `pnpm run check:comments` sweeps **the whole tree**, tracked plus untracked — because yesterday's debt counts as much as today's; `--diff [base]` narrows it to the current branch, which is the per-PR scope. It lists blocks over two lines, past-tense narration and files where comments run over 15% of the lines. It reads **shape, not usefulness** — a short, useless, present-tense comment sails through it clean. A green run is not permission to keep it.
+Questo file sta sempre in contesto, quindi resta corto: porta i vincoli e l'instradamento, non le
+spiegazioni. Prima di aprire qualunque cosa passa da **`docs/TASK-CONTEXT.md`**, che per ogni
+compito dice cosa leggere in che ordine — e soprattutto **cosa saltare**.
 
-## Workflow [HARD]
+## Stack e convenzioni
 
-- Commits: Conventional Commits, validated by commitlint on lefthook's `commit-msg` hook (`type(scope): subject`). A commit that doesn't match the format is rejected by the hook — don't bypass it with `--no-verify`.
-- **Anything that must reach production needs a releasable type** — release-please bumps the version only on the types `changelog-sections` leaves visible in `release-please-config.json` (`feat` the minor; `fix`, `perf`, `revert`, `refactor` the patch), and production ships from a release tag. A change landed as a hidden type — `docs`, `chore`, `ci`, `test`, `build`, `style` — stays on `main` unpublished — dependabot's npm bumps are `chore(deps)` (`.github/dependabot.yml`) for that reason, so an updated dependency ships with the next releasable commit rather than cutting a release of its own. Content edits are therefore `fix(content): …`. On a PR this is the **title** that matters, not the commits: squash-merge makes the title the commit message.
-- One GitHub issue = one PR = one squash commit on `main`: branch `<type>/<N>-<slug>`, Conventional PR title, `Closes #N` in the body — and the body always via `--body-file` from `.claude/plans/pr-<N>-<slug>.body.md` (gitignored), structured on `.github/PULL_REQUEST_TEMPLATE.md`. Never force-push, and never commit, push or open a PR without the user's explicit go.
-- Before considering a task done, run `pnpm run ci` (Biome + type-check + unit tests, doesn't modify files) — it must pass clean. **`pnpm run ci`, never `pnpm ci`**: the latter collides with pnpm's npm-compat builtin and performs a frozen install, so it exits 0 having run no gate at all.
-- The `pre-commit` hook auto-formats staged files with Biome: it's normal for files to be rewritten at commit time, that's not an error.
-- `docs/PROJECT.md` is the client's brief in their own words — never modify it arbitrarily; update it only with explicit new client input.
+- **Gestore di pacchetti**: solo pnpm via corepack — la versione è fissata in `packageManager` (`package.json`). Niente npm o yarn, niente installazioni globali. A fermare `yarn` è lo shim di corepack; **niente ferma `npm install`** — corepack non fa shim di npm, e npm ignora `package-manager-strict` in `.npmrc` («Unknown project config»). Il divieto di npm è una convenzione da rispettare, non un guardrail che scatta.
+- **Node**: versione fissata in `.nvmrc` — si rispetta, non si assume un'altra.
+- **Formatter e linter**: solo Biome (`biome.json`), niente ESLint o Prettier. Stile: 2 spazi, apici singoli, niente punto e virgola, virgola finale.
+- **TypeScript**: `astro/tsconfigs/strictest`. Se `noUncheckedIndexedAccess` o `exactOptionalPropertyTypes` segnalano un errore, si corregge il codice — non si allenta la configurazione per farlo sparire.
+- **Rendering**: `output: "static"`, quindi le pagine sono prerenderizzate. Una pagina che ha bisogno di dati per richiesta si sfila con `export const prerender = false` esplicito nel frontmatter. Il server viene dall'adapter, non da questa impostazione: azioni e rotte on-demand funzionano in entrambi i casi.
+- **Deploy**: Vercel, tramite `@astrojs/vercel`.
+- **Leggere l'albero**: `docs/ARCHITECTURE.md` § Struttura del repository, che etichetta ogni percorso come `machinery` / `config` / `chrome` / `seed` / `example`. La machinery si tocca per correggere un difetto, non per riordinare; il pattern `example` si estende invece di inventarne un secondo; un percorso `seed` non si cancella, perché i generatori ci scrivono dentro.
 
-## Planning and vertical agents
+## Commenti [HARD]
 
-- Work is planned in `docs/ROADMAP.md` (a ledger of milestones and their sub-tasks, cross-referenced to GitHub issues, carrying the day estimate per milestone) and `docs/DECISIONS.md` (open decisions, informational — doesn't block seeding a milestone).
-- **Before the plan comes the estimate.** `docs/ESTIMATE.md` and `docs/MEETING-*.md` are **untracked by design** (`.gitignore`) and **derived from `docs/ROADMAP.md`**, never written before it: if the two disagree on a number, the roadmap is right. Blueprints in `docs/proposal-templates/`. The client's own material stays tracked under `docs/sources/`.
-- **[HARD] No issue exists before the work is approved.** `/milestone` previews every issue in plan mode — on a plan the client hasn't signed off, that preview *is* the deliverable. After approval, seed one milestone at a time: a seeded milestone is a frozen plan, and the distant ones still move.
-- **Seeding**: `/milestone <template-name>|<N>` turns a `docs/milestone-templates/*.md` template (or a hand-written `docs/ROADMAP.md` section) into a native GitHub Milestone plus one GitHub issue per sub-task — plan mode previews every issue before creation, one approval creates the whole batch. It never writes application code, never branches, never commits.
-- **Deciding the approach**: `/approach` runs between seeding and implementation, over a whole milestone — it checks what the issues claim against what the code says today, finds the dependencies and overlaps between them, settles the order with you, and writes the outcome to `.claude/plans/`. Read-only: never branches, never edits code, never commits.
-- **Implementation**: `/pr <issue-number>` implements a single GitHub issue end-to-end (branch → vertical agents → quality gates → PR body with `Closes #N`) — one issue = one PR = one squash commit. It reads the `/approach` brief for that issue when one exists. Never commits/pushes/opens a PR on its own.
-- Available vertical agents (`.claude/agents/`), one per domain: `content-agent`, `ui-agent`, `seo-agent`, `forms-agent`, `perf-rendering-agent`, `ops-agent`, plus `comments-agent` — cross-cutting, not a domain: `/pr` runs it over the diff before the gate, and it can audit the whole tree on demand. Both `/milestone` (suggesting an agent per issue) and `/pr` (implementing one) use the same domain-detection logic. Each agent reads the matching guide in `docs/guides/*.md` when one exists, and falls back to standard best practices when it doesn't. Role (implement/review) is decided at invocation-prompt level, not by separate agent files.
-- Reusable milestone blueprints live in `docs/milestone-templates/*.md` — same "stable, reusable across projects" status as `docs/guides/*.md`.
+**Il default è non scriverne.** Nomi buoni, funzioni corte e tipi espliciti reggono da soli quasi tutto il codice, e ogni commento è una cosa in più che invecchia. Si commenta nei **casi particolari**, che sono questi e nessun altro:
 
-## Language [HARD]
+- una **stranezza di un fornitore** che il codice non può rivelare (un 204 che significa successo, un campo che l'API accetta e ignora);
+- un **invariante che il linguaggio non esprime**: un ordine di chiamata obbligatorio, un valore che è un contratto con qualcosa di esterno, un accoppiamento fra due file che i tipi non tengono;
+- **da dove viene una costante**, quando non è arbitraria — misurata, imposta da una specifica, derivata da un'altra misura. Non cosa rappresenta: quello è il nome;
+- un **aggiramento di un bug esterno**, con il link alla issue a monte;
+- una **trappola silenziosa**, dove sbagliare non solleva nessun errore e cambia solo il comportamento (sicurezza, GDPR, SEO).
 
-Two categories, and the split is what a file is for — not a style preference.
+**L'elenco è chiuso** e non si estende per analogia. «Spiegare la scelta di progetto» e «aiutare chi legge dopo» non sono voci: una ragione che il codice già mostra non è un fatto da scrivere.
 
-| | Language | Files |
-|---|:-:|---|
-| **Stable**, travels between projects | **English** | `CLAUDE.md`, `docs/ARCHITECTURE.md`, `docs/guides/*`, `docs/milestone-templates/*`, `docs/proposal-templates/*`, `.claude/commands/*`, `.claude/agents/*`, comments in `src/**` |
-| **Living**, this project only | the project's own | `docs/ROADMAP.md`, `docs/DECISIONS.md`, `docs/PROJECT.md`, `.claude/plans/*`, GitHub issues and PR bodies |
+**Il test, su ogni commento**: porta un fatto che potresti andare a verificare **fuori da questo file** — la documentazione di un fornitore, un numero misurato, il comportamento di un browser, una riga precisa di un altro modulo? Se sì resta, se no va via per quanto sia scritto bene.
 
-`pnpm run check:language` (in `pnpm run ci`) enforces the first row and never
-looks at the second: a stable file reading as Italian fails the gate. It judges
-by function-word frequency, so a file too short to carry the signal — an index,
-a source file with no comments — is left undecided rather than guessed at.
+**Un'API che si comporta come è documentata non è una stranezza.** `querySelectorAll` che prende i discendenti, `cloneNode(true)` che copia i figli: è semantica documentata, chi legge la conosce o la cerca in un minuto. Una stranezza è la piattaforma che fa l'**opposto** di quello che la documentazione o il buon senso promettono: Safari che rifiuta `play()` su un video non muto, Firefox che non espone `wheelDeltaY`, un `focus()` che fa scorrere il contenitore.
 
-Why it exists: the two halves of a codebase family cannot be diffed against each
-other once they drift apart in language, and a rule nobody can check is a rule
-that decays. The living documents are excluded deliberately — they get written
-and rewritten in the language the work happens in, and pretending otherwise just
-moves the drift somewhere no gate looks.
+Altre tre trappole ricorrenti. Se stai spiegando cos'è un identificatore, **manca il nome**: si rinomina, non si commenta. Se un test già regge il vincolo, il commento è **prosa che ripete un test**: uno dei due fallisce quando il codice si muove, l'altro no. E le **previsioni sul nostro codice** non sono fatti: «senza questo il layout si rompe» è un'inferenza che invecchia, e il segnale è il condizionale.
 
-## Multi-agent workflows [HARD]
+**Un commento non sostituisce il codice condiviso.** Se dice «tieni questo uguale a quello», quel vincolo va nel codice: un componente condiviso, una costante importata, un token, al limite un test che fallisce quando i due divergono. In prosa non lega nessuno, non lo esegue niente, e il giorno in cui le copie divergono resta lì ad affermare una cosa falsa. Un accoppiamento si dichiara solo quando è **inevitabile**, e si nomina con precisione: file e simbolo, non «come nell'altra pagina».
 
-Containment rules for multi-agent orchestration (Workflow tool, agent fan-outs). They cap every session-level mode, ultracode included — a session mode never authorizes spend beyond these tiers.
+**Tutto ciò che è provvisorio è un `TODO`**, non una didascalia: dice **cosa fare e dove**, altrimenti è rumore con un'etichetta. Vale anche per una duplicazione che non puoi centralizzare subito.
 
-- **Proportionality, measured first.** Before any orchestration, size the surface (`git diff --stat` for a review, an equivalent scope estimate otherwise):
-  - **Small** (< ~150 changed lines): no workflow and no multi-agent review — `pnpm run ci` + `pnpm run build` are the gate.
-  - **Medium** (~150–400 lines): at most **one** reviewer agent, no fan-out.
-  - **Large** (> ~400 lines), or a medium diff touching a risk area (`src/actions/**`, `src/emails/**`, `src/middleware.ts`, `vercel.json`, env or deploy config): a compact workflow is allowed within the caps below.
-- **Hard caps**: ≤ 6 agents per workflow, 1 verifier per finding — no multi-vote panels. Exceeding a cap means asking first, with a cost estimate.
-- **Announce, then account**: state how many agents and what each does before launching; report the actual count and the token spend after.
-- `/pr` never auto-appends a review workflow: only the tiers above, or the user asking for one in that session, unlock it.
+**Forma**: al presente, sul codice com'è adesso. Mai narrare la modifica («prima era», «ora invece», «non più», «rimosso in #NN», «sostituisce»), ripetere quello che il codice fa, riscrivere il messaggio di commit, mettere banner e separatori, o JSDoc su firme già leggibili. **Una riga, due al massimo** — che è un tetto, non un obiettivo: di più non è un commento ma documentazione, e va in `docs/` con il codice che ci punta.
 
-## Development
+**Si tengono sempre**, perché toglierli cambia il comportamento: `biome-ignore`, `@ts-*`, `/// <reference …>`, `@vitest-environment`, `@public` (fallow), `TODO`/`FIXME`, i marcatori `[HARD]`, gli shebang.
 
-Dev server: `astro dev --background`, managed with `astro dev stop` / `astro dev status` / `astro dev logs`.
+Vale ovunque, **test, configurazioni e workflow compresi**: è lì che la deriva passa inosservata. La storia sta in `git log` e in `docs/DECISIONS.md`, ed è lì che si va a cercarla: `git log -S`, `git blame`.
 
-## Documentation
+**Prima di consegnare, ripassa il tuo diff** e togli i commenti che non passano il test, compresi quelli che ha scritto per te un agente verticale. `pnpm run check:comments` passa **tutto l'albero**, tracciato e non, perché il debito di ieri conta quanto quello di oggi; `--diff [base]` lo restringe al branch corrente, che è l'ambito di una PR. Legge **la forma, non l'utilità**: un commento corto, inutile e al presente lo passa verde. Una passata verde non è il permesso di tenerlo.
 
-Astro docs: https://docs.astro.build — consult them before touching routing/middleware, components, framework islands, content collections, Tailwind styling or i18n.
+## Come si lavora [HARD]
+
+- Commit: Conventional Commits, verificati da commitlint sull'hook `commit-msg` di lefthook (`tipo(ambito): oggetto`). Un commit fuori formato viene rifiutato dall'hook: non si aggira con `--no-verify`.
+- **Quello che deve arrivare in produzione ha bisogno di un tipo rilasciabile** — release-please alza la versione solo sui tipi che `changelog-sections` lascia visibili in `release-please-config.json` (`feat` la minor; `fix`, `perf`, `revert`, `refactor` la patch), e la produzione esce da un tag di release. Una modifica atterrata con un tipo nascosto — `docs`, `chore`, `ci`, `test`, `build`, `style` — resta su `main` non pubblicata: gli aggiornamenti npm di dependabot sono `chore(deps)` (`.github/dependabot.yml`) proprio per questo, così una dipendenza aggiornata viaggia col primo commit rilasciabile invece di tagliare una release per sé. Le modifiche ai contenuti sono quindi `fix(content): …`. Su una PR conta il **titolo**, non i commit: con lo squash-merge il titolo diventa il messaggio.
+- Una issue GitHub = una PR = un commit squash su `main`: branch `<tipo>/<N>-<slug>`, titolo Conventional, `Closes #N` nel corpo — e il corpo sempre via `--body-file` da `.claude/plans/pr-<N>-<slug>.body.md` (non tracciato), sulla struttura di `.github/PULL_REQUEST_TEMPLATE.md`. Mai force-push, e mai committare, pushare o aprire una PR senza il via esplicito dell'utente.
+- Prima di considerare finito un compito gira `pnpm run ci` (Biome, type-check, confini, lingua, rimandi, roadmap, commenti, test, complessità; non modifica file) e deve passare pulito, poi leggi `pnpm run review`, che non blocca ed esce sempre 0. **`pnpm run ci`, mai `pnpm ci`**: il secondo collide con il builtin di compatibilità npm di pnpm ed esegue un'installazione frozen, quindi esce 0 senza aver eseguito nessun gate.
+- **Il diff va mostrato e approvato prima di ogni commit**, uno alla volta, con tre righe in testa: cosa contiene, dove hai un dubbio, cosa non serve guardare. Si committa in modo capillare, una cosa per commit. I messaggi sono in italiano, conventional, **senza footer di Claude**.
+- L'hook `pre-commit` riformatta i file in stage con Biome: è normale che vengano riscritti al momento del commit, non è un errore.
+- `docs/PROJECT.md` è il brief del cliente con le sue parole: non si modifica di iniziativa, si aggiorna solo con nuovo input esplicito del cliente.
+
+## Pianificazione e agenti verticali
+
+- Il lavoro si pianifica in `docs/ROADMAP.md` (registro delle milestone e dei loro sotto-task, con il riferimento alle issue GitHub e le giornate per milestone) e in `docs/DECISIONS.md` (decisioni aperte, informative: non bloccano il seeding di una milestone).
+- **Prima del piano viene la stima.** `docs/ESTIMATE.md` e `docs/MEETING-*.md` sono **non tracciati per scelta** (`.gitignore`) e **derivati da `docs/ROADMAP.md`**, mai scritti prima: se i due non concordano su un numero, ha ragione la roadmap. I blueprint stanno in `docs/proposal-templates/`. Il materiale del cliente resta tracciato sotto `docs/sources/`.
+- **[HARD] Nessuna issue esiste prima che il lavoro sia approvato.** `/milestone` mostra in anteprima ogni issue in modalità piano: su un piano che il cliente non ha firmato, quell'anteprima *è* il deliverable. Dopo l'approvazione si seeda una milestone alla volta, perché una milestone seedata è un piano congelato e quelle lontane si muovono ancora.
+- **La milestone come insieme**: `/milestone <nome-template>|<N>|backlog` ha due modalità, e le decide lo stato della milestone invece di un flag. **In semina** trasforma un template di `docs/milestone-templates/*.md` (o una sezione scritta a mano in `docs/ROADMAP.md`) in una Milestone GitHub nativa più una issue per sotto-task; **in rilettura**, su una milestone già seminata, ricalcola l'ordine su ciò che nel frattempo è atterrato. In tutti e due i casi passa da `/drift` **prima**, e da lì torna con l'insieme già corretto. La modalità piano mostra tutto prima, e una sola approvazione copre il lotto. Non scrive mai codice applicativo, non crea branch, non committa.
+- **Le decisioni a monte**: `/decisions` sta prima della roadmap e mette sotto torchio un piano finché non resta niente di assunto in silenzio — mappa i bivi come un albero e chiede in blocco quelli allo stesso livello. Non implementa niente e non committa.
+- **La verifica contro il codice è un comando suo**: `/drift <issue>|<milestone>|<sezione>` confronta quello che è scritto con quello che è, e scrive le conclusioni dove chi implementa le leggerà — nella roadmap se la issue non esiste ancora, in un blocco `## Aggiornamento` in coda al corpo se esiste. Ci passano `/milestone` e `/pr`, e si invoca da solo quando una milestone è ferma da settimane. Sta fuori dai due perché serviva a entrambi, e scritta due volte sarebbe già andata alla deriva.
+- **L'ordine deciso alla semina è un'ipotesi**: rilanciare `/milestone <N>` dopo che qualche PR è atterrata costa un minuto ed è previsto.
+- **Implementazione**: `/pr <numero-issue>` implementa una singola issue dall'inizio alla fine (branch → agenti verticali → gate di qualità → corpo della PR con `Closes #N`) — una issue = una PR = un commit squash. Legge il blocco `## Aggiornamento` della issue, quando c'è, e le dipendenze dichiarate in `docs/ROADMAP.md`. Non committa, non pusha e non apre PR di sua iniziativa.
+- **Un agente verticale per dominio** (`.claude/agents/`). Quali sono, su quali percorsi lavorano e quale guida leggono sta in **`docs/ARCHITECTURE.md` § I domini**, che è l'unico posto in cui quella tabella vive: `/milestone` e `/pr` la leggono da lì. Fuori dalla tabella c'è `comments-agent`, che è trasversale e non un dominio: `/pr` lo passa sul diff prima del gate, e su richiesta controlla l'intero albero. Il ruolo — implementare o rivedere — si decide nel prompt di invocazione, non con file di agente separati.
+- **Il giro di pulizia**: `/sweep` guarda la terza categoria, quella che i gate non hanno né passato né bocciato — le esclusioni dichiarate, i `TODO` invecchiati, i file locali finiti in un commit, gli avvisi datati nei documenti. Non blocca e non committa: propone, e l'esito più frequente è «niente da fare».
+- I blueprint riutilizzabili delle milestone stanno in `docs/milestone-templates/*.md`, con lo stesso stato di «stabile, riutilizzabile fra progetti» di `docs/guides/*.md`.
+
+## Lingua [HARD]
+
+**Codice e identificatori in inglese, commenti e documentazione in italiano.** Vale per i messaggi di commit, i nomi dei test e i documenti in `docs/`. `pnpm run check:language` lo verifica sui file con prosa e fa parte del gate.
+
+L'italiano si scrive per intero: accenti e apostrofi al loro posto, mai sostituiti da equivalenti ASCII. Attenzione agli apostrofi dentro le stringhe delimitate da apici singoli — è l'inciampo più frequente, e la risposta sono i doppi apici.
+
+Tre categorie restano fuori dal gate, e ognuna per una ragione sua: le fonti del cliente sotto `docs/sources/`, che sono materiale altrui; il `CHANGELOG.md`, che lo genera release-please in inglese; e i dizionari di `src/i18n/strings/`, che sono copy per l'utente nelle lingue del sito — è il solo posto sotto il codice dove non deve leggersi italiano.
+
+Il gate giudica per frequenza di parole funzione, quindi un file troppo corto per portare il segnale — un indice, un sorgente senza commenti — resta indeciso invece che indovinato.
+
+## Orchestrazione multi-agente [HARD]
+
+Regole di contenimento per l'orchestrazione multi-agente (strumento Workflow, fan-out di agenti). Valgono sopra ogni modalità di sessione, ultracode compresa: una modalità non autorizza mai una spesa oltre queste soglie.
+
+- **Proporzionalità, misurata prima.** Prima di qualunque orchestrazione si misura la superficie (`git diff --stat` per una review, una stima equivalente altrimenti):
+  - **Piccola** (< ~150 righe cambiate): niente workflow e niente review multi-agente — il gate sono `pnpm run ci` e `pnpm run build`.
+  - **Media** (~150–400 righe): al massimo **un** agente revisore, senza fan-out.
+  - **Grande** (> ~400 righe), o un diff medio che tocca un'area a rischio (`src/actions/**`, `src/emails/**`, `src/middleware.ts`, `vercel.json`, configurazione di ambiente o deploy): è ammesso un workflow compatto entro i limiti qui sotto.
+- **Limiti invalicabili**: massimo 6 agenti per workflow, un verificatore per ritrovamento, niente collegi che votano. Superare un limite si chiede prima, con una stima di costo.
+- **Annuncia, poi rendiconta**: dichiara quanti agenti e cosa fa ciascuno prima di lanciarli; a valle riporta il numero reale e i token spesi.
+- `/pr` non aggiunge mai un workflow di review da sé: lo sbloccano solo le soglie qui sopra, o l'utente che lo chiede in quella sessione.
+
+## Stato del lavoro
+
+`.claude/plans/stato.md` (non tracciato) tiene le decisioni prese con l'utente e cosa resta da fare.
+**Va riletto dopo ogni compattazione o `/clear`**, prima di riprendere: questo file è sempre in
+contesto, quello no. Si aggiorna quando una decisione cambia, non a ogni passo — è la rete di
+sicurezza, non un diario.
+
+## Istruzioni di compattazione
+
+Una compattazione riscrive la conversazione: quello che non finisce nel riassunto è perso, e non
+tutto costa uguale ricostruirlo.
+
+**Tieni**, in quest'ordine di importanza:
+
+- **le decisioni prese con l'utente, con il loro perché** — soprattutto quelle che derogano a una
+  specifica, a un default o a una raccomandazione. Non stanno nel codice e nessuna rilettura le
+  recupera. Per esempio: quale versione di una dipendenza e perché non l'ultima, quale regola è
+  stata alzata o abbassata, cosa si è deciso di non fare;
+- **le correzioni ricevute, con la ragione** — sono la parte di contesto che il codice non dice e
+  che, persa, fa rifare lo stesso errore;
+- **i vincoli scoperti indagando** su macchina, dipendenze o strumenti: sono costati una verifica, e
+  ripartire senza li fa ripetere;
+- **lo stato del lavoro**: cosa è committato, cosa è in corso, cosa resta;
+- **i numeri misurati** su cui poggia una scelta, non l'output da cui vengono.
+
+**Butta**:
+
+- l'output dei comandi andati a buon fine, e i gate già verdi;
+- le esplorazioni concluse e i tentativi scartati, tenendo solo l'esito;
+- il contenuto dei file: si rileggono quando servono;
+- la cronaca di come si è arrivati a una decisione, una volta che la decisione è registrata.
+
+La storia lunga sta in `git log`, che i messaggi di commit tengono leggibile apposta: quando un
+fatto è già scritto lì, nel riassunto basta il riferimento.
+
+## Sviluppo
+
+Server di sviluppo: `astro dev --background`, gestito con `astro dev stop` / `astro dev status` / `astro dev logs`.
+
+## Documentazione
+
+Documentazione Astro: https://docs.astro.build — si consulta prima di toccare routing e middleware, componenti, isole di framework, content collection, stili Tailwind o i18n.

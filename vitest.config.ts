@@ -2,7 +2,7 @@
 import { fileURLToPath } from 'node:url'
 import { getViteConfig } from 'astro/config'
 
-// `getViteConfig`, not vitest's `defineConfig`: it loads the Vite plugins that compile `.astro`.
+// `getViteConfig`, non il `defineConfig` di vitest: carica i plugin Vite che compilano gli `.astro`.
 const astroEnvServerStub = fileURLToPath(new URL('./test/stubs/astro-env-server.ts', import.meta.url))
 const astroEnvClientStub = fileURLToPath(new URL('./test/stubs/astro-env-client.ts', import.meta.url))
 const astroConfigClientStub = fileURLToPath(new URL('./test/stubs/astro-config-client.ts', import.meta.url))
@@ -26,17 +26,19 @@ export default getViteConfig({
     },
   },
   test: {
-    // Container renders require this default — see the note in test/container.ts.
+    // I render della Container API vogliono questo default: la nota sta in test/container.ts.
     environment: 'node',
-    // [HARD] Astro routes every file in `src/pages/**`, so a test there builds as a page and
-    // crashes the prerender on `vi.mock`. Page-endpoint tests live in `test/pages/` instead.
-    include: ['src/**/*.test.ts', 'scripts/**/*.test.ts', 'test/**/*.test.ts'],
+    // [HARD] Astro instrada ogni file in `src/pages/**`, quindi un test lì si costruisce come
+    // pagina e fa esplodere il prerender su `vi.mock`: quelli stanno in `test/pages/`.
+    include: ['src/**/*.test.ts', 'scripts/**/*.test.ts', 'test/**/*.test.ts', '.claude/hooks/**/*.test.ts'],
     exclude: ['src/pages/**/*.test.ts', 'node_modules/**'],
-    // fallow's CRAP gate reads coverage/coverage-final.json, which the `json` reporter writes;
-    // with no report it assumes 0% coverage.
+    // Il gate CRAP di fallow legge coverage/coverage-final.json, che scrive il reporter `json`;
+    // senza quel rapporto assume una copertura dello 0%.
     coverage: {
       provider: 'v8',
       reporter: ['text-summary', 'json'],
+      // Gli hook di Claude Code hanno i loro test ma restano fuori di qui: la soglia al 100%
+      // presidia il codice che finisce in produzione, non i guardrail dell'agente.
       include: [
         'src/**/*.ts',
         'scripts/lib/**/*.ts',

@@ -1,3 +1,5 @@
+# In pausa finché lo scaffold non è personalizzato: si riattiva togliendo le due
+# righe `open-pull-requests-limit: 0`.
 version: 2
 updates:
   - package-ecosystem: 'npm'
@@ -6,8 +8,8 @@ updates:
       interval: 'weekly'
     labels:
       - 'dependencies'
-    # [HARD] `chore` is hidden in `changelog-sections` and the deploy job runs only on a tag:
-    # a bump merged here reaches production with the next releasable commit, never on its own.
+    # [HARD] `chore` è nascosto in `changelog-sections` e il job di deploy gira solo su un tag:
+    # un bump mergiato qui raggiunge la produzione col primo commit rilasciabile, mai da solo.
     commit-message:
       prefix: 'chore(deps)'
       prefix-development: 'chore(deps-dev)'
@@ -15,19 +17,17 @@ updates:
       default-days: 7
       semver-major-days: 14
     ignore:
-      # No major from an automatic bump: the single group below would sweep them in with the
-      # patches. `cooldown` is no safety net either — a package that published a high version
-      # years ago and then carried on down a lower line (@vercel/og 1.0.0 is from 2023) clears
-      # the maturity window, while the real major is still held inside it.
+      # Nessuna major da un aggiornamento automatico: il gruppo unico qui sotto le
+      # trascinerebbe insieme alle patch, e `cooldown` non le trattiene (@vercel/og 1.0.0 è del 2023).
       - dependency-name: '*'
         update-types: ['version-update:semver-major']
-      # TODO: drop when astro supports TS 7. `astro check` uses the TypeScript
-      # programmatic API, which 7.x does not ship. withastro/roadmap#1321
+      # `astro check` usa l'API programmatica di TypeScript, che il compilatore nativo 7.x
+      # non porta ancora. Stato a monte: https://github.com/withastro/roadmap/discussions/1321
       - dependency-name: 'typescript'
         update-types: ['version-update:semver-major']
     groups:
-      # Two ungrouped PRs merged seconds apart once auto-merged their pnpm-lock.yaml
-      # into a hybrid with a duplicated key: unparsable YAML, CI down until repaired.
+      # Un gruppo, una PR per ciclo: due PR mergiate a secondi di distanza fondono i
+      # rispettivi pnpm-lock.yaml in uno YAML con una chiave duplicata, illeggibile.
       npm:
         patterns:
           - '*'
@@ -38,9 +38,12 @@ updates:
       interval: 'weekly'
     labels:
       - 'github-actions'
+    # `chore` di proposito, al contrario del gruppo npm qui sopra: la versione di un'action non
+    # entra mai nell'artefatto deployato, quindi qui non c'è niente da pubblicare.
     commit-message:
       prefix: 'chore(deps)'
     groups:
+      # Stesso ragionamento del gruppo npm: una PR per ciclo, non una per action.
       github-actions:
         patterns:
           - '*'

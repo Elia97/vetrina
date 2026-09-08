@@ -1,4 +1,4 @@
-// Deliberately NOT happy-dom: a faked window would void what these guards prove.
+// Deliberatamente NON happy-dom: una finestra finta annullerebbe ciò che queste guardie provano.
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import {

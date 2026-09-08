@@ -5,8 +5,8 @@ export type LegalDocKind = 'privacy' | 'cookie-policy'
 
 function policyId(): string {
   const id = PUBLIC_IUBENDA_COOKIE_POLICY_ID ?? ''
-  // Vercel "sensitive" vars reach a prebuilt pull as the literal string
-  // [SENSITIVE]; iubenda ids are numeric.
+  // Le variabili "sensitive" di Vercel arrivano a un pull prebuilt come la stringa letterale
+  // [SENSITIVE]; gli id iubenda sono numerici.
   if (id !== '' && !/^\d+$/.test(id)) {
     console.error('[legal] ignoring non-numeric iubenda policy id (misconfigured env?)')
     return ''
@@ -14,8 +14,8 @@ function policyId(): string {
   return id
 }
 
-/** null when unconfigured: iubenda serves a generic policy page for an empty id,
- *  not a 404. */
+/** null quando non è configurato: per un id vuoto iubenda serve una pagina di policy
+ *  generica, non un 404. */
 export function iubendaHostedUrl(kind: LegalDocKind): string | null {
   const id = policyId()
   if (id === '') return null
@@ -23,7 +23,7 @@ export function iubendaHostedUrl(kind: LegalDocKind): string | null {
   return kind === 'privacy' ? base : `${base}/cookie-policy`
 }
 
-// iubenda's /no-markup endpoint returns bare semantic HTML — no widget JS or CSS.
+// L'endpoint /no-markup di iubenda restituisce HTML semantico nudo — nessun JS o CSS del widget.
 function apiUrl(kind: LegalDocKind, id: string): string {
   return kind === 'privacy'
     ? `https://www.iubenda.com/api/privacy-policy/${id}/no-markup`
@@ -32,8 +32,8 @@ function apiUrl(kind: LegalDocKind, id: string): string {
 
 const envelopeSchema = z.object({ success: z.literal(true), content: z.string().min(1) })
 
-/** [HARD] The result is injected with `set:html` into prerendered HTML: strip
- *  active markup here instead of relying on the CSP. Not a general sanitizer. */
+/** [HARD] Il risultato viene iniettato con `set:html` dentro HTML prerenderizzato: il markup
+ *  attivo si toglie qui invece di contare sulla CSP. Non è un sanitizzatore generico. */
 export function sanitizeLegalHtml(html: string): string {
   return html
     .replace(/<(script|style)\b[^>]*>[\s\S]*?<\/\1>/gi, '')
@@ -43,8 +43,8 @@ export function sanitizeLegalHtml(html: string): string {
     .replace(/(href|src)\s*=\s*(["']?)\s*javascript:[^"'>\s]*/gi, '$1=$2#')
 }
 
-/** [HARD] Configured means required: in production a failed fetch throws rather
- *  than shipping the placeholder "not yet legally reviewed" draft as the policy. */
+/** [HARD] Configurato significa obbligatorio: in produzione una fetch fallita solleva un
+ *  errore invece di spedire come policy la bozza segnaposto "non ancora rivista legalmente". */
 export async function getLegalDoc(kind: LegalDocKind): Promise<string | null> {
   const id = policyId()
   if (id === '') return null

@@ -1,4 +1,4 @@
-// Mirrored verbatim from node_modules/astro/dist/actions/runtime/client.js.
+// Ricopiato alla lettera da node_modules/astro/dist/actions/runtime/client.js.
 export function isInputError(
   error?: unknown,
 ): error is { type: 'AstroActionInputError'; issues: unknown[]; fields: Record<string, string[] | undefined> } {
@@ -12,8 +12,8 @@ export function isInputError(
   )
 }
 
-// Same source, minus `status`/`codeToStatus`: the runtime derives the HTTP status
-// from the IANA code map on its way out, and nothing under test reads it.
+// Stessa fonte, meno `status` e `codeToStatus`: in uscita il runtime deriva lo stato HTTP
+// dalla mappa dei codici IANA, e niente di ciò che è in prova lo legge.
 export class ActionError extends Error {
   readonly type = 'AstroActionError'
   readonly code: string

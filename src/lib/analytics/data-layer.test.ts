@@ -4,8 +4,8 @@ import { beforeEach, describe, expect, it } from 'vitest'
 import { pushToDataLayer } from '@/lib/analytics/data-layer'
 
 beforeEach(() => {
-  // `delete`, not `= undefined`: exactOptionalPropertyTypes rejects undefined as a
-  // value, and "absent" is the state under test.
+  // `delete`, non `= undefined`: exactOptionalPropertyTypes rifiuta undefined come valore,
+  // e lo stato in prova è proprio "assente".
   delete window.dataLayer
 })
 
@@ -23,7 +23,7 @@ describe('pushToDataLayer', () => {
     expect(window.dataLayer).toEqual([{ event: 'first' }, { event: 'second' }])
   })
 
-  // GTM's own snippet may have created the array before this module runs.
+  // Lo snippet di GTM può aver creato l'array prima che questo modulo giri.
   it('adopts a queue it did not create', () => {
     window.dataLayer = [{ event: 'from-gtm' }]
 

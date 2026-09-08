@@ -1,8 +1,7 @@
-/* ─── Light theme: maps semantic roles (shadcn naming) onto `tokens.css` primitives ───
-   Do NOT rename these keys: components and utilities assume them.
-   To rebrand, change `tokens.css` instead. */
+/* ─── Tema chiaro: mappa i ruoli semantici (nomi shadcn) sulle primitive di tokens.css ───
+   Queste chiavi NON si rinominano: componenti e utility le danno per assodate. */
 :root {
-  /* Native UI (form controls, scrollbars) follows the theme */
+  /* L'interfaccia nativa (controlli di form, barre di scorrimento) segue il tema */
   color-scheme: light;
 
   --background: var(--neutral-50);
@@ -22,10 +21,8 @@
   --destructive: var(--red-600);
   --destructive-foreground: var(--neutral-50);
   --success: var(--green-700);
-  /* `--border` separates two surfaces and may stay a hairline; `--input` is the
-     only visible boundary of a control, so WCAG 1.4.11 asks 3:1 of it. Same
-     value for both would fail one of the two roles — they are deliberately
-     different tokens, not an oversight. */
+  /* `--border` separa due superfici, `--input` è l'unico confine visibile di un controllo e
+     la WCAG 1.4.11 gli chiede 3:1: sono due token diversi di proposito. */
   --border: var(--neutral-200);
   --input: var(--neutral-500);
   --ring: var(--brand-500);

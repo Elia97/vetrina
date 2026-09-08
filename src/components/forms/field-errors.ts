@@ -1,6 +1,6 @@
 import { HONEYPOT_FIELD } from '@/lib/forms/honeypot'
 
-// Fills the `[data-field-error]` slots rendered by ui/field/error.astro.
+// Riempie gli slot `[data-field-error]` renderizzati da ui/field/error.astro.
 
 type FormControl = HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
 
@@ -22,7 +22,7 @@ export function clearFieldErrors(form: HTMLFormElement): void {
   for (const control of form.querySelectorAll('[aria-invalid]')) control.removeAttribute('aria-invalid')
 }
 
-// Surfacing the honeypot error tells a bot which field gave it away, so it is dropped.
+// Mostrare l'errore dell'honeypot direbbe a un bot quale campo lo ha tradito, quindi si scarta.
 export function applyFieldErrors(
   form: HTMLFormElement,
   fields: Readonly<Record<string, string[] | undefined>>,

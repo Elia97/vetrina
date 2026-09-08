@@ -15,7 +15,7 @@ export function getRelativeLocaleUrl(locale: string, path = '/'): string {
 
 export function getAbsoluteLocaleUrl(locale: string, path = '/'): string {
   const normalized = getRelativeLocaleUrl(locale, path)
-  // Under trailingSlash 'never' Astro renders the root URL as the bare origin.
+  // Con trailingSlash 'never' Astro renderizza l'URL radice come origine nuda.
   const url = new URL(normalized, SITE.url)
   return normalized === '/' ? url.origin : url.origin + url.pathname
 }

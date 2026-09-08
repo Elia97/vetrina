@@ -8,8 +8,8 @@ import { HONEYPOT_FIELD } from '@/lib/forms/honeypot'
 
 import { fieldErrorId } from './field-errors'
 
-// A slot missing or renamed against the schema compiles fine and silently degrades
-// the field error to a form-level message.
+// Uno slot mancante o rinominato rispetto allo schema compila benissimo e degrada in silenzio
+// l'errore di campo a un messaggio a livello di form.
 const WITHOUT_SLOT: readonly string[] = [HONEYPOT_FIELD]
 
 const expectedFields = Object.keys(contactSchema.shape).filter((field) => !WITHOUT_SLOT.includes(field))

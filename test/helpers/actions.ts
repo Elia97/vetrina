@@ -1,5 +1,5 @@
-// vi.mock is hoisted per file and cannot be registered from here: each test file
-// calls vi.mock('@/lib/vendor/brevo', …) and vi.mock('botid/server', …) itself.
+// vi.mock viene issato in cima a ogni file e non si può registrare da qui: ogni file di test
+// chiama da sé vi.mock('@/lib/vendor/brevo', …) e vi.mock('botid/server', …).
 import { vi } from 'vitest'
 
 import type { ContactRequest } from '@/lib/contact'
@@ -33,7 +33,7 @@ export interface Env {
   botidEnforce?: boolean
 }
 
-// A fresh module graph also resets the sliding window: module-level state in
+// Un grafo di moduli fresco azzera anche la finestra scorrevole: lo stato a livello di modulo in
 // src/lib/forms/rate-limit.ts.
 export async function importActions(env: Env = {}) {
   vi.stubEnv('PROD', env.prod ?? false)
@@ -48,8 +48,8 @@ interface BrevoAnswers {
   upsert?: BrevoResult
 }
 
-// src/actions/index.ts fires the three sends inside one Promise.all, so the answers
-// dispatch on the tag rather than on call order.
+// src/actions/index.ts lancia i tre invii dentro un solo Promise.all, quindi le risposte si
+// smistano sul tag e non sull'ordine di chiamata.
 export function brevoAnswers({ notify = OK, autoreply = OK, upsert = OK }: BrevoAnswers = {}) {
   brevoMock.sendTransactionalEmail.mockImplementation((params) =>
     Promise.resolve(params.tags?.includes('autoreply') ? autoreply : notify),
@@ -74,8 +74,8 @@ export interface ThrownActionError extends Error {
   code: string
 }
 
-// vi.resetModules() re-instantiates `astro:actions`, so `instanceof ActionError`
-// never matches the class the handler threw: match on the serialized shape.
+// vi.resetModules() ricrea `astro:actions`, quindi `instanceof ActionError` non corrisponde
+// mai alla classe che l'handler ha sollevato: si verifica sulla forma serializzata.
 function isActionError(error: unknown): error is ThrownActionError {
   return error instanceof Error && 'type' in error && error.type === 'AstroActionError' && 'code' in error
 }

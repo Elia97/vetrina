@@ -1,11 +1,11 @@
-/** [HARD] `prefers-reduced-motion: reduce` disables ALL motion — first line of
- *  every motion setup. */
+/** [HARD] `prefers-reduced-motion: reduce` disattiva TUTTE le animazioni: è la prima riga di
+ *  ogni impostazione di animazione. */
 export function prefersReducedMotion(): boolean {
   if (typeof window === 'undefined') return true
   return window.matchMedia('(prefers-reduced-motion: reduce)').matches
 }
 
-// [HARD] 768px is Tailwind's `md` breakpoint, where the mobile drawer hides itself.
+// [HARD] 768px è il breakpoint `md` di Tailwind, dove il drawer mobile si nasconde.
 const DESKTOP_QUERY = '(min-width: 768px)'
 
 export function isDesktopViewport(): boolean {

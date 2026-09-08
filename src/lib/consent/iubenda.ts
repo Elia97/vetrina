@@ -15,8 +15,8 @@ export interface IubendaCsConfiguration {
   callback: IubendaCsCallback
 }
 
-/** [HARD] With `floatingPreferencesButtonDisplay` false, the footer's
- *  `.iubenda-cs-preferences-link` is the only way left to withdraw consent. */
+/** [HARD] Con `floatingPreferencesButtonDisplay` a false, il
+ *  `.iubenda-cs-preferences-link` del footer è l'unico modo rimasto per revocare il consenso. */
 export function buildCsConfiguration(opts: {
   siteId: string
   cookiePolicyId: string
@@ -31,8 +31,8 @@ export function buildCsConfiguration(opts: {
     perPurposeConsent: true,
     floatingPreferencesButtonDisplay: false,
     callback: {
-      // onConsentRead carries the stored preference on a return visit;
-      // onPreferenceExpressed fires only on a fresh choice.
+      // onConsentRead porta la preferenza salvata quando si torna sul sito;
+      // onPreferenceExpressed scatta solo su una scelta nuova.
       onPreferenceExpressed: opts.onPreference,
       onConsentRead: opts.onPreference,
     },

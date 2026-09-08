@@ -2,12 +2,12 @@ import { z } from 'astro/zod'
 
 import { useTranslations } from '@/i18n/translate'
 
-// Resolved at module level, outside any request: a second locale means building the
-// schema inside the action handler, where the locale is known.
+// Risolti a livello di modulo, fuori da ogni richiesta: una seconda lingua significa
+// costruire lo schema dentro l'handler dell'azione, dove la lingua è nota.
 const t = useTranslations()
 
-/** [HARD] A field marked `required` in the markup uses this, not `.default('')`: the
- *  form is `novalidate`, so this schema is the only gate that runs on a submit. */
+/** [HARD] Un campo marcato `required` nel markup usa questo, non `.default('')`: il form è
+ *  `novalidate`, quindi questo schema è l'unico gate che gira su un invio. */
 export function requiredText(message: string) {
   return z.string({ error: message }).trim().min(1, { error: message })
 }

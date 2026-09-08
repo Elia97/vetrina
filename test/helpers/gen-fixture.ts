@@ -1,5 +1,5 @@
-// Hook points are copied from the real repo, never transcribed: a frozen copy is a
-// green test over a generator broken by a rename or a dropped `@gen:` marker.
+// I punti di aggancio si copiano dal repo vero, non si trascrivono: una copia congelata è un
+// test verde sopra un generatore rotto da una rinomina o da un marcatore `@gen:` perso.
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
@@ -36,7 +36,7 @@ export function read(root: string, rel: string): string {
   return readFileSync(join(root, rel), 'utf8')
 }
 
-/** Call from afterEach: temp trees outlive the process otherwise. */
+/** Da chiamare in afterEach: altrimenti gli alberi temporanei sopravvivono al processo. */
 export function cleanupRoots(): void {
   for (const root of roots.splice(0)) rmSync(root, { recursive: true, force: true })
 }

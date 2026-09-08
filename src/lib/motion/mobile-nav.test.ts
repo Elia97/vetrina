@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-// happy-dom's MediaQueryList can't be driven from a test, hence the hand-fired fake.
+// La MediaQueryList di happy-dom non si può pilotare da un test, da cui il finto azionato a mano.
 let mediaListeners: Array<(event: { matches: boolean }) => void> = []
 
 function crossToDesktop(isDesktop: boolean): void {
@@ -160,7 +160,7 @@ describe('keyboard inside the panel', () => {
     expect(isLocked()).toBe(false)
   })
 
-  // Tab is delegated: trap-focus.test.ts owns cycleFocus itself.
+  // Tab è delegato: cycleFocus è di trap-focus.test.ts.
   it('handles Tab without closing the panel', async () => {
     const { panel, toggle } = renderChrome()
     await bind()

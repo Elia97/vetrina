@@ -1,8 +1,8 @@
 import { pushToDataLayer } from '@/lib/analytics/data-layer'
 import { createMotionBinding } from '@/lib/motion'
 
-// Opt-in: nothing mounts this — the layout calls bindLinkTracking() once the
-// project has tel:/mailto: links.
+// Su richiesta: non lo monta nessuno — è il layout a chiamare bindLinkTracking() quando il
+// progetto ha dei link tel: o mailto:.
 
 export function resolveLinkEvent(href: string): 'click_to_call' | 'click_to_email' | null {
   if (href.startsWith('tel:')) return 'click_to_call'
@@ -15,7 +15,7 @@ function handleClick(event: MouseEvent): void {
   if (!(target instanceof Element)) return
   const link = target.closest('a[href]')
   if (!(link instanceof HTMLAnchorElement)) return
-  /* v8 ignore next -- the selector already required [href] */
+  /* v8 ignore next -- il selettore richiedeva già [href] */
   const href = link.getAttribute('href') ?? ''
   const eventName = resolveLinkEvent(href)
   if (eventName === null) return

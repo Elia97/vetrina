@@ -15,8 +15,8 @@ const t = useTranslations(Astro.currentLocale)
     <CardDescription as="p">{t('contact.formIntro')}</CardDescription>
   </CardHeader>
 
-  {/* novalidate: the browser's own bubbles report before the schema runs and set no
-      aria-invalid — src/lib/contact.ts is the single gate. */}
+  {/* novalidate: i fumetti del browser segnalano prima che lo schema giri e non impostano
+      aria-invalid — il gate unico è src/lib/contact.ts. */}
   <form
     novalidate
     data-contact-form

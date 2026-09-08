@@ -43,7 +43,7 @@ describe('sanitizeLegalHtml', () => {
     expect(sanitizeLegalHtml('<a href="javascript:alert(1)">t</a>')).toBe('<a href="#">t</a>')
   })
 
-  // The images in iubenda's output are decorative provider icons on signed S3 hosts.
+  // Le immagini nell'output di iubenda sono icone decorative dei fornitori su host S3 firmati.
   it('drops images', () => {
     expect(sanitizeLegalHtml('<p>a</p><img src="https://s3.example/x.png" alt="">')).toBe('<p>a</p>')
   })

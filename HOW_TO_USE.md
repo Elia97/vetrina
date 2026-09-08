@@ -1,203 +1,247 @@
-# How to use this template
+# Come si usa questo template
 
-This repo is a personal/freelance starting point — start fresh from it for each new project rather than working directly in `astro-template` itself.
+Questo repo è un punto di partenza per lavoro personale e freelance: per ogni progetto nuovo si
+riparte da qui invece di lavorare dentro `astro-template` stesso.
 
-The lifecycle around the repo — reading the client's brief, deriving the estimate, the approval that turns a plan into issues — lives in `~/work/PIPELINE.md`. This file covers what happens *inside* the repo.
+Il ciclo che sta intorno al repo — leggere il brief del cliente, derivare la stima, l'approvazione
+che trasforma un piano in issue — vive in `~/work/PIPELINE.md`. Questo file copre quello che succede
+*dentro* il repo.
 
-## Before approval — the repo, the plan, the estimate
+## Prima dell'approvazione — il repo, il piano, la stima
 
-The repo exists before the work is approved: the planning documents get written inside it, which is what puts them on GitHub instead of on a single machine. Nothing is personalized yet, and **no issue is created yet** — `/milestone` previews every issue in plan mode, and on an unsigned plan that preview is the whole point.
+Il repo esiste prima che il lavoro sia approvato: i documenti di pianificazione si scrivono dentro,
+ed è quello che li mette su GitHub invece che su una macchina sola. Niente è ancora personalizzato,
+e **non esiste ancora nessuna issue**: `/milestone` mostra ogni issue in anteprima in modalità
+piano, e su un piano non firmato quell'anteprima è tutto il punto.
 
-1. On GitHub, click **"Use this template" → "Create a new repository"** under the new project's name (not `git clone` — that would drag along this repo's own git history and release tags).
-2. Clone it, then `corepack enable && pnpm install` — installs dependencies and git hooks (lefthook).
-3. **Pause dependabot**: `open-pull-requests-limit: 0` under both ecosystems in `.github/dependabot.yml` — then **commit and push it**, since GitHub reads that file from the default branch and a pause left locally pauses nothing. On a scaffold that isn't personalized and has no CI secrets, its PRs are noise to close by hand. The `foundations` milestone re-enables it.
-4. Write the planning documents. The client's own material goes tracked into `docs/sources/`; `docs/PROJECT.md` is their brief in their own words, `docs/DECISIONS.md` what is still open, `docs/ROADMAP.md` the milestones and the days they cost. All three ship as empty scaffolds on purpose.
-5. Derive the estimate from the roadmap — `docs/ESTIMATE.md`, plus `docs/MEETING-<date>.md` if there is a call to prepare. Both are **untracked by design**; their blueprints and the reasoning behind that are in `docs/proposal-templates/README.md`.
+1. Su GitHub, **«Use this template» → «Create a new repository»** col nome del progetto nuovo (non
+   `git clone`, che si trascinerebbe dietro la storia git e i tag di release di questo repo).
+2. Clonalo, poi `corepack enable && pnpm install`: installa dipendenze e hook git (lefthook).
+3. **Metti dependabot in pausa**: `open-pull-requests-limit: 0` sotto entrambi gli ecosistemi in
+   `.github/dependabot.yml`, e poi **committa e pusha**, perché GitHub legge quel file dal branch di
+   default e una pausa che resta in locale non mette in pausa niente. Su uno scaffold non
+   personalizzato e senza secret di CI, le sue PR sono rumore da chiudere a mano. La milestone
+   `foundations` lo riattiva.
+4. Scrivi i documenti di pianificazione. Il materiale del cliente entra tracciato in
+   `docs/sources/`; `docs/PROJECT.md` è il suo brief con le sue parole, `docs/DECISIONS.md` quello
+   che resta aperto, `docs/ROADMAP.md` le milestone e le giornate che costano. Tutti e tre arrivano
+   come impalcature vuote di proposito.
+5. Deriva la stima dalla roadmap — `docs/ESTIMATE.md`, più `docs/MEETING-<data>.md` se c'è una call
+   da preparare. Sono entrambi **non tracciati per scelta**; le loro impalcature e il ragionamento
+   dietro stanno in `docs/proposal-templates/README.md`.
 
-## After approval
+## Dopo l'approvazione
 
-6. `bash scripts/bootstrap-github.sh` from inside the clone (needs `gh` authenticated) — dependabot labels, squash-only merge policy, Actions permissions for release-please, and the `main` ruleset (PR required, `ci` as a required status check, branch up to date before merging, no direct push). Re-run it any time: every step is idempotent. **It waits until here because of that last rule**: the planning phase above is direct commits to `main` by one author, and a ruleset would refuse them. Do not reach for `ADMIN_BYPASS=1` to work around that — on a client project it turns `ci` back into a suggestion.
-7. Connect the repo to a Vercel project, then set **Settings → Build & Deployment → Ignored Build Step** to `bash scripts/vercel-ignore-build.sh` — production only ships from a release tag, not from every push.
-8. Set the release secrets (§ Release secrets below) — without `RELEASE_PLEASE_TOKEN` the release PR never gets a `ci` check and can never be merged.
-9. `/milestone 1` seeds Milestone 1 — branding, environments, design system, SEO, forms, consent, real content, transcribed into the roadmap from `docs/milestone-templates/foundations.md` while the plan was written — and `/pr <issue-number>` implements each of its issues. Seed one milestone at a time: a seeded milestone is a frozen plan. **The rebrand happens there**, through PRs and releasable commits; doing it by hand first would land it on `main` as untracked, unreleasable work. § What the rebrand touches, below, is the reference those issues read.
-10. `.release-please-manifest.json` starts at `{".": "0.0.0"}`, which release-please treats as "nothing released yet" rather than a real prior version — so the first `release-please` PR proposes `1.0.0` directly, automatically, and stays open, updating on every `feat`/`fix`, until you merge it once the initial batch of milestones is done. No config change needed for this; it's release-please's own default behavior when there's no real prior release.
+6. `bash scripts/bootstrap-github.sh` da dentro il clone (serve `gh` autenticato): label di
+   dependabot, merge solo in squash, permessi Actions per release-please, e il ruleset su `main` (PR
+   obbligatoria, `ci` come check richiesto, branch aggiornato prima del merge, nessun push diretto).
+   Si può rilanciare quando si vuole: ogni passo è idempotente. **Aspetta fino a qui proprio per
+   l'ultima regola**: la fase di pianificazione qui sopra è fatta di commit diretti su `main` da un
+   autore solo, e un ruleset li rifiuterebbe. Non ricorrere ad `ADMIN_BYPASS=1` per aggirarlo: su un
+   progetto cliente rimette `ci` al rango di suggerimento.
+7. Collega il repo a un progetto Vercel, poi imposta **Settings → Build & Deployment → Ignored Build
+   Step** su `bash scripts/vercel-ignore-build.sh`: la produzione esce solo da un tag di release,
+   non a ogni push.
+8. Imposta i secret di release (§ Secret di release, sotto): senza `RELEASE_PLEASE_TOKEN` la release
+   PR non riceve mai il check `ci` e non si può mergiare.
+9. `/milestone 1` semina la Milestone 1 — branding, ambienti, design system, SEO, form, consenso,
+   contenuti reali, trascritta nella roadmap da `docs/milestone-templates/foundations.md` mentre si
+   scriveva il piano — e `/pr <numero-issue>` implementa ciascuna delle sue issue. Si semina una
+   milestone alla volta: una milestone seminata è un piano congelato. **Il rebranding avviene lì**,
+   attraverso PR e commit rilasciabili; farlo a mano prima lo farebbe atterrare su `main` come
+   lavoro non tracciato e non rilasciabile. La sezione § Cosa tocca il rebranding, sotto, è il
+   riferimento che quelle issue leggono.
+10. `.release-please-manifest.json` parte da `{".": "0.0.0"}`, che release-please interpreta come
+    «non è ancora stato rilasciato niente» e non come una versione precedente vera: la prima PR di
+    release propone quindi `1.0.0` direttamente, da sola, e resta aperta aggiornandosi a ogni `feat`
+    e `fix` finché non la si merge, una volta finito il primo blocco di milestone. Non serve
+    configurare niente: è il comportamento di default di release-please quando non c'è una release
+    precedente vera.
 
-## What the rebrand touches
+## Cosa tocca il rebranding
 
-The full surface, in one place — the `foundations` milestone spreads it across three issues:
+La superficie completa, in un posto solo — la milestone `foundations` la distribuisce su tre issue:
 
-- `package.json#name` (and `release-please-config.json`) — it leaks into the
-  changelog that release-please generates, so it should match the new project,
-  not stay `astro-template`;
-- `src/lib/site.ts` — name, url, description, nav/CTA/legal (the chrome
-  renders from here; entries carry i18n keys, not copy);
-- `src/styles/tokens.css` — the ONLY file to touch for the visual rebrand
-  (raw oklch primitives; the semantic names in `light.css`/`dark.css` stay);
-- `public/og-default.png` — replace the placeholder (1200×630);
-- `public/favicon.svg` + `public/favicon.ico` — replace both. The SVG is the
-  manifest's only icon out of the box: valid, but **not installable** —
-  `docs/guides/seo.md` § Icons, manifest & theme-color has what to add for
-  the install prompt;
-- `SITE.themeColor` — the browser-chrome colours; keep them equal to
-  `--background` in `light.css`/`dark.css`;
-- `astro.config.mjs` → `i18n.defaultLocale`/`locales` if the project isn't
-  Italian-first (§ Adding a locale below is the full list);
-- `src/content/homepage/hero.yml` — real homepage copy.
+- `package.json#name` (e `release-please-config.json`): trapela nel changelog che release-please
+  genera, quindi deve corrispondere al progetto nuovo e non restare `astro-template`;
+- `src/lib/site.ts`: nome, url, descrizione, voci di nav, CTA e legali (la chrome si rende da qui, e
+  le voci portano chiavi i18n, non testo);
+- `src/styles/tokens.css`: l'UNICO file da toccare per il rebranding visivo (primitive oklch grezze;
+  i nomi semantici in `light.css` e `dark.css` restano);
+- `public/og-default.png`: si sostituisce il segnaposto (1200×630);
+- `public/favicon.svg` e `public/favicon.ico`: si sostituiscono entrambi. L'SVG è l'unica icona del
+  manifest così com'è: valida, ma **non installabile** — `docs/guides/seo.md` § Icone, manifest e
+  theme-color ha cosa aggiungere per il prompt di installazione;
+- `SITE.themeColor`: i colori della chrome del browser, da tenere uguali a `--background` in
+  `light.css` e `dark.css`;
+- `astro.config.mjs` → `i18n.defaultLocale` e `locales` se il progetto non parte dall'italiano (§
+  Aggiungere una lingua, sotto, ha l'elenco completo);
+- `src/content/homepage/hero.yml`: il copy vero della homepage.
 
-## What the scaffold gives you
+## Cosa ti dà lo scaffold
 
-- **Design tokens, three tiers** (`src/styles/`): `tokens.css` (rebrand surface)
-  → `light.css`/`dark.css` (semantic names) → `globals.css` (orchestrator).
-- **UI primitives** (`src/components/ui/`): native `.astro`, cva + `cn()`,
-  shadcn API shape, zero client JS. Compound families (card, alert) are
-  folders with a `.ts` barrel; layout lives in `Container`/`Section` only.
-- **Base layout + SEO** (`src/layouts/main.astro`): centralized head, FOUC-free
-  dark mode, skip-link, view transitions.
-- **Homepage sections** (`src/content/homepage/*.yml`): one YAML per section,
-  typed access only via `getHomepageSections(locale)` — also the CMS seam.
-- **i18n, additive by design**: the default locale keeps unprefixed URLs and
-  FLAT content files forever — a second language is never a restructure
-  (§ Adding a locale below).
-- **SEO plumbing**: modular head (`head/seo.ts` + subcomponents), sitemap +
-  `robots.txt`, JSON-LD builders, `X-Robots-Tag: noindex` on `*.vercel.app`
-  preview deploys, security headers in `vercel.json`.
-- **Contact form stack**: Astro Action + zod schema + rate limiting + Brevo
-  vendor (dev no-op / prod refuse) + transactional emails + accessible form UI
-  (`/contatti`). Conventions in `docs/guides/forms-email.md`; env setup below.
-- **Error & legal pages**: 404/500, plus `privacy`, `cookie-policy` and
-  `termini`. The first two are served from iubenda — fetched and sanitized at
-  build time once a policy id is set, and until then they say the document isn't
-  available rather than showing draft prose that reads like a real policy.
-  `termini` has no hosted counterpart, so it ships hand-written placeholder
-  sections behind a "draft, needs legal review" alert.
-- **Consent + analytics, off until configured**: iubenda CMP + GTM behind a
-  consent gate, Google Consent Mode v2 defaults denied (§ Consent and analytics
-  setup below).
-- **Unit tests** (vitest + happy-dom): `pnpm test`, wired into `pnpm run ci`.
-  Astro's virtual modules are stubbed in `test/stubs/` (env, config, i18n) so
-  pure logic (head/seo, i18n, rate-limit, emails, vendors) tests fast. Coverage
-  of that logic is held at **100%** — the denominator is `.ts` only, since
-  `.astro` markup carries no branches worth a test, and each deliberate gap
-  carries a `v8 ignore` with its reason. It exists to make `fallow audit`'s CRAP
-  gate mean something, not as a number to chase.
-- **Dead-code and architecture analysis** (fallow, dev-only): `pnpm exec fallow
-  dead-code` and `pnpm exec fallow dupes` must stay clean — `.fallowrc.jsonc`
-  documents every intentional ignore, and its `boundaries` block turns
-  `docs/ARCHITECTURE.md` § Source layering into a check. `pnpm audit:diff` gates
-  the same analyses **scoped to a branch's diff** and is what `/pr` runs; it
-  reads the coverage `pnpm test` writes, without which its CRAP threshold would
-  score a well-tested branchy function as if it were untested.
+- **Token di design su tre livelli** (`src/styles/`): `tokens.css` (la superficie del rebranding) →
+  `light.css` e `dark.css` (nomi semantici) → `globals.css` (l'orchestratore).
+- **Primitive di interfaccia** (`src/components/ui/`): `.astro` native, cva e `cn()`, la forma
+  dell'API di shadcn, zero JS lato client. Le famiglie composte (card, alert) sono cartelle con un
+  barrel `.ts`; il layout vive solo in `Container` e `Section`.
+- **Layout di base e SEO** (`src/layouts/main.astro`): head centralizzata, tema scuro senza FOUC,
+  skip-link, view transition.
+- **Sezioni di homepage** (`src/content/homepage/*.yml`): un YAML per sezione, accesso tipizzato
+  solo tramite `getHomepageSections(locale)` — che è anche la cucitura verso un CMS.
+- **i18n additiva per costruzione**: la lingua di default tiene per sempre URL senza prefisso e file
+  di contenuto PIATTI, quindi una seconda lingua non è mai una ristrutturazione (§ Aggiungere una
+  lingua, sotto).
+- **Impianto SEO**: head modulare (`head/seo.ts` più i suoi sottocomponenti), sitemap e
+  `robots.txt`, costruttori di JSON-LD, `X-Robots-Tag: noindex` sui deploy di preview
+  `*.vercel.app`, header di sicurezza in `vercel.json`.
+- **Stack del form di contatto**: Astro Action, schema zod, rate limiting, fornitore Brevo (che in
+  sviluppo non fa niente e in produzione rifiuta), email transazionali e interfaccia accessibile
+  (`/contatti`). Le convenzioni sono in `docs/guides/forms-email.md`, la configurazione qui sotto.
+- **Pagine di errore e legali**: 404 e 500, più `privacy`, `cookie-policy` e `termini`. Le prime due
+  arrivano da iubenda — scaricate e ripulite in fase di build una volta impostato un id di policy, e
+  fino ad allora dicono che il documento non è disponibile invece di mostrare una bozza che sembra
+  una policy vera. `termini` non ha un corrispettivo ospitato, quindi porta sezioni segnaposto
+  scritte a mano dietro un avviso «bozza, da rivedere legalmente».
+- **Consenso e analytics, spenti finché non li configuri**: CMP iubenda e GTM dietro un gate di
+  consenso, con i default di Google Consent Mode v2 negati (§ Configurare consenso e analytics,
+  sotto).
+- **Unit test** (vitest e happy-dom): `pnpm test`, collegato a `pnpm run ci`. I moduli virtuali di
+  Astro sono stubbati in `test/stubs/` (env, config, i18n), così la logica pura (head e seo, i18n,
+  rate-limit, email, fornitori) si testa in fretta. La copertura di quella logica è tenuta al
+  **100%** — il denominatore sono solo i `.ts`, perché il markup `.astro` non porta rami che valga
+  la pena testare, e ogni buco voluto porta un `v8 ignore` con la sua ragione. Esiste per dare un
+  senso al gate CRAP di `fallow audit`, non come numero da inseguire.
+- **Analisi di codice morto e architettura** (fallow, solo in sviluppo): `pnpm run check:deadcode`
+  e `pnpm run check:health` stanno dentro `pnpm run ci` — `.fallowrc.jsonc` documenta ogni
+  esclusione voluta, e il suo blocco `boundaries` trasforma `docs/ARCHITECTURE.md` § Stratificazione
+  dei sorgenti in un controllo. `pnpm audit:diff` mette le stesse analisi a gate **limitandole al
+  diff di un branch**, ed è quello che lancia `/pr`; legge la copertura che `pnpm test` scrive,
+  senza la quale la sua soglia CRAP giudicherebbe una funzione ben testata e piena di rami come se
+  non fosse testata affatto. `pnpm run review` non blocca ed esce sempre 0: va letto.
 
-Depth and rationale live in `docs/guides/*.md` and `docs/ARCHITECTURE.md`.
+Il perché e il dettaglio stanno in `docs/guides/*.md` e in `docs/ARCHITECTURE.md`.
 
-## Contact form setup
+## Configurare il form di contatto
 
-The form works out of the box in dev with **no configuration** (the Brevo
-client no-ops loudly and the form still "succeeds"). To send real email:
+In sviluppo il form funziona **senza configurazione**: il client Brevo non fa niente ma lo dice, e
+il form «riesce» comunque. Per spedire email vere:
 
-1. Copy `.env.example` to `.env` and fill the `CONTACT_*` values.
-2. Set `BREVO_API_KEY` locally in `.env` and, for deploys, in the Vercel
-   project settings (it's a server-only secret — never in git).
-3. Verify the sender domain's DKIM/SPF/DMARC in Brevo before go-live: without
-   it production refuses to send (by design — no silently dropped leads).
+1. Copia `.env.example` in `.env` e riempi i valori `CONTACT_*`.
+2. Imposta `BREVO_API_KEY` in locale nel `.env` e, per i deploy, nelle impostazioni del progetto
+   Vercel (è un segreto solo lato server, mai in git).
+3. Verifica DKIM, SPF e DMARC del dominio mittente in Brevo prima del go-live: senza, la produzione
+   rifiuta di spedire — di proposito, così nessun contatto si perde in silenzio.
 
-## Consent and analytics setup
+## Configurare consenso e analytics
 
-Nothing ships until you configure it: with no env set the site renders no cookie
-banner, loads no tag and sets no non-essential cookie. To turn it on:
+Niente parte finché non lo configuri: senza variabili d'ambiente il sito non rende nessun banner,
+non carica nessun tag e non scrive nessun cookie non essenziale. Per accenderlo:
 
-1. Create the iubenda site + cookie policy for the client, and the GTM container.
-2. Set `PUBLIC_GTM_ID`, `PUBLIC_IUBENDA_SITE_ID` and
-   `PUBLIC_IUBENDA_COOKIE_POLICY_ID` — on Vercel as **Plain** variables, never
-   Sensitive (a Sensitive var reaches the build as the literal `[SENSITIVE]`).
-   They are public ids that ship in the bundle, not secrets.
-3. **Widen the CSP in `vercel.json`** and the matching assertions in
-   `src/vercel-headers.test.ts`. The exact source lists are in the header comment
-   of `src/components/head/tracking.astro`. Skipping this is the failure worth
-   knowing about: `astro dev` never reads `vercel.json`, so everything looks fine
-   locally and production shows no banner at all.
-4. Verify on a preview, accept and reject both, with GA4 Realtime open: nothing
-   should reach Google before opt-in.
+1. Crea per il cliente il sito iubenda con la sua cookie policy, e il container GTM.
+2. Imposta `PUBLIC_GTM_ID`, `PUBLIC_IUBENDA_SITE_ID` e `PUBLIC_IUBENDA_COOKIE_POLICY_ID` — su Vercel
+   come variabili **Plain**, mai Sensitive (una variabile Sensitive arriva alla build come la
+   stringa letterale `[SENSITIVE]`). Sono id pubblici che finiscono nel bundle, non segreti.
+3. **Allarga la CSP in `vercel.json`** e con essa le asserzioni in `src/vercel-headers.test.ts`. Gli
+   elenchi esatti delle sorgenti stanno nel commento in testa a
+   `src/components/head/tracking.astro`. Saltare questo passo è l'errore che vale la pena conoscere:
+   `astro dev` non legge mai `vercel.json`, quindi in locale sembra tutto a posto e in produzione il
+   banner non compare affatto.
+4. Verifica su una preview, accettando e rifiutando, con GA4 Realtime aperto: prima del consenso a
+   Google non deve arrivare niente.
 
-The same policy id also switches `/privacy` and `/cookie-policy` from their
-placeholder drafts to the hosted iubenda documents. Those are fetched at build
-time, so a policy edited on iubenda only reaches the site on the next deploy —
-`docs/guides/deploy-ops.md` § Rebuilding the legal pages is the runbook.
+Lo stesso id di policy fa passare anche `/privacy` e `/cookie-policy` dalle loro bozze segnaposto ai
+documenti iubenda ospitati. Vengono scaricati in fase di build, quindi una policy modificata su
+iubenda arriva sul sito solo al deploy successivo, e la procedura è in `docs/guides/deploy-ops.md`
+§ Ricostruire le pagine legali dopo una modifica alle policy.
 
-## Adding a webfont
+## Aggiungere un webfont
 
-The design system reads `--font-stack-base` / `--font-stack-display` (with a
-system-ui fallback), so a webfont is config-only:
+Il design system legge `--font-stack-base` e `--font-stack-display` (con un fallback a system-ui),
+quindi un webfont è solo configurazione:
 
-1. In `astro.config.mjs` add the `fonts` entry (Astro fonts API) with
-   `cssVariable: '--font-stack-base'` (and/or `--font-stack-display`) and
+1. In `astro.config.mjs` aggiungi la voce `fonts` (API font di Astro) con
+   `cssVariable: '--font-stack-base'` (e/o `--font-stack-display`) e
    `fallbacks: ['system-ui', 'sans-serif']`.
-2. Render `<Font cssVariable="--font-stack-base" preload />` in the layout
-   `<head>` (`src/layouts/main.astro`).
+2. Rendi `<Font cssVariable="--font-stack-base" preload />` nell'`<head>` del layout
+   (`src/layouts/main.astro`).
 
-No component or CSS changes: `--font-sans`/`--font-display` in `globals.css`
-already point at those hooks.
+Nessuna modifica ai componenti né al CSS: `--font-sans` e `--font-display` in `globals.css` puntano
+già a quegli agganci.
 
-## CLI generators
+## Generatori da riga di comando
 
-`pnpm gen` (interactive menu) or directly:
+`pnpm gen` (menu interattivo) oppure direttamente:
 
-- `pnpm gen:section` — homepage section: Zod schema + flat YAML + component,
-  injected into the union, the data layer and `index.astro`'s `@gen` markers.
-- `pnpm gen:page` — static page, or dynamic `[slug]` with `getStaticPaths`;
-  nested paths supported (`legal/privacy`).
-- `pnpm gen:component` — native `.astro` component following the cva + `cn()`
-  recipe.
-- `pnpm gen:collection` — content collection: schema + example content,
-  registered into `content.config.ts`.
+- `pnpm gen:section` — sezione di homepage: schema Zod, YAML piatto e componente, iniettati
+  nell'unione, nello strato dati e nei marcatori `@gen` di `index.astro`.
+- `pnpm gen:page` — pagina statica, o dinamica `[slug]` con `getStaticPaths`; i percorsi annidati
+  sono supportati (`legal/privacy`).
+- `pnpm gen:component` — componente `.astro` nativo secondo la ricetta cva più `cn()`.
+- `pnpm gen:collection` — content collection: schema e contenuto di esempio, registrata in
+  `content.config.ts`.
 
-Contracts worth knowing (details in `docs/guides/content-collections.md`):
+Contratti che vale la pena conoscere (il dettaglio è in `docs/guides/content-collections.md`):
 
-- Generators **fail loud**: inputs are validated on the transformed values,
-  every injection hook point is asserted in a pre-flight **before any file is
-  written**, and the post-gen gate (`astro sync` + `pnpm run check`) fails the
-  run on any error.
-- If the post-gen gate fails, generated files stay on disk for inspection —
-  the error message says how to roll back (`gen:section` also modifies three
-  existing files; `git checkout` them).
-- Don't rename the injection anchors (`export const collections`,
-  `homepageCollectionSchema`, `getHomepageSections`, the `@gen:home-*`
-  markers): the generators assert on them and abort with the contract error.
+- i generatori **falliscono rumorosamente**: gli input si validano sui valori trasformati, ogni
+  punto di aggancio dell'iniezione si verifica in un pre-volo **prima che venga scritto un solo
+  file**, e il gate post-generazione (`astro sync` più `pnpm run check`) fa fallire il giro a ogni
+  errore;
+- se il gate post-generazione fallisce, i file generati restano su disco per essere ispezionati: il
+  messaggio d'errore dice come tornare indietro (`gen:section` modifica anche tre file esistenti, da
+  riportare con `git checkout`);
+- non rinominare gli ancoraggi dell'iniezione (`export const collections`,
+  `homepageCollectionSchema`, `getHomepageSections`, i marcatori `@gen:home-*`): i generatori li
+  verificano e si fermano con l'errore di contratto.
 
-## Adding a locale
+## Aggiungere una lingua
 
-The template ships single-locale (`it`) with the i18n rails already in place — a second locale is purely additive:
+Il template arriva con una lingua sola (`it`) e i binari i18n già posati: una seconda lingua è
+puramente additiva.
 
-1. `astro.config.mjs` — add the locale code to `i18n.locales`.
-2. `src/lib/site.ts` — add its BCP 47 tag to `localeTags`.
-3. `test/stubs/astro-config-client.ts` — mirror the new locale list. It stands in
-   for `astro:config/client` in unit tests, so a stale stub leaves them asserting
-   against the old configuration while staying green.
-   (Steps 1–3 are held together by `src/i18n/locale-config.test.ts`.)
-4. `src/i18n/strings/<locale>.ts` — export a `Record<UIKey, string>`; the compiler forces every key to exist.
-5. `src/i18n/ui.ts` — register the new dictionary in `dictionaries`.
-6. `src/i18n/route-segments.ts` — map the top-level URL segments that change (`contatti` → `contact`); unmapped segments pass through.
-7. Content: add `src/content/<collection>/<locale>/…` files (default-locale content stays flat — the loaders enforce this).
-8. Pages: mirror the default tree under `src/pages/<locale>/…`; `getHomepageSections(Astro.currentLocale)` and `useTranslations(Astro.currentLocale)` already resolve per locale.
+1. `astro.config.mjs` — aggiungi il codice della lingua a `i18n.locales`.
+2. `src/lib/site.ts` — aggiungi il suo tag BCP 47 a `localeTags`.
+3. `test/stubs/astro-config-client.ts` — rispecchia il nuovo elenco di lingue. Fa le veci di
+   `astro:config/client` negli unit test, quindi uno stub vecchio li lascia verdi mentre asseriscono
+   contro la configurazione di prima.
+   (I passi da 1 a 3 sono tenuti insieme da `src/i18n/locale-config.test.ts`.)
+4. `src/i18n/strings/<lingua>.ts` — esporta un `Record<UIKey, string>`; il compilatore costringe a
+   coprire ogni chiave.
+5. `src/i18n/ui.ts` — registra il dizionario nuovo in `dictionaries`.
+6. `src/i18n/route-segments.ts` — mappa i segmenti di URL di primo livello che cambiano (`contatti`
+   → `contact`); quelli non mappati passano così come sono.
+7. Contenuti: aggiungi i file `src/content/<collection>/<lingua>/…` (il contenuto nella lingua di
+   default resta piatto, e i loader lo impongono).
+8. Pagine: rispecchia l'albero di default sotto `src/pages/<lingua>/…`;
+   `getHomepageSections(Astro.currentLocale)` e `useTranslations(Astro.currentLocale)` risolvono già
+   per lingua.
 
-Chrome links go through `localizedHref(Astro.currentLocale, path)` (see header/footer), so nav and legal URLs localize without touching components.
+I link della chrome passano da `localizedHref(Astro.currentLocale, path)` (vedi header e footer),
+quindi nav e URL legali si localizzano senza toccare i componenti.
 
-## Release secrets
+## Secret di release
 
-Release automation (`release-please.yml`) needs these secrets set manually on GitHub — `gh secret set <NAME>` from inside the repo, or Settings → Secrets and variables → Actions:
+L'automazione di release (`release-please.yml`) ha bisogno di questi secret impostati a mano su
+GitHub — `gh secret set <NOME>` da dentro il repo, oppure Settings → Secrets and variables →
+Actions:
 
-- `RELEASE_PLEASE_TOKEN` — fine-grained PAT with `contents:write` + `pull_requests:write`. Required because CI doesn't run on PRs opened with the default `GITHUB_TOKEN` (a GitHub Actions anti-recursion safeguard) — without this, release-please's own release PR would never get a `ci` check.
-- `VERCEL_TOKEN` — Vercel access token (vercel.com/account/tokens).
-- `VERCEL_ORG_ID` / `VERCEL_PROJECT_ID` — from `.vercel/project.json` after running `vercel link` locally once.
+- `RELEASE_PLEASE_TOKEN` — PAT fine-grained con `contents:write` e `pull_requests:write`. Serve
+  perché la CI non gira sulle PR aperte con il `GITHUB_TOKEN` di default (una protezione di GitHub
+  Actions contro la ricorsione): senza, la release PR di release-please non riceverebbe mai il check
+  `ci`.
+- `VERCEL_TOKEN` — token di accesso Vercel (vercel.com/account/tokens).
+- `VERCEL_ORG_ID` e `VERCEL_PROJECT_ID` — da `.vercel/project.json`, dopo aver lanciato `vercel
+  link` una volta in locale.
 
-Until all three Vercel secrets are set, `deploy.yml` skips cleanly (no failure) instead of running.
+Finché i tre secret di Vercel non ci sono tutti, `deploy.yml` si salta in modo pulito, senza
+fallire.
 
-## Day-to-day workflow
+## Il lavoro di tutti i giorni
 
-- Start new pieces with the generators (`pnpm gen:*`) — they emit code already
-  on the project's conventions (§ CLI generators above).
-- Seed a milestone's issues with `/milestone <template-name>|<N>`, then implement
-  each issue with `/pr <issue-number>` — neither commits, pushes nor opens a PR
-  on its own.
+- I pezzi nuovi si cominciano dai generatori (`pnpm gen:*`), che emettono codice già sulle
+  convenzioni del progetto (§ Generatori da riga di comando, sopra).
+- Le issue di una milestone si seminano con `/milestone <nome-template>|<N>`, e ognuna si implementa
+  con `/pr <numero-issue>`: nessuno dei due committa, pusha o apre PR di sua iniziativa.
 
-See `CLAUDE.md` for the full set of `[HARD]` project conventions, and `docs/ARCHITECTURE.md` for the stack overview.
+Le convenzioni `[HARD]` complete stanno in `CLAUDE.md`, e la panoramica dello stack in
+`docs/ARCHITECTURE.md`.

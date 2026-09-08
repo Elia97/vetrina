@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-// happy-dom's MediaQueryList can't be driven from a test, hence the hand-fired fake.
+// La MediaQueryList di happy-dom non si può pilotare da un test, da cui il finto azionato a mano.
 let mediaListeners: Array<(event: { matches: boolean }) => void> = []
 
 function renderChrome(): { panel: HTMLElement; toggle: HTMLButtonElement; header: HTMLElement } {

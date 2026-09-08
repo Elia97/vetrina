@@ -1,11 +1,14 @@
 {
   "$schema": "https://raw.githubusercontent.com/fallow-rs/fallow/main/schema.json",
+
+  // Gli hook di Claude Code hanno i loro test e non fanno parte dell'applicazione.
+  "ignorePatterns": [".claude/**"],
   "entry": ["src/components/ui/**", "src/lib/motion/index.ts"],
   "ignoreDependencies": [
-    // fallow doesn't count astro.config.mjs imports as production usage.
+    // fallow non conta gli import di astro.config.mjs come uso in produzione.
     "@astrojs/vercel",
     "@astrojs/sitemap",
-    // Reached through `@import "tailwindcss"` in globals.css, which fallow doesn't trace.
+    // Raggiunta da `@import "tailwindcss"` in globals.css, che fallow non traccia.
     "tailwindcss"
   ],
   "ignoreExports": [
@@ -14,7 +17,7 @@
     { "file": "src/components/ui/heading.astro", "exports": ["headingVariants"] },
     { "file": "src/components/ui/card/card.astro", "exports": ["cardVariants"] },
     { "file": "src/lib/motion/media-queries.ts", "exports": ["isDesktopViewport", "hasFinePointer"] },
-    // Consumed through the vitest.config.ts aliases, which fallow can't trace.
+    // Consumati attraverso gli alias di vitest.config.ts, che fallow non traccia.
     {
       "file": "test/stubs/astro-env-server.ts",
       "exports": ["getSecret", "CONTACT_FROM_EMAIL", "CONTACT_FROM_NAME", "CONTACT_TO_EMAIL", "BOTID_ENFORCE"]
@@ -31,12 +34,12 @@
     },
     { "file": "test/stubs/astro-content.ts", "exports": ["getCollection"] },
     { "file": "test/container.ts", "exports": ["renderToString"] },
-    // The tests reach it through a dynamic import fallow can't trace.
+    // I test ci arrivano con un import dinamico che fallow non traccia.
     { "file": "src/actions/index.ts", "exports": ["handleContact"] },
     { "file": "src/lib/schemas/common.ts", "exports": ["Cta"] },
     { "file": "src/lib/schemas/homepage/hero.ts", "exports": ["HeroSection"] }
   ],
-  // Enforces docs/ARCHITECTURE.md § Source layering.
+  // Impone docs/ARCHITECTURE.md § Stratificazione dei sorgenti.
   "boundaries": {
     "zones": [
       { "name": "leaf", "patterns": ["src/lib/**", "src/i18n/**", "src/types/**"] },
@@ -56,8 +59,8 @@
   },
 
   "duplicates": {
-    // 3 rather than 2: at 2 the only report is scripts/gen/collection.mjs and section.mjs,
-    // which share the generator skeleton by design.
+    // 3 invece di 2: a 2 l'unica segnalazione sono scripts/gen/collection.mjs e section.mjs,
+    // che condividono lo scheletro del generatore per scelta.
     "minOccurrences": 3
   },
   "rules": {

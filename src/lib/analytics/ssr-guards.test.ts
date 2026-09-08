@@ -1,4 +1,4 @@
-// Deliberately NOT happy-dom: a faked window would void what these guards prove.
+// Di proposito NON happy-dom: una window finta annullerebbe quello che queste guardie dimostrano.
 import { describe, expect, it } from 'vitest'
 
 describe('analytics modules are importable without a window', () => {
@@ -10,7 +10,7 @@ describe('analytics modules are importable without a window', () => {
     }).not.toThrow()
   })
 
-  // reveal.ts registers a matchMedia listener at import time.
+  // reveal.ts registra un listener matchMedia al momento dell'import.
   it('the reveal module imports cleanly', async () => {
     await expect(import('@/lib/motion/reveal')).resolves.toBeDefined()
   })

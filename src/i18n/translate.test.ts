@@ -19,8 +19,8 @@ describe('useTranslations', () => {
   })
 })
 
-// A locale routed in astro.config.mjs without a dictionary in ui.ts is a
-// misconfiguration the compiler cannot see.
+// Una lingua instradata in astro.config.mjs senza un dizionario in ui.ts è una
+// configurazione sbagliata che il compilatore non vede.
 describe('missing dictionaries', () => {
   it('throws when even the default locale has none registered', async () => {
     vi.resetModules()

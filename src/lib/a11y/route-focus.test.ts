@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { bindRouteFocus } from '@/lib/a11y/route-focus'
 
-// bindRouteFocus's `bound` flag is module state: the cold-load case must run first.
+// Il flag `bound` di bindRouteFocus è stato di modulo: il caso a freddo deve girare per primo.
 function renderMain(): HTMLElement {
   document.body.innerHTML = '<main id="main-content" tabindex="-1">content</main>'
   const main = document.getElementById('main-content')
