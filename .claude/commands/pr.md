@@ -1,81 +1,80 @@
 ---
-description: Implement a GitHub issue end-to-end (branch → implementation → gates → PR body with Closes). Never commits/pushes/opens a PR — that's the user's job.
-argument-hint: <issue-number> [--from <branch>]
+description: Implementa una issue GitHub dall'inizio alla fine (branch → implementazione → gate → corpo della PR con Closes). Non committa, non pusha e non apre PR — quello è compito dell'utente.
+argument-hint: <numero-issue> [--from <branch>]
 allowed-tools: Bash, Read, Write, Edit, Glob, Grep, Agent, ToolSearch, AskUserQuestion, EnterPlanMode, ExitPlanMode
 ---
 
-# /pr — issue → PR
+# /pr — da una issue a una PR
 
-Arguments: **$ARGUMENTS** → `<N>` (issue number, required) + optional `--from <branch>` (base branch other than `main`). If `<N>` is missing, not an integer, or the issue doesn't exist or is closed → **stop and ask**.
+Argomenti: **$ARGUMENTS** → `<N>` (numero della issue, obbligatorio) più l'opzionale `--from <branch>` (branch di base diverso da `main`). Se `<N>` manca, non è un intero, o la issue non esiste o è chiusa → **fermati e chiedi**.
 
-Model: **one issue = one PR**. Dedicated branch, **one Conventional commit** (type/scope from the issue title), **squash** merge. The PR feeds into release-please's rolling release PR (or triggers a new one for `feat`/`fix`). Linked via **`Closes #<N>`** in the body → the issue closes on merge.
+Il modello — una issue, una PR, un commit squash — sta in `CLAUDE.md` § Come si lavora, con le regole `[HARD]` che valgono anche qui. In più: **mai** `gh issue close`, `delete` o `reopen`, e **mai** eseguire il comando di chiusura milestone della Fase 6. Nessuna dipendenza che `CLAUDE.md` o `docs/ARCHITECTURE.md` non documentino: nel dubbio si chiede.
 
-**[HARD]** Never `git commit`/`push`/`gh pr create`, `gh issue close`/`delete`/`reopen`, or execute the milestone-closing command from Phase 5 — those are the user's job (or happen automatically on merge). Never touch `docs/PROJECT.md`. Never `.env`, never dependencies undocumented in `CLAUDE.md`/`docs/ARCHITECTURE.md` (ask via `AskUserQuestion` if unsure). Respect every `[HARD]` rule in `CLAUDE.md`.
+## Fase 1 — Pre-volo (sola lettura)
 
-## Phase 1 — Pre-flight (read-only)
+1. `git rev-parse --is-inside-working-tree`; albero di lavoro pulito (`git status --short`, altrimenti fermati e chiedi: stash, commit o annulla); `git fetch origin` e `main` aggiornato (nessun pull automatico).
+2. `gh issue view <N> --json number,title,body,state,labels,milestone,url`. Dal **titolo** ricava `tipo` e `ambito` Conventional; se il titolo non è Conventional, deducili dalle label (`bug`→`fix`, `enhancement`→`feat`, che esistono di default su ogni repo GitHub) oppure chiedi. **Corpo e checklist `- [ ]`** sono la specifica: ogni voce va coperta.
+3. Cerca `<!-- suggested-agent: X -->` nel corpo (c'è sulle issue seminate da `/milestone`). Se c'è, è il segnale principale per scegliere gli agenti verticali della Fase 5. Se manca — issue scritta a mano — ricavalo dalla **tabella dei domini in `docs/ARCHITECTURE.md` § I domini**, che è l'unico posto in cui vive: due slash command non possono condividere codice, ma leggono lo stesso file.
 
-1. `git rev-parse --is-inside-working-tree`; clean working tree (`git status --short`, otherwise stop/ask: stash/commit/abort); `git fetch origin` + `main` up to date (no auto-pull).
-2. `gh issue view <N> --json number,title,body,state,labels,milestone,url`. From the **title**, extract Conventional `type`/`scope` (if it isn't Conventional → derive from labels `bug`→`fix`/`enhancement`→`feat` — both exist by default on any GitHub repo — or ask). **Body + `- [ ]` checklist** = spec, every item must be covered.
-3. Look for `<!-- suggested-agent: X -->` in the body (present on issues seeded by `/milestone`). If present, that's the primary signal for which vertical agent(s) to use in Phase 3. If absent (a hand-created issue), derive it from this domain table (kept identical, verbatim, in `.claude/commands/milestone.md` — slash commands can't share code):
+## Fase 2 — Attualità
 
-   | Domain | Agent | Signals |
-   |---|---|---|
-   | Content collections, Zod schemas, MDX/Markdown, i18n content | `content-agent` | `src/content/**` |
-   | Astro components, interactive islands, markup/a11y | `ui-agent` | `src/components/**` (non-content) |
-   | Meta tags, JSON-LD, sitemap/robots, OG | `seo-agent` | `src/lib/seo/**`, `src/components/head/**` |
-   | Forms, Astro Actions, email | `forms-agent` | `src/actions/**`, `src/emails/**` |
-   | Prerender/SSR, images, bundle | `perf-rendering-agent` | `astro.config.mjs`, `prerender` |
-   | Vercel/env/deploy | `ops-agent` | `vercel.json`, `scripts/vercel-ignore-build.sh` |
-   | None of the above | `general-purpose` | generic refactor, tooling |
+L'issue è stata scritta quando è stata seminata. Passa da **`/drift <numero-issue>`** prima di
+pianificare: se qualcosa è andato alla deriva è lui a scrivere il blocco `## Aggiornamento` in coda
+al corpo, e tu implementi il corpo aggiornato invece di aggirare la deriva o riscoprirla ogni volta.
 
-## Phase 2 — Branch
+Se la deriva è tale che l'issue va ripensata, `/drift` lo dichiara e si ferma: riscriverla è una
+decisione dell'utente, e implementare una specifica sbagliata costa più che tornare indietro.
 
-`<type>/<N>-<slug>` (kebab slug, 3-5 words, from the title; e.g. `refactor/71-trailing-slash`). If it already exists, `git switch` into it (resuming); otherwise `git switch -c` from `main`/`--from`.
+## Fase 3 — Branch
 
-## Phase 3 — Plan (plan mode)
+`<tipo>/<N>-<slug>` (slug kebab di 3-5 parole, dal titolo; per esempio `refactor/71-trailing-slash`). Se esiste già, `git switch` dentro (si riprende); altrimenti `git switch -c` da `main` o da `--from`.
 
-**First, look for a brief from `/approach`**: `grep -l "^### #<N> " .claude/plans/approach-*.md`. Those briefs cover a whole milestone, so read the file's *Decided* and *Order* sections for the shape agreed across the set, then the `### #<N>` block for this issue: its path, scope, constraints, and **which of the issue's claims did not survive** the check against the code — that last one is there so you don't re-discover it. Treat the decided path and scope as settled: the user chose them, don't re-open the choice. The brief's *Open* section is what still needs `AskUserQuestion` here. If the brief puts other issues before this one, say so and confirm before proceeding. Without a brief, plan from the issue body as before.
+## Fase 4 — Piano (modalità piano)
 
-Expand the issue body into `.claude/plans/pr-<N>-<slug>.md`: files to touch, vertical-agent breakdown (1-3 agents, **exclusive** scope-paths — only if the surface is wide/parallelizable; otherwise work directly), quality gates, manual checks. `AskUserQuestion` for ambiguities that affect the plan. The user iterates / calls `ExitPlanMode` to approve.
+**Prima guarda l'insieme, che sta in due posti e in nessun terzo.** Un blocco `## Aggiornamento AAAA-MM-GG` in coda al corpo della issue è quello che `/drift` ha già trovato non reggere più: è il risultato di una verifica fatta, non riaprirlo e non riscoprirlo. `docs/ROADMAP.md` porta l'ordine e le righe `dipende da:`: se un'altra issue deve atterrare prima di questa, dillo e chiedi conferma prima di procedere.
 
-Quality gate to plan for: **`pnpm run ci`** **→ `pnpm run check:comments --diff`** **→ `pnpm run audit:diff`** **→ `pnpm run build`**.
+Se invece la milestone è ferma da settimane e nessuno l'ha più riletta, la cosa che costa meno è dirlo e proporre `/milestone <N>` prima di questa PR: una verifica sull'insieme trova quello che una issue alla volta non può vedere.
 
-## Phase 4 — Implementation
+Espandi il corpo della issue in `.claude/plans/pr-<N>-<slug>.md`: file da toccare, suddivisione fra agenti verticali (1-3 agenti, percorsi di scope **esclusivi**, solo se la superficie è ampia e parallelizzabile; altrimenti si lavora direttamente — quale agente copre quali percorsi lo dice `docs/ARCHITECTURE.md` § I domini), gate di qualità, controlli manuali. `AskUserQuestion` sulle ambiguità che influenzano il piano. Se l'ambiguità non è del task ma del disegno, la issue è mal posta: passa da `/decisions` invece di decidere dentro la PR. L'utente itera, o approva con `ExitPlanMode`.
 
-1. Modifications: parallel agents with exclusive scope-paths if the surface is wide (prompt includes: exclusive scope, explicit **role = "implement"**, references to `CLAUDE.md`/`docs/ARCHITECTURE.md`, "don't commit"); otherwise direct edits.
-2. **Overlap handling**: after parallel agents finish, check `git status` — if two agents touched the same file despite exclusive scopes, **stop this step**, don't auto-merge. Show the user both intended diffs and use `AskUserQuestion`: (a) the user resolves it manually and you re-run the gate, or (b) spawn one dedicated agent to reconcile the two changes coherently, then re-run from this step.
-3. Cover **every checklist item** from the issue (flag any deferred one explicitly).
-4. **Comment sweep** — spawn `comments-agent` with role **implement** over `git diff`, before the gate. It judges every comment the branch adds (yours and the other agents') against one test: does it carry a fact checkable **outside this file** — vendor behaviour, a measured number, a platform quirk, a named coupling with another file? If not, it goes. Predictions about our own code ("without this the layout breaks") read like invariants but are inferences drawn from the code itself, and they die here. The agent only ever removes comment lines, so the gate right after is proof enough that nothing broke. Run it even on code you wrote yourself: `check:comments` reads shape, not usefulness — a short useless comment passes it green.
-5. Sequential quality gate: `pnpm run ci`, then `pnpm run check:comments --diff`, then `pnpm run audit:diff`, then `pnpm run build`. On failure, spawn a fix agent and re-run (max 2 attempts, then stop).
-   - `check:comments` always exits 0, but **what it lists has to be resolved before handing off**: it flags comment blocks over two lines, files where comments exceed 15% of their lines, and comments narrating the change instead of describing the code. `--diff` narrows it to what this branch touched (merge-base against `origin/main`, untracked included), which is the scope to answer for here — run it bare to see the whole tree when the issue is about inherited debt. The rule is in `CLAUDE.md`.
-   - `audit:diff` is `fallow audit`: dead code, complexity, duplication and styling **scoped to the diff**, exiting non-zero on a fail verdict. It judges only what this branch introduced — inherited findings are reported and excluded from the verdict, so pre-existing debt never blocks an unrelated issue. It picks its own base (merge-base against the remote default); pin it with `FALLOW_AUDIT_BASE` if that resolves wrong.
-   - It runs before `build` on purpose: it takes under a second and catches what the expensive step never looks at.
-6. **Review containment [HARD]**: any post-gate multi-agent review follows the "Multi-agent workflows" tiers in `CLAUDE.md` — small diff → none, the sequential gate above is enough; medium → at most one reviewer agent; large, or medium touching a risk area → a compact workflow within the caps there. Never auto-append a review workflow outside those tiers, whatever the session mode.
-7. Update impacted docs (never `docs/PROJECT.md`, and never `docs/ROADMAP.md` — that's `/milestone`'s territory only, updated once at seeding time; GitHub's own issue/milestone state is the source of truth for per-issue progress).
+Il gate da mettere in conto: **`pnpm run ci`** → **`pnpm run check:comments --diff`** → **`pnpm run audit:diff`** → **`pnpm run build`**.
 
-## Phase 5 — Handoff
+## Fase 5 — Implementazione
 
-1. **Checklist sync**: once the quality gate is green and every issue checklist item is covered (or explicitly flagged as deferred), `gh issue edit <N>` to check off (`- [x]`) each satisfied `- [ ]` item directly in the issue body — edit only the checkbox markers, keep the rest of the body byte-for-byte identical (fetch with `gh issue view <N> --json body -q .body` first, flip the boxes, write back with `--body-file`). Leave any deferred item unchecked. This is a plain issue-body edit, not covered by the `gh issue close/delete/reopen` ban above — do it directly, no need to ask each time.
-2. Run `pnpm run audit:brief` and write the **reviewer checks** from it, not from memory. It is the same analysis as the gate rendered as an orientation brief — review order, the files affected *beyond* the diff (impact closure), which units carry the risk, and any "decisions to make" the change forces. It always exits 0, so it informs the body without gating it.
-3. Generate `.claude/plans/pr-<N>-<slug>.body.md` from `.github/PULL_REQUEST_TEMPLATE.md`, with **`Closes #<N>`**: what changes, DoD (check only what's verified), reviewer checks, notes.
-4. **Milestone-closing suggestion**: if the issue's JSON has a `milestone`, run `gh issue list --milestone "<milestone title>" --state open --json number`. If the only open issue is `#<N>` itself (or the list is empty), print — **never execute**:
+1. Modifiche: agenti in parallelo con percorsi di scope esclusivi se la superficie è ampia (il prompt include scope esclusivo, **ruolo esplicito «implementa»**, riferimenti a `CLAUDE.md` e `docs/ARCHITECTURE.md`, «non committare»); altrimenti modifiche dirette.
+2. **Sovrapposizioni**: quando gli agenti paralleli hanno finito, guarda `git status`. Se due hanno toccato lo stesso file nonostante gli scope esclusivi, **fermati qui** e non fondere in automatico. Mostra all'utente i due diff previsti e usa `AskUserQuestion`: o (a) l'utente risolve a mano e tu rilanci il gate, o (b) si lancia un agente dedicato a riconciliare le due modifiche in modo coerente, e si riparte da questo passo.
+3. Copri **ogni voce della checklist** della issue, dichiarando esplicitamente quelle rimandate.
+4. **Ripasso dei commenti**: lancia `comments-agent` con ruolo **implementa** su `git diff`, prima del gate. Giudica ogni commento che il branch aggiunge — i tuoi e quelli degli altri agenti — con un test solo: porta un fatto verificabile **fuori da questo file**, cioè il comportamento di un fornitore, un numero misurato, una stranezza di piattaforma, un accoppiamento nominato con un altro file? Se no, va via. Le previsioni sul nostro codice («senza questo il layout si rompe») sembrano invarianti ma sono inferenze tratte dal codice stesso, e muoiono qui. L'agente toglie solo righe di commento, quindi il gate subito dopo è prova sufficiente che niente si è rotto. Lancialo anche sul codice che hai scritto tu: `check:comments` legge la forma, non l'utilità, e un commento corto e inutile lo passa verde.
+5. Gate di qualità in sequenza: `pnpm run ci`, poi `pnpm run check:comments --diff`, poi `pnpm run audit:diff`, poi `pnpm run build`. Se fallisce, lancia un agente correttivo e rilancia (al massimo due tentativi, poi fermati).
+   - `check:comments` esce sempre 0, ma **quello che elenca va risolto prima della consegna**: segnala blocchi di commento oltre due righe, file dove i commenti superano il 15% delle righe, e commenti che narrano la modifica invece di descrivere il codice. `--diff` lo restringe a quello che questo branch ha toccato (merge-base con `origin/main`, non tracciati compresi), che è l'ambito di cui rispondi qui; lanciandolo nudo vedi tutto l'albero, ed è quello che serve quando la issue riguarda il debito ereditato. La regola sta in `CLAUDE.md`.
+   - `audit:diff` è `fallow audit`: codice morto, complessità, duplicazione e stile **limitati al diff**, con uscita diversa da zero su un verdetto negativo. Giudica solo quello che questo branch introduce — i ritrovamenti ereditati vengono riportati ma esclusi dal verdetto, così il debito preesistente non blocca mai una issue che non c'entra. Sceglie da sé la base (merge-base col default remoto); si fissa con `FALLOW_AUDIT_BASE` se la risolve male.
+   - Gira prima di `build` di proposito: costa meno di un secondo e prende quello che il passo costoso non guarda mai.
+6. **Contenimento delle review [HARD]**: qualunque review multi-agente dopo il gate segue le soglie di «Orchestrazione multi-agente» in `CLAUDE.md` — diff piccolo → nessuna, basta il gate sequenziale qui sopra; medio → al massimo un agente revisore; grande, o medio che tocca un'area a rischio → un workflow compatto entro i limiti dichiarati lì. Non aggiungere mai un workflow di review fuori da quelle soglie, qualunque sia la modalità di sessione.
+7. Aggiorna la documentazione toccata (mai `docs/PROJECT.md`, e mai `docs/ROADMAP.md`, che si aggiorna alla semina e quando `/drift` la corregge; per l'avanzamento della singola issue la fonte di verità è lo stato su GitHub).
+
+## Fase 6 — Consegna
+
+1. **Allineamento della checklist**: quando il gate è verde e ogni voce della checklist è coperta (o dichiarata rimandata), usa `gh issue edit <N>` per spuntare (`- [x]`) ogni `- [ ]` soddisfatta direttamente nel corpo della issue — modifica solo i marcatori, lasciando il resto identico byte per byte (leggi con `gh issue view <N> --json body -q .body`, gira le caselle, riscrivi con `--body-file`). Le voci rimandate restano non spuntate. È una normale modifica del corpo e non ricade nel divieto su `close`/`delete`/`reopen`: falla direttamente, senza chiedere ogni volta.
+2. Lancia `pnpm run audit:brief` e scrivi i **controlli per chi rivede** da lì, non a memoria. È la stessa analisi del gate resa come brief di orientamento: ordine di lettura, i file toccati *oltre* il diff (chiusura dell'impatto), quali unità portano il rischio, e le «decisioni da prendere» che la modifica impone. Esce sempre 0, quindi informa il corpo senza bloccarlo.
+3. Genera `.claude/plans/pr-<N>-<slug>.body.md` da `.github/PULL_REQUEST_TEMPLATE.md`, con **`Closes #<N>`**: cosa cambia, definizione di fatto (spunta solo ciò che hai verificato), controlli per chi rivede, note.
+4. **Suggerimento di chiusura milestone**: se il JSON della issue ha una `milestone`, lancia `gh issue list --milestone "<titolo milestone>" --state open --json number`. Se l'unica issue aperta è `#<N>` stessa (o l'elenco è vuoto), stampa — **senza mai eseguirlo**:
    ```bash
-   # once this PR is merged (Closes #<N> closes the last open issue in the milestone):
-   gh api -X PATCH repos/{owner}/{repo}/milestones/{milestone-number} -f state=closed
-   # and update docs/ROADMAP.md by hand: Milestone N → 🟢 done
+   # una volta che questa PR è mergiata (Closes #<N> chiude l'ultima issue aperta della milestone):
+   gh api -X PATCH repos/{owner}/{repo}/milestones/{numero-milestone} -f state=closed
+   # e aggiorna docs/ROADMAP.md a mano: Milestone N → 🟢 done
    ```
-   (`milestone-number` — not the title — comes from the same `gh issue view --json milestone` call in Phase 1.)
-5. Summary: issue, branch, `git status --short`, gate outcome, checklist covered/deferred, and the ready-to-copy commands:
+   (`numero-milestone`, non il titolo, viene dalla stessa chiamata `gh issue view --json milestone` della Fase 1.)
+5. Riepilogo: issue, branch, `git status --short`, esito del gate, checklist coperta e rimandata, e i comandi pronti da copiare:
    ```bash
    git diff
-   git add -A && git commit -m "<type>(scope): <description from the issue title>"
-   git push -u origin <type>/<N>-<slug>
-   gh pr create --title "<type>(scope): <description>" --body-file .claude/plans/pr-<N>-<slug>.body.md
-   # merge in SQUASH → feeds the release PR; #<N> closes on merge
+   git add -A && git commit -m "<tipo>(ambito): <descrizione dal titolo della issue>"
+   git push -u origin <tipo>/<N>-<slug>
+   gh pr create --title "<tipo>(ambito): <descrizione>" --body-file .claude/plans/pr-<N>-<slug>.body.md
+   # merge in SQUASH → alimenta la release PR; #<N> si chiude al merge
    ```
 
-## Notes
+## Note
 
-- The **type from the issue title** drives the commit and release-please's version bump — a breaking change needs `!` in the title (`feat(ui)!: …`), since the squash body is blank and a `BREAKING CHANGE:` footer would never reach release-please.
-- `Closes #<N>` goes in the **PR description** (`--body-file`), and only there: the squash body is blank, so a keyword put in the commit message would never reach `main` and the issue would stay open.
-- `.claude/plans/` is gitignored (`pr-<N>-<slug>.md` internal, `.body.md` for reviewers).
+- Il **tipo nel titolo della issue** guida il commit e l'incremento di versione di release-please: un breaking change vuole il `!` nel titolo (`feat(ui)!: …`), perché il corpo dello squash è vuoto e un footer `BREAKING CHANGE:` non arriverebbe mai a release-please.
+- `Closes #<N>` va nella **descrizione della PR** (`--body-file`) e solo lì: il corpo dello squash è vuoto, quindi una parola chiave messa nel messaggio di commit non arriverebbe mai su `main` e la issue resterebbe aperta.
+- `.claude/plans/` è gitignored: `pr-<N>-<slug>.md` è interno, `.body.md` è per chi rivede.

@@ -1,94 +1,105 @@
 ---
-description: Seed a milestone as a native GitHub Milestone + one issue per sub-task, from a docs/milestone-templates/*.md template or a hand-written docs/ROADMAP.md section. Never writes application code, never branches, never commits — implementation happens per-issue via /pr <N>.
-argument-hint: <template-name> | <milestone-number>
+description: Ragiona su una milestone come insieme. La semina la prima volta — Milestone GitHub nativa più una issue per sotto-task, da un template di docs/milestone-templates/*.md o da una sezione di docs/ROADMAP.md — e la rilegge contro il codice quando è già seminata. Non scrive mai codice applicativo, non crea branch, non committa.
+argument-hint: <nome-template> | <numero-milestone> | backlog
 allowed-tools: Bash, Read, Write, Edit, Glob, Grep, ToolSearch, AskUserQuestion, EnterPlanMode, ExitPlanMode
 ---
 
-# /milestone — Seed a milestone's issues
+# /milestone — la milestone come insieme
 
-Arguments: **$ARGUMENTS** → either the name of a file in `docs/milestone-templates/<name>.md` (without extension), or a milestone number `<N>` matching an existing `## Milestone N` heading in `docs/ROADMAP.md`.
+Argomenti: **$ARGUMENTS** → il nome di un file in `docs/milestone-templates/<nome>.md` (senza estensione), un numero di milestone `<N>` che corrisponde a un'intestazione `## Milestone N` in `docs/ROADMAP.md`, oppure `backlog` per le issue aperte che non appartengono a nessuna milestone.
 
-Working model: **`/milestone` only seeds.** It never writes application code, never creates a branch, never spawns implementation agents, never commits — `/pr <issue-number>` implements, one issue at a time.
+Le due modalità — **semina** e **rilettura** — e la ragione per cui esistono stanno in `CLAUDE.md` § Pianificazione e agenti verticali. Qui c'è come si eseguono.
 
-If `$ARGUMENTS` is empty, or doesn't match a template file or an existing ROADMAP milestone number, **stop and show the available options** (list `docs/milestone-templates/*.md` filenames + descriptions, and list ROADMAP milestone numbers not yet fully seeded).
+Se `$ARGUMENTS` è vuoto, o non corrisponde a niente, **fermati e mostra le opzioni disponibili**: i nomi dei file in `docs/milestone-templates/*.md` con la loro descrizione, i numeri di milestone della roadmap, e quante issue aperte stanno fuori da ogni milestone.
 
-`gh milestone` does **not exist** as a `gh` CLI subcommand — the milestone object is only reachable through `gh api repos/{owner}/{repo}/milestones`. Never write `gh milestone create` anywhere in this command.
+`gh milestone` **non esiste** come sottocomando della CLI `gh`: l'oggetto milestone si raggiunge solo con `gh api repos/{owner}/{repo}/milestones`. Non scrivere mai `gh milestone create` in questo comando.
 
-## Phase 1 — Pre-flight (read-only)
+## Fase 1 — Pre-volo (sola lettura)
 
-1. `git rev-parse --is-inside-working-tree`. If it fails, stop.
-2. Clean working tree (`git status --short`) — the only change this command makes is to `docs/ROADMAP.md`, and it needs a clean base. If dirty, stop and ask.
-3. Current branch should be `main`. If not, warn and ask for confirmation.
-4. `gh auth status` and `gh repo view --json owner,name` — confirms `gh` is authenticated and the remote resolves. Fail fast with a clear message if not (a freshly-forked project may not have `gh` set up yet).
-5. Parse `$ARGUMENTS`: matches `docs/milestone-templates/<arg>.md` → **template path**; parses as an integer matching an existing `## Milestone <N>` heading → **bespoke path**; neither → stop, list available options.
-6. Idempotency / duplicate guard:
-   - Template path: if `docs/ROADMAP.md` already has a section with `**Source:** template <same name>`, stop and ask explicit confirmation before instantiating a second copy.
-   - Bespoke path: if every sub-task in that section already has an issue number recorded, stop and report "already seeded — use `/pr <issue-number>` on the issues listed" instead of re-seeding. If only some sub-tasks have one, proceed but only seed what's missing.
-7. Read `docs/DECISIONS.md` — informational only: surface relevant open items in the plan (Phase 3) and the summary (Phase 5), never blocking.
+1. `git rev-parse --is-inside-working-tree`. Se fallisce, fermati.
+2. Albero di lavoro pulito (`git status --short`): l'unico file che questo comando modifica è `docs/ROADMAP.md`, e gli serve una base pulita. Se è sporco, fermati e chiedi.
+3. Il branch dovrebbe essere `main`. Se non lo è, avvisa e chiedi conferma.
+4. `gh auth status` e `gh repo view --json owner,name`: confermano che `gh` è autenticato e che il remote si risolve. Se non è così fermati subito con un messaggio chiaro — un progetto appena creato dal template può non avere ancora `gh` configurato.
+5. Interpreta `$ARGUMENTS`: corrisponde a `docs/milestone-templates/<arg>.md` → **percorso template**; è un intero che corrisponde a un'intestazione `## Milestone <N>` esistente → **percorso bespoke**; è `backlog` → **percorso backlog**, le issue aperte senza milestone (`gh issue list --search 'no:milestone' --state open`), che saltano la Fase 2 e vanno dritte alla verifica; nessuno dei tre → fermati ed elenca le opzioni.
+6. **Stabilisci la modalità** contando quanti sotto-task della sezione portano già un numero di issue: nessuno → semina; tutti → rilettura; alcuni → semina il resto e rileggi quelli che ci sono. Dichiara quale hai scelto prima di proseguire.
+   - percorso template: se `docs/ROADMAP.md` ha già una sezione con `**Fonte:** template <stesso nome>`, fermati e chiedi conferma esplicita prima di istanziarne una seconda copia. Un template non si rilegge: ha senso una volta sola.
+   - in rilettura, leggi anche lo stato reale su GitHub — `gh issue list --milestone "<titolo>" --state all --json number,title,state,body` — perché una issue può essere stata chiusa, riscritta o spostata senza che la roadmap se ne sia accorta.
+7. Leggi `docs/DECISIONS.md`: è informativo e non blocca mai. Le voci aperte pertinenti si portano nel piano (Fase 4) e nel riepilogo (Fase 6).
 
-## Phase 2 — Load the source
+## Fase 2 — Caricare la sorgente
 
-**Template path:**
-1. Read `docs/milestone-templates/<arg>.md`. Parse front-matter (`name`, `description` — informational).
-2. Scan the body for distinct `{{snake_case}}` tokens. Ask about all of them in one batched `AskUserQuestion` call.
-3. Substitute every `{{token}}` with the collected value.
-4. Determine the next milestone number `N` = 1 + the highest `## Milestone <N>` heading already in `docs/ROADMAP.md`. **Special case**: if the only section present is the untouched scaffold placeholder, treat ROADMAP.md as empty (`N = 1`), and that placeholder section gets **replaced**, not appended after — this is the real first-run state of every freshly-forked project.
+**Percorso template:**
 
-**Bespoke path:**
-1. Read the `## Milestone N` section as-is — `N` is already fixed by the heading, no placeholder substitution.
+1. Leggi `docs/milestone-templates/<arg>.md` e interpreta il frontmatter (`name`, `description`: informativi).
+2. Cerca nel corpo i token `{{snake_case}}` distinti e chiedili tutti insieme in una sola chiamata a `AskUserQuestion`.
+3. Sostituisci ogni `{{token}}` col valore raccolto.
+4. Il numero della milestone `N` è 1 + il più alto `## Milestone <N>` già presente in `docs/ROADMAP.md`. **Caso speciale**: se l'unica sezione presente è il segnaposto dello scaffold mai toccato, tratta la roadmap come vuota (`N = 1`) e **sostituisci** quel segnaposto invece di accodarti — è lo stato reale al primo giro di ogni progetto nato dal template.
 
-**Both paths — parse sub-tasks:**
-- Template path: split on `### <n>. <title>` headings; extract `**Agent:**`, `**Labels:**`, remaining prose+checklist as the issue body.
-- Bespoke path: split on `### N.x <slug>` headings; no `**Agent:**` metadata available, so derive it from this domain table (kept identical, verbatim, in `.claude/commands/pr.md`):
+**Percorso bespoke:**
 
-  | Domain | Agent | Signals |
-  |---|---|---|
-  | Content collections, Zod schemas, MDX/Markdown, i18n content | `content-agent` | `src/content/**` |
-  | Astro components, interactive islands, markup/a11y | `ui-agent` | `src/components/**` (non-content) |
-  | Meta tags, JSON-LD, sitemap/robots, OG | `seo-agent` | `src/lib/seo/**`, `src/components/head/**` |
-  | Forms, Astro Actions, email | `forms-agent` | `src/actions/**`, `src/emails/**` |
-  | Prerender/SSR, images, bundle | `perf-rendering-agent` | `astro.config.mjs`, `prerender` |
-  | Vercel/env/deploy | `ops-agent` | `vercel.json`, `scripts/vercel-ignore-build.sh` |
-  | None of the above | `general-purpose` | generic refactor, tooling |
+1. Leggi la sezione `## Milestone N` così com'è: `N` è già fissato dall'intestazione, non c'è nessun segnaposto da sostituire.
 
-## Phase 3 — Plan mode: issue-by-issue preview
+**Entrambi i percorsi — leggere i sotto-task:**
 
-Enter plan mode.
+- percorso template: spezza sulle intestazioni `### <n>. <titolo>` ed estrai `**Agent:**`, `**Labels:**` e il resto (prosa più checklist) come corpo della issue;
+- percorso bespoke: spezza sulle intestazioni `### N.x <slug>`. Qui non c'è metadato `**Agent:**`, quindi l'agente si ricava dalla **tabella dei domini in `docs/ARCHITECTURE.md` § I domini**, che è l'unico posto in cui vive: si legge da lì, non si ricopia.
 
-1. Write `.claude/plans/milestone-NN-slug.md` (gitignored). For each sub-task: exact issue title, exact issue body (prose + checklist + the two HTML comments, byte-for-byte what `gh issue create --body-file` will receive), suggested agent, labels. Plus the GitHub Milestone about to be created (title: `Milestone N — <name>`).
-2. `AskUserQuestion` for any ambiguity affecting the plan.
-3. The user iterates, or approves with `ExitPlanMode` — **this single approval covers creating the whole batch**. No second per-issue confirmation.
+Una riga sotto l'intestazione di un sotto-task può portare due annotazioni: `dipende da: <N>.<k>[, …]` e `✅ già fatto in #<PR>`. Un sotto-task marcato come fatto non diventa una issue.
 
-## Phase 4 — Creation (autonomous, after approval)
+## Fase 3 — Verifica contro il codice
 
-1. **Dedup check** before creating: `gh api repos/{owner}/{repo}/milestones -f state=all --method GET --jq '.[] | select(.title=="Milestone N — <name>") | .number'` (the `--method GET` forces a read despite the `-f` flag — this is a safety check against a stale/reset `docs/ROADMAP.md` no longer matching what's really on GitHub, not just trusting the local file). If found, reuse that milestone number instead of creating a duplicate.
-2. Otherwise, create it:
+Passa da **`/drift`** — con la sezione della roadmap in semina, col numero della milestone in
+rilettura. È lui a dire cosa non è più vero, cosa è già fatto e quali dipendenze mancano, e a
+scriverlo dove va: nella roadmap se le issue non esistono ancora, in coda al corpo se esistono.
+
+Torna da lì con l'ordine delle voci, i loro raggruppamenti e le sovrapposizioni — quali due toccano gli stessi file: i primi due sono l'input della fase che segue, le terze entrano nel riepilogo finale.
+
+### La sonda
+
+Se una voce mette alla prova il piano — la più rischiosa, quella che se non regge fa ripensare il
+resto — marcala come **sonda**: una riga nella descrizione della Milestone GitHub, scritta in
+Fase 5. **Al massimo una per milestone**, altrimenti diventa un secondo sistema di priorità accanto
+alle dipendenze.
+
+## Fase 4 — Piano: anteprima issue per issue
+
+Entra in modalità piano.
+
+1. Scrivi `.claude/plans/milestone-NN-slug.md` (gitignored). **In semina**, per ogni sotto-task: titolo esatto, corpo esatto (prosa, checklist e le due annotazioni HTML, byte per byte quello che `gh issue create --body-file` riceverà), agente suggerito, label, e i sotto-task da cui dipende. Più la Milestone GitHub in procinto di essere creata (titolo `Milestone N — <nome>`) con la sua descrizione, e il riepilogo delle correzioni già applicate alla roadmap. **In rilettura**: l'ordine proposto per le issue ancora aperte con la ragione di ciascuna posizione, le issue da chiudere o riscrivere, e cosa è cambiato rispetto all'ordine deciso alla semina. I blocchi `## Aggiornamento` non stanno qui: li ha già scritti e applicati `/drift` in Fase 3, con la sua approvazione.
+2. `AskUserQuestion` su ogni ambiguità residua.
+3. L'utente itera, o approva con `ExitPlanMode` — **quell'unica approvazione copre l'intero lotto**. Nessuna seconda conferma issue per issue.
+
+## Fase 5 — Creazione (autonoma, dopo l'approvazione)
+
+**In rilettura questa fase si riduce a un passo**: seminare i sotto-task che ancora non hanno una issue, col procedimento qui sotto. Milestone e issue esistenti non si ricreano, e i corpi aggiornati sono già su GitHub da `/drift`.
+
+1. **Controllo anti-duplicato** prima di creare: `gh api repos/{owner}/{repo}/milestones -f state=all --method GET --jq '.[] | select(.title=="Milestone N — <nome>") | .number'` — il `--method GET` forza una lettura nonostante il flag `-f`. Serve contro una `docs/ROADMAP.md` disallineata rispetto a quello che c'è davvero su GitHub, invece di fidarsi del file locale. Se lo trova, riusa quel numero invece di creare un doppione.
+2. Altrimenti creala:
    ```bash
-   gh api repos/{owner}/{repo}/milestones -f title="Milestone N — <name>"
+   gh api repos/{owner}/{repo}/milestones -f title="Milestone N — <nome>"
    ```
-   Always the literal `{owner}/{repo}` placeholder — `gh` resolves it from the current repo's remote; this keeps the command file byte-identical and safely re-runnable across every project forked from this template. Capture `number` and `html_url`.
-3. For each sub-task, in ROADMAP order: write the rendered issue body to `.claude/plans/milestone-NN-slug.issue-<k>.body.md` (gitignored, left on disk for audit), then:
+   Sempre col segnaposto letterale `{owner}/{repo}`: `gh` lo risolve dal remote del repo corrente, e così questo file resta identico byte per byte e rieseguibile in ogni progetto nato dal template. Prendi `number` e `html_url`.
+3. Per ogni sotto-task, nell'ordine della roadmap: scrivi il corpo della issue in `.claude/plans/milestone-NN-slug.issue-<k>.body.md` (gitignored, lasciato su disco per il controllo). Il corpo porta in coda `<!-- suggested-agent: <nome> -->`, che `/pr` legge in Fase 1: il nome viene dal metadato `**Agent:**` del template, e i nomi validi sono quelli di `docs/ARCHITECTURE.md` § I domini. Poi:
    ```bash
-   gh issue create --title "<title>" --body-file <path> --milestone "Milestone N — <name>" [--label <label>]
+   gh issue create --title "<titolo>" --body-file <percorso> --milestone "Milestone N — <nome>" [--label <label>]
    ```
-   (omit `--label` if `**Labels:**` was empty). Parse the issue number from the returned URL; keep a sub-task → issue-number mapping.
-4. Update `docs/ROADMAP.md`: write/replace the `## Milestone N` section with `**GitHub Milestone:** #N (<html_url>)`, a `Sub-task | Issue` table with the created numbers, Status table row → `🟡 seeded`.
-5. **Do not commit** — this leaves `docs/ROADMAP.md` as an uncommitted change; only issue/milestone creation via `gh` is the autonomous part.
+   (ometti `--label` se `**Labels:**` era vuoto). Ricava il numero della issue dall'URL restituito e tieni la corrispondenza sotto-task → numero.
+4. Aggiorna `docs/ROADMAP.md`: scrivi o sostituisci la sezione `## Milestone N` con `**GitHub Milestone:** #N (<html_url>)`, la tabella `Sotto-task | Issue` coi numeri creati, e la riga della tabella Status → `🟡 seeded`.
+5. **Non committare**: `docs/ROADMAP.md` resta una modifica non committata, e la parte autonoma è solo la creazione di milestone e issue via `gh`.
 
-## Phase 5 — Handoff
+## Fase 6 — Consegna
 
-Summary: Milestone (number, title, URL); every issue (number, title, URL) in order; confirmation `docs/ROADMAP.md` was updated; ready-to-copy:
+Riepilogo: la milestone (numero, titolo, URL); ogni issue aperta (numero, titolo, URL) **nell'ordine deciso**, con la ragione della prima; le sovrapposizioni che `/drift` ha trovato, cioè quali due non conviene aprire insieme; le issue proposte per la chiusura o la riscrittura; la conferma che `docs/ROADMAP.md` è stato aggiornato; e il comando pronto da copiare:
 
 ```bash
 git add docs/ROADMAP.md
-git commit -m "docs: seed milestone N — <name> issues (#X-#Y)"
+git commit -m "docs: semina la milestone N — <nome> (#X-#Y)"
+# in rilettura:
+git commit -m "docs: rilegge la milestone N — <nome> contro il codice"
 ```
 
-Next step: "run `/pr <issue-number>` for each issue above, in any order."
+Passo successivo: «`/pr <numero-issue>` sulla prima dell'ordine». E la riga che rende utile la rilettura: **rilancia `/milestone <N>` dopo che qualche PR è atterrata** — l'ordine deciso oggi è un'ipotesi, e verificarla costa un minuto.
 
-## Non-negotiable constraints
+## Vincoli
 
-- **Never** `git commit`, `git push`, `gh pr create`, or `gh issue close`/`delete`/`reopen` — the user's job (or automatic on merge via `Closes #N`).
-- **Never** modify `docs/PROJECT.md`.
-- **Never** modify `.env` or read/log its real values.
-- Respect all `[HARD]` rules in `CLAUDE.md`.
+Valgono le regole `[HARD]` di `CLAUDE.md` § Come si lavora, e in più: **mai** `gh issue close`, `delete` o `reopen` — una issue si chiude da sola al merge, grazie a `Closes #N`.
