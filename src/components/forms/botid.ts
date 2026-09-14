@@ -1,13 +1,13 @@
 import { initBotId } from 'botid/client/core'
 
-// The paths Astro's action client calls (`<base>/_actions/<name>`): one missing
-// here carries no challenge header and reads as a bot in src/actions/index.ts.
+// I percorsi che il client delle azioni di Astro chiama (`<base>/_actions/<nome>`): uno che
+// manca qui non porta l'intestazione della sfida e in src/actions/index.ts si legge come bot.
 const PROTECTED_ACTIONS = [{ path: '/_actions/contact', method: 'POST' }]
 
-// initBotId is not idempotent upstream: every call re-patches fetch/XHR and resets the challenge.
+// A monte initBotId non è idempotente: ogni chiamata ripatcha fetch e XHR e azzera la sfida.
 let initialized = false
 
-// The challenge script is served by the vercel.json rewrites, which `astro dev` never reads.
+// Lo script della sfida è servito dai rewrite di vercel.json, che `astro dev` non legge mai.
 export function initFormBotId(): void {
   if (!import.meta.env.PROD || initialized) return
   initialized = true

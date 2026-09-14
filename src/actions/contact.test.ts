@@ -86,7 +86,7 @@ describe('lead recovery', () => {
 })
 
 describe('reply-to without a name', () => {
-  // An empty display name on a reply-to header renders as `<>` in some mail clients.
+  // Un nome visualizzato vuoto in un'intestazione reply-to si rende come `<>` in certi client di posta.
   it('sends a bare address when the submission carries no name', async () => {
     brevoAnswers({})
     const { handleContact } = await importActions()

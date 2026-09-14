@@ -2,25 +2,25 @@ import { i18n } from 'astro:config/client'
 
 import { localeTag, SITE } from '@/lib/site'
 
-// Chrome's install prompt wants a raster icon of at least 192px (and a maskable 512
-// with its content inside the centred 80% safe zone); the template ships the SVG only.
+// Il prompt di installazione di Chrome vuole un'icona raster di almeno 192px (e una maskable
+// da 512 col contenuto dentro la zona sicura centrale dell'80%); il template porta solo l'SVG.
 const ICONS = [{ src: '/favicon.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'any' }] as const
 
 export function buildWebManifest() {
   return {
-    // Changing `id` makes browsers treat the site as a different app: the install
-    // stops updating and the prompt comes back.
+    // Cambiare `id` fa sì che i browser trattino il sito come un'altra applicazione:
+    // l'installazione smette di aggiornarsi e il prompt ricompare.
     id: '/',
     start_url: '/',
     scope: '/',
     name: SITE.name,
     short_name: SITE.name,
     description: SITE.description,
-    /* v8 ignore next -- astro:config/client is injected by Astro on every render; the fallback guards a module that cannot be missing */
+    /* v8 ignore next -- astro:config/client lo inietta Astro a ogni render; il ripiego protegge un modulo che non può mancare */
     lang: localeTag(i18n?.defaultLocale ?? 'it'),
     dir: 'ltr',
     display: 'standalone',
-    // The manifest spec has no media queries: one colour, the light theme.
+    // La specifica del manifest non ha media query: un colore solo, quello del tema chiaro.
     background_color: SITE.themeColor.light,
     theme_color: SITE.themeColor.light,
     icons: ICONS,

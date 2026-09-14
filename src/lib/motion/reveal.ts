@@ -1,5 +1,5 @@
-// `data-reveal-ready` is what src/styles/globals.css transitions on; the markup
-// side is src/components/ui/reveal.astro.
+// È su `data-reveal-ready` che src/styles/globals.css fa la transizione; il lato markup è
+// src/components/ui/reveal.astro.
 import { createMotionBinding } from './binding'
 import { prefersReducedMotion } from './media-queries'
 
@@ -26,8 +26,8 @@ function isBelowRevealLine(el: HTMLElement, maxScrollY: number, revealLine: numb
 }
 
 function setupReveals(): void {
-  // src/components/head/js-flag.astro unhides everything unless this attribute
-  // appears, so it goes before the early returns: it means "the chunk arrived".
+  // src/components/head/js-flag.astro rende tutto visibile se questo attributo non compare,
+  // quindi va prima dei ritorni anticipati: significa "il chunk è arrivato".
   document.documentElement.setAttribute('data-reveal-active', '')
   if (prefersReducedMotion()) return
   const els = queryRevealTargets()

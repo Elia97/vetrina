@@ -2,8 +2,8 @@ import type { APIRoute } from 'astro'
 
 import { ROBOTS_DISALLOWED_PATHS } from '@/lib/seo/crawl-policy'
 
-// Crawlers cache robots.txt, so preview noindexing is not done here: the
-// *.vercel.app header rule in vercel.json handles it per response.
+// I crawler mettono in cache robots.txt, quindi il noindex delle preview non si fa qui: se ne
+// occupa per singola risposta la regola di intestazione su *.vercel.app in vercel.json.
 export const GET: APIRoute = ({ site }) => {
   const base = site ?? new URL('http://localhost:4321/')
   const sitemapUrl = new URL('sitemap-index.xml', base).href

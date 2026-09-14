@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createActionFormBinding } from './action-submit'
 import { fieldErrorId } from './field-errors'
 
-// The shape `astro:actions` really produces (mirrored by test/stubs/astro-actions.ts).
+// La forma che `astro:actions` produce davvero (rispecchiata da test/stubs/astro-actions.ts).
 function inputError(fields: Record<string, string[]>): unknown {
   return { type: 'AstroActionInputError', issues: [], fields }
 }
@@ -55,7 +55,7 @@ beforeEach(() => {
   vi.restoreAllMocks()
 })
 
-// A 413 over actionBodySizeLimit reaches the client as a throw, not as `{ error }`.
+// Un 413 oltre actionBodySizeLimit arriva al client come eccezione, non come `{ error }`.
 describe('a submit that throws', () => {
   it('leaves the button usable and reports the failure', async () => {
     const form = await submitWith(

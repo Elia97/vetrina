@@ -25,8 +25,8 @@ function assertNotRateLimited(clientAddress: string): void {
   })
 }
 
-// checkBotId() reads the request off Vercel's request context, so it takes no
-// arguments — and off Vercel the challenge never runs, hence the PROD gate.
+// checkBotId() legge la richiesta dal contesto di Vercel, quindi non prende argomenti —
+// e fuori da Vercel la sfida non gira mai, da cui il gate su PROD.
 async function detectBot(): Promise<boolean> {
   if (!import.meta.env.PROD) return false
   try {
@@ -79,8 +79,8 @@ function sendContactEmails(input: ContactRequest): Promise<[BrevoResult, BrevoRe
   ])
 }
 
-// [HARD] The lead-recovery line logs personal data on purpose (Brevo is the only
-// sink): a fork declares it in its privacy notice or redacts `message` here.
+// [HARD] La riga di lead-recovery registra dati personali di proposito (l'unico recapito è
+// Brevo): un progetto lo dichiara nella sua informativa oppure oscura `message` qui.
 function reportContactResults(
   input: ContactRequest,
   [notified, autoreplied, persisted]: [BrevoResult, BrevoResult, BrevoResult],

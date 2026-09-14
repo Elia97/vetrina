@@ -1,8 +1,8 @@
 import { experimental_AstroContainer as AstroContainer } from 'astro/container'
 import { Window } from 'happy-dom'
 
-// [HARD] Callers run under `environment: 'node'`: happy-dom makes Vite resolve
-// `astro` with browser conditions and the render fails with `NoMatchingRenderer`.
+// [HARD] Chi chiama gira sotto `environment: 'node'`: con happy-dom, Vite risolve `astro`
+// con le condizioni browser e il render fallisce con `NoMatchingRenderer`.
 
 type Container = Awaited<ReturnType<typeof AstroContainer.create>>
 type Renderable = Parameters<Container['renderToString']>[0]

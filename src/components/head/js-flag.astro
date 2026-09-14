@@ -6,10 +6,10 @@
     document.documentElement.classList.add('js')
   }
   markJs()
-  // View transitions don't re-execute inline scripts on the incoming page.
+  // Le view transition non rieseguono gli script inline sulla pagina in arrivo.
   document.addEventListener('astro:after-swap', markJs)
-  // lib/motion/reveal.ts sets `data-reveal-active` as soon as it runs; if that chunk
-  // never lands the content stays invisible with no error.
+  // lib/motion/reveal.ts imposta `data-reveal-active` appena gira; se quel chunk non arriva
+  // mai, il contenuto resta invisibile senza nessun errore.
   setTimeout(function () {
     if (!document.documentElement.hasAttribute('data-reveal-active')) {
       document.documentElement.classList.add('reveal-failsafe')

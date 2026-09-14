@@ -1,8 +1,8 @@
 import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 
-// Executable form of docs/guides/ui-components.md § Motion scale: tokens.css is the only
-// sheet allowed to spell a curve or a duration out.
+// Forma eseguibile di docs/guides/ui-components.md § Token di design: tokens.css è l'unico
+// foglio a cui è permesso scrivere per esteso una curva o una durata.
 
 const EFFECT_SHEETS = ['globals.css', 'light.css', 'dark.css'] as const
 
@@ -14,7 +14,7 @@ function withoutComments(css: string): string {
   return css.replace(/\/\*[\s\S]*?\*\//g, '')
 }
 
-// A fallback inside var() is one instance's default, not a timing of the system.
+// Un ripiego dentro var() è il default di una singola istanza, non un tempo del sistema.
 function withoutVarFallbacks(css: string): string {
   return css.replace(/var\([^()]*\)/g, 'var()')
 }

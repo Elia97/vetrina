@@ -2,15 +2,15 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { isNoindexPath } from '@/lib/seo/crawl-policy'
 
-// Both lists ship empty, so nothing exercises the positive branch until a fork adds
-// its first NOINDEX_PATHS entry.
+// Le due liste arrivano vuote, quindi niente esercita il ramo positivo finché un fork non
+// aggiunge la sua prima voce in NOINDEX_PATHS.
 vi.mock('@/lib/seo/crawl-policy')
 
 async function run(pathname: string, headers: Record<string, string> = {}): Promise<Response> {
   const { onRequest } = await import('@/middleware')
   const context = { url: new URL(`https://example.test${pathname}`) }
   const next = () => Promise.resolve(new Response('body', { headers }))
-  // The signature Astro passes; only `url` is read.
+  // La firma che Astro passa; si legge solo `url`.
   return (await (onRequest as unknown as (c: unknown, n: unknown) => Promise<Response>)(context, next)) as Response
 }
 
@@ -44,8 +44,8 @@ describe('X-Robots-Tag middleware', () => {
     expect(isNoindexPath).toHaveBeenCalledWith('/area-riservata')
   })
 
-  // It only ever decorates: swallowing or replacing the downstream response
-  // would take every other header with it.
+  // Non fa altro che decorare: inghiottire o sostituire la risposta a valle si porterebbe
+  // via tutte le altre intestazioni.
   it('passes the downstream response through with its own headers intact', async () => {
     vi.mocked(isNoindexPath).mockReturnValue(true)
 

@@ -1,5 +1,5 @@
-// `pnpm run check` is repo-wide `biome check --write .`, so a run also reformats unrelated dirty files —
-// recovery hints must never reach for a whole-file `git checkout`.
+// `pnpm run check` è un `biome check --write .` su tutto il repo, quindi riformatta anche file sporchi
+// che non c'entrano: i suggerimenti di recupero non devono mai ricorrere a un `git checkout` di file intero.
 import { execSync } from 'node:child_process'
 
 export function postGenAction(root, recoveryHint) {

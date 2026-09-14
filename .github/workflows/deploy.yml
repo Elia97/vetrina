@@ -1,7 +1,7 @@
 name: Deploy
 
-# [HARD] `workflow_dispatch` exists so the emergency route is the gated route: rebuilding
-# production without a code change goes through this chain, never `vercel --prod` by hand.
+# [HARD] `workflow_dispatch` esiste perché la via d'emergenza sia quella coi gate: ricostruire
+# la produzione senza modifiche al codice passa da qui, mai da un `vercel --prod` a mano.
 on:
   workflow_call:
     inputs:
@@ -39,7 +39,7 @@ jobs:
             echo "configured=true" >> "$GITHUB_OUTPUT"
           else
             echo "configured=false" >> "$GITHUB_OUTPUT"
-            echo "::notice::Vercel secrets not set yet — skipping production deploy. See HOW_TO_USE.md for the setup checklist."
+            echo "::notice::Vercel secrets not set yet — skipping production deploy. See README.md for the setup checklist."
           fi
 
   deploy:
@@ -55,13 +55,13 @@ jobs:
       VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
       VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
     steps:
-      # actions/checkout fetches no tags at its default depth; `git describe` below needs them.
+      # Alla profondità di default actions/checkout non scarica tag, e il `git describe` sotto li vuole.
       - uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
-      # `inputs.ref` reaches the shell through env: splicing `${{ }}` into a `run:` block is
-      # script injection (GitHub Actions security hardening).
+      # `inputs.ref` arriva alla shell tramite env: infilare `${{ }}` dentro un `run:` è
+      # iniezione di script (linee guida di sicurezza di GitHub Actions).
       - name: Resolve the tag to deploy
         id: target
         env:
@@ -95,10 +95,10 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
-      # `vercel build` below runs `astro build` alone — no Biome, no astro check, no vitest.
+      # Il `vercel build` qui sotto esegue solo `astro build`: niente Biome, niente astro check, niente vitest.
       - run: pnpm run ci
 
-      # `pnpm dlx` resolves latest at run time and Dependabot doesn't scan it: bump the pin by hand.
+      # `pnpm dlx` risolve l'ultima versione a runtime e Dependabot non la guarda: si alza a mano.
       - run: pnpm dlx vercel@58 pull --yes --environment=production
 
       - run: pnpm dlx vercel@58 build --prod
@@ -110,6 +110,6 @@ jobs:
           echo "url=$url" >> "$GITHUB_OUTPUT"
           echo "Deployed to: $url"
 
-      # `astro dev` never reads vercel.json: headers and rewrites are exercised for real only here.
+      # `astro dev` non legge mai vercel.json: intestazioni e rewrite si provano davvero solo qui.
       - name: Smoke test production
         run: pnpm run smoke:prod

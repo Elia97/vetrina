@@ -1,31 +1,31 @@
-<!-- PR title: Conventional, from the issue title (e.g. "refactor(config): switch trailingSlash to never"). -->
+<!-- Titolo della PR: Conventional, dal titolo della issue (per esempio "refactor(config): trailingSlash passa a never"). -->
 
 Closes #<!-- N -->
 
-## What changes
+## Cosa cambia
 
-<!-- 1-3 concise bullets. Detail lives in the diff and the commit. -->
+<!-- Da uno a tre punti asciutti. Il dettaglio sta nel diff e nel commit. -->
 
 -
 
-## Definition of Done
+## Definizione di fatto
 
-<!-- Check only what's verified. [HARD] = blocking. -->
+<!-- Spunta solo ciò che hai verificato. [HARD] = blocca. -->
 
-- [ ] **[HARD]** `pnpm run ci` (Biome + typecheck + unit tests) green
-- [ ] **[HARD]** `pnpm run build` green
-- [ ] **[HARD]** Vercel preview green
-- [ ] **[HARD]** No secrets committed (diff checked)
-- [ ] Docs updated if impacted (never `PROJECT.md`)
-- [ ] Tests for the new logic (if applicable)
-- [ ] Lighthouse mobile ≥ 95 (if it touches public-facing pages)
+- [ ] **[HARD]** `pnpm run ci` verde (Biome, typecheck, confini, lingua, rimandi, roadmap, commenti, test, complessità)
+- [ ] **[HARD]** `pnpm run build` verde
+- [ ] **[HARD]** Preview Vercel verde
+- [ ] **[HARD]** Nessun segreto committato (diff verificato)
+- [ ] Documentazione aggiornata dove serviva (mai il brief del cliente)
+- [ ] Test per la logica nuova (se applicabile)
+- [ ] Lighthouse mobile ≥ 95 (se tocca pagine pubbliche)
 
-## Reviewer checks
+## Controlli per chi rivede
 
-<!-- Copy-paste-friendly: preview URLs to open, scenarios to test. -->
+<!-- Pronti da copiare: URL di preview da aprire, scenari da provare. -->
 
 1.
 
-## Notes
+## Note
 
-<!-- Decisions/alternatives discarded. Empty if straightforward. Merges in SQUASH → rolls into release-please's rolling release PR. -->
+<!-- Decisioni prese e alternative scartate. Vuoto se è tutto lineare. Il merge è in SQUASH e confluisce nella release PR di release-please. -->

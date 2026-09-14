@@ -1,5 +1,5 @@
-// The GTM snippet contract: until the container loads it queues on a plain array
-// and replays on load, so a push before consent is safe.
+// Il contratto dello snippet GTM: finché il container non si carica, la coda è un array
+// normale che viene riprodotto al caricamento, quindi un push prima del consenso è sicuro.
 
 export type DataLayerEvent = Record<string, unknown>
 

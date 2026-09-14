@@ -3,11 +3,11 @@
 @import "./light.css";
 @import "./dark.css";
 
-/* dark variant: `dark:` prefixes resolve on `.dark` and its subtree (official v4 class strategy) */
+/* variante dark: i prefissi `dark:` risolvono su `.dark` e il suo sottoalbero (strategia a classe ufficiale della v4) */
 @custom-variant dark (&:where(.dark, .dark *));
 
-/* v4 `container` has no center/padding config: extend it here once (auto
-   centering + responsive gutter). Consumed ONLY via components/ui/container.astro. */
+/* Il `container` della v4 non ha configurazione di centratura e padding: si estende qui una
+   volta sola. Si consuma SOLO tramite components/ui/container.astro. */
 @utility container {
   margin-inline: auto;
   padding-inline: 1rem;
@@ -16,15 +16,14 @@
   }
 }
 
-/* Press feedback: 1% is deliberately below Tailwind's smallest scale step, which
-   is loud enough on a button to read as a bounce rather than a press. */
+/* Riscontro alla pressione: l'1% sta di proposito sotto il gradino più piccolo di Tailwind,
+   che su un bottone si legge come un rimbalzo invece che come una pressione. */
 @utility scale-press {
   scale: 0.99;
 }
 
-/* Viewport-fraction block heights, named so a fork can retune them in one place
-   instead of hunting arbitrary values across components. `svh` and not `vh`: on
-   mobile `vh` counts the retracted browser chrome and overflows the screen. */
+/* Altezze in frazioni di viewport, nominate per ritararle in un posto solo. `svh` e non
+   `vh`: su mobile `vh` conta la chrome ritratta del browser e sfora lo schermo. */
 @utility min-h-status {
   min-height: 50svh;
 }
@@ -32,8 +31,8 @@
   min-height: 70svh;
 }
 
-/* Named z-index utilities over `z-[var(--z-…)]`: an arbitrary value is an escape
-   hatch from the scale, and reads as one. The ladder itself lives in tokens.css. */
+/* Utility z-index nominate invece di `z-[var(--z-…)]`: un valore arbitrario è una via di fuga
+   dalla scala, e si legge come tale. La scala sta in tokens.css. */
 @utility z-raised {
   z-index: var(--z-raised);
 }
@@ -72,15 +71,13 @@
   --color-input: var(--input);
   --color-ring: var(--ring);
 
-  /* Webfont hooks: Astro's fonts API defines `--font-stack-*` when a fork
-     registers fonts (astro.config `fonts` + `<Font>` preload in the layout
-     head — see HOW_TO_USE.md). Without fonts the var() fallback keeps the
-     system stack; components never change either way. */
+  /* Agganci per i webfont: l'API font di Astro definisce `--font-stack-*` quando un progetto
+     ne registra (README.md). Senza, il ripiego di var() tiene lo stack di sistema. */
   --font-sans: var(--font-stack-base, ui-sans-serif, system-ui, sans-serif);
   --font-display: var(--font-stack-display, ui-sans-serif, system-ui, sans-serif);
 
-  /* max() keeps the derived steps valid for any brand --radius: with small
-     values (or 0 for sharp corners) the plain calc() would go negative. */
+  /* max() tiene validi i gradini derivati per qualunque --radius del marchio: con valori
+     piccoli (o 0 per gli angoli vivi) il calc() nudo andrebbe sotto zero. */
   --radius-sm: max(0px, calc(var(--radius) - 4px));
   --radius-md: max(0px, calc(var(--radius) - 2px));
   --radius-lg: var(--radius);
@@ -95,8 +92,8 @@
     @apply bg-background font-sans text-foreground antialiased;
   }
 
-  /* Scroll lock (lib/overlay/scroll-lock.ts toggles the attribute). scrollbar-gutter
-     keeps the layout from shifting when the scrollbar disappears. */
+  /* Blocco dello scroll (l'attributo lo gira lib/overlay/scroll-lock.ts). `scrollbar-gutter`
+     evita che il layout si sposti quando la barra sparisce. */
   html[data-scroll-locked] {
     overflow: hidden;
     scrollbar-gutter: stable;
@@ -104,8 +101,8 @@
 }
 
 @layer utilities {
-  /* Consistent focus outline for custom interactive elements. The transparent
-     resting outline keeps forced-colors mode working (it gets a color there). */
+  /* Contorno di focus uniforme per gli interattivi personalizzati: quello trasparente a riposo
+     tiene in piedi la modalità forced-colors, dove riceve un colore. */
   .focus-ring {
     outline: 2px solid transparent;
     outline-offset: 2px;
@@ -115,15 +112,8 @@
   }
 }
 
-/* ─── Reveal-on-scroll ([data-reveal], see components/ui/reveal.astro) ───
-   Initial hidden state is triple-gated: `html.js` (JS off → content stays
-   visible), `prefers-reduced-motion: no-preference` (reduced → static), and
-   `:not(.reveal-failsafe)` — head/js-flag.astro sets that class when the reveal
-   module never arrived, because `html.js` only proves JS is enabled, not that
-   the chunk which clears `data-reveal-ready` actually loaded.
-   Every part of the gating selectors is load-bearing — `html.js` (no JS reveals
-   everything), `:not(.reveal-failsafe)` (the valve), `:not([data-reveal-ready])`
-   (not yet revealed) — so their complexity is not flattened away. */
+/* ─── Rivelazione allo scroll ([data-reveal], vedi components/ui/reveal.astro) ───
+   Triplo gate, e ogni pezzo dei selettori regge un caso suo: docs/guides/rendering-performance.md. */
 @media (prefers-reduced-motion: no-preference) {
   html.js [data-reveal] {
     transition:
@@ -131,23 +121,22 @@
       transform var(--duration-slower) var(--ease-emphasized);
     transition-delay: var(--reveal-delay, 0s);
   }
-  /* fallow-ignore-next-line css-selector-complexity -- see the gating note above */
+  /* fallow-ignore-next-line css-selector-complexity -- vedi la nota sui gate qui sopra */
   html.js:not(.reveal-failsafe) [data-reveal]:not([data-reveal-ready]) {
     opacity: 0;
     transform: translateY(var(--reveal-y, 24px));
   }
 
-  /* Cascade variant: `data-reveal-stagger` on a container transitions its
-     children in sequence — each child sets `--i` (0, 1, 2…), the step is
-     `--reveal-stagger` (default 0.08s). Same gating as [data-reveal]. */
-  /* fallow-ignore-next-line css-selector-complexity -- see the gating note above */
+  /* Variante a cascata: `data-reveal-stagger` su un contenitore fa entrare i figli in
+     sequenza — ogni figlio imposta `--i`, e il passo è `--reveal-stagger` (default 0,08s). */
+  /* fallow-ignore-next-line css-selector-complexity -- vedi la nota sui gate qui sopra */
   html.js [data-reveal-stagger] > * {
     transition:
       opacity var(--duration-slower) var(--ease-emphasized),
       transform var(--duration-slower) var(--ease-emphasized);
     transition-delay: calc(var(--i, 0) * var(--reveal-stagger, 0.08s));
   }
-  /* fallow-ignore-next-line css-selector-complexity -- see the gating note above */
+  /* fallow-ignore-next-line css-selector-complexity -- vedi la nota sui gate qui sopra */
   html.js:not(.reveal-failsafe) [data-reveal-stagger]:not([data-reveal-ready]) > * {
     opacity: 0;
     transform: translateY(var(--reveal-y, 24px));

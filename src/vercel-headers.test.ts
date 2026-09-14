@@ -2,8 +2,8 @@ import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
 
-// `astro dev` never reads vercel.json: CI is the only place these headers run before
-// a deploy. Every other CSP directive lives in src/lib/csp/, covered by csp.test.ts.
+// `astro dev` non legge mai vercel.json: la CI è l'unico posto in cui queste intestazioni girano
+// prima di un deploy. Ogni altra direttiva CSP sta in src/lib/csp/, coperta da csp.test.ts.
 
 type HeaderEntry = { key: string; value: string }
 type HeaderRule = { source: string; has?: unknown[]; headers: HeaderEntry[] }
@@ -23,7 +23,7 @@ function header(key: string): string {
   return entry.value
 }
 
-// Assertions are about policy, not the order or spacing of one long string.
+// Le asserzioni riguardano la politica, non l'ordine o la spaziatura di una lunga stringa.
 const directives = new Map(
   header('Content-Security-Policy')
     .split(';')
@@ -38,8 +38,8 @@ const directives = new Map(
 const sources = (directive: string): string[] => directives.get(directive) ?? []
 
 describe('security headers', () => {
-  // A header quietly dropped from the list is a downgrade nothing else would
-  // report: the site keeps working, just less safely.
+  // Un'intestazione tolta in silenzio dall'elenco è un peggioramento che nient'altro
+  // segnalerebbe: il sito continua a funzionare, solo meno al sicuro.
   it('carries the full set on every response', () => {
     expect(globalRule?.headers.map((entry) => entry.key).sort()).toEqual([
       'Content-Security-Policy',
@@ -60,8 +60,8 @@ describe('security headers', () => {
     expect(['strict-origin-when-cross-origin', 'no-referrer', 'same-origin']).toContain(header('Referrer-Policy'))
   })
 
-  // Two years is what HSTS preload submission requires, and lowering it is slow to
-  // undo: browsers keep the old max-age until it expires.
+  // Due anni è quello che richiede l'iscrizione alla preload list HSTS, e abbassarlo ha effetto
+  // solo alla scadenza: fino a lì il browser applica il max-age che ha già.
   it('pins HSTS at a preload-eligible value', () => {
     const hsts = header('Strict-Transport-Security')
     const maxAge = Number(/max-age=(\d+)/.exec(hsts)?.[1])
@@ -80,14 +80,14 @@ describe('security headers', () => {
 
 describe('Content-Security-Policy', () => {
   it('carries frame-ancestors, the one directive a meta CSP cannot express', () => {
-    // Redundant with X-Frame-Options above, and deliberately so: the header is
-    // the one older browsers honour, this is the one that is actually specified.
+    // Ridondante con l'X-Frame-Options qui sopra, e di proposito: quella intestazione è
+    // quella che i browser più vecchi rispettano, questa è quella davvero specificata.
     expect(sources('frame-ancestors')).toEqual(["'none'"])
   })
 
   it('leaves every other directive to the build-time policy', () => {
-    // The CSP spec enforces multiple policies independently, so a copy here would
-    // intersect with src/lib/csp/directives.ts rather than replace it.
+    // La specifica CSP applica più policy in modo indipendente, quindi una copia qui si
+    // intersecherebbe con src/lib/csp/directives.ts invece di sostituirla.
     for (const directive of ['default-src', 'script-src', 'style-src', 'connect-src', 'img-src']) {
       expect(sources(directive), directive).toEqual([])
     }
@@ -103,7 +103,7 @@ describe('Content-Security-Policy', () => {
     }
   })
 
-  // vercel-botid.test.ts pins the rewrites this depends on.
+  // vercel-botid.test.ts fissa i rewrite da cui questo dipende.
   it('needs no vendor origin for BotID, because the challenge is same-origin', () => {
     expect(config.rewrites.some((rule) => rule.destination.includes('api.vercel.com'))).toBe(true)
     for (const [, values] of directives) {

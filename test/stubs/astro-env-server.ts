@@ -1,7 +1,7 @@
 import process from 'node:process'
 
-// Mirrors astro.config.mjs's env schema, defaults included. Values are read at module
-// import: stubEnv → resetModules → re-import (test/helpers/actions.ts wraps that).
+// Rispecchia lo schema env di astro.config.mjs, default compresi. I valori si leggono all'import
+// del modulo: stubEnv → resetModules → re-import (test/helpers/actions.ts lo incapsula).
 export function getSecret(key: string): string | undefined {
   return process.env[key]
 }

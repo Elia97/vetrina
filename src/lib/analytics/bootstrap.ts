@@ -10,7 +10,7 @@ function loadGtm(win: Window & typeof globalThis, gtmId: string): void {
   if (win.__analyticsLoaded === true) return
   win.__analyticsLoaded = true
 
-  // GTM reads gtm.start off the dataLayer to time the container.
+  // GTM legge gtm.start dal dataLayer per cronometrare il container.
   pushToDataLayer({ 'gtm.start': Date.now(), event: 'gtm.js' })
 
   const script = win.document.createElement('script')
@@ -19,8 +19,8 @@ function loadGtm(win: Window & typeof globalThis, gtmId: string): void {
   win.document.head.appendChild(script)
 }
 
-/** Basic Consent Mode, not advanced: Google's modeling needs roughly 1k daily events
- *  on each side of the consent split, which a site this size never reaches. */
+/** Consent Mode base, non avanzato: la modellazione di Google vuole circa mille eventi al
+ *  giorno per lato, che un sito di queste dimensioni non raggiunge. */
 export function bootstrapAnalytics(deps?: Partial<AnalyticsBootstrapDeps>): void {
   const win = deps?.win ?? window
   const onConsent = deps?.onConsent ?? defaultOnConsent

@@ -24,14 +24,14 @@ const { canonical, ogImageUrl, currentTag, localeAlternates, defaultHref } = res
 })
 ---
 
-{/* charset/viewport live in the layout: they must precede the inline theme script */}
+{/* charset e viewport stanno nel layout: devono precedere lo script inline del tema */}
 <meta name="generator" content={Astro.generator} />
 <HeadIcons />
 
 <title>{title}</title>
 {description ? <meta name="description" content={description} /> : null}
-{/* Astro discards a prerendered page's response headers at build (src/middleware.ts),
-    so this is the only per-path noindex that reaches one. */}
+{/* Astro scarta in build le intestazioni di risposta di una pagina prerenderizzata
+    (src/middleware.ts), quindi questo è l'unico noindex per percorso che la raggiunge. */}
 {noindex ? <meta name="robots" content="noindex, nofollow" /> : null}
 <link rel="canonical" href={canonical} />
 <HeadAlternates localeAlternates={localeAlternates} defaultHref={defaultHref} />

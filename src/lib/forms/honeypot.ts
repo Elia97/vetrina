@@ -1,7 +1,8 @@
-// The hidden input in src/components/forms/honeypot-field.astro carries this name.
+// L'input nascosto in src/components/forms/honeypot-field.astro porta questo nome.
 
-// [HARD] No Zod import: this reaches the client bundle, and a module-level `z.…()`
-// call isn't tree-shakeable — ~12 KB gz per page, which `pnpm perf:bundle` fails on.
+// [HARD] Nessun import di Zod: questo arriva nel bundle client, e una chiamata `z.…()` a
+// livello di modulo non è eliminabile dal tree shaking — circa 12 KB gzip per pagina, su cui
+// `pnpm perf:bundle` fallisce.
 export const HONEYPOT_FIELD = 'website'
 
 export function isHoneypotFilled(input: Record<typeof HONEYPOT_FIELD, string>): boolean {

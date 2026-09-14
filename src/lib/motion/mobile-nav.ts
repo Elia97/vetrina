@@ -16,8 +16,8 @@ function focusableElements(panel: HTMLElement): HTMLElement[] {
   )
 }
 
-// `aria-modal` is advisory: a screen reader's virtual cursor still swipes into the
-// page underneath, and the Tab trap never notices because no focus moves.
+// `aria-modal` è indicativo: il cursore virtuale di un lettore di schermo scorre comunque
+// nella pagina sotto, e la trappola del Tab non se ne accorge perché nessun focus si muove.
 function setBackgroundInert(panel: HTMLElement, inert: boolean): void {
   for (const sibling of Array.from(document.body.children)) {
     if (sibling === panel || !(sibling instanceof HTMLElement)) continue
@@ -26,22 +26,22 @@ function setBackgroundInert(panel: HTMLElement, inert: boolean): void {
 }
 
 function openMenu(panel: HTMLElement, toggle: HTMLButtonElement): void {
-  /* v8 ignore next -- document.activeElement is <body> at worst, never a non-element */
+  /* v8 ignore next -- document.activeElement al peggio è <body>, mai un non-elemento */
   lastFocused = document.activeElement instanceof HTMLElement ? document.activeElement : null
   panel.hidden = false
   toggle.setAttribute('aria-expanded', 'true')
   setBackgroundInert(panel, true)
   lockScroll()
   isOpen = true
-  // preventScroll on both focus calls: without it the panel scrolls its own container open,
-  // and on close the focus target — off-screen after any scrolling — jumps the page to it.
+  // preventScroll su entrambe le chiamate: senza, il pannello fa scorrere il proprio contenitore
+  // all'apertura e alla chiusura la pagina salta al bersaglio del focus, ormai fuori schermo.
   focusableElements(panel)[0]?.focus({ preventScroll: true })
 }
 
 function closeMenu(panel: HTMLElement, toggle: HTMLButtonElement): void {
   panel.hidden = true
   toggle.setAttribute('aria-expanded', 'false')
-  // Before the focus below: an inert element silently refuses focus.
+  // Prima del focus qui sotto: un elemento inert rifiuta il fuoco in silenzio.
   setBackgroundInert(panel, false)
   if (isOpen) unlockScroll()
   isOpen = false
@@ -55,7 +55,7 @@ function bindMobileNavHandlers(panel: HTMLElement, toggle: HTMLButtonElement): (
   }
 
   const onPanelClick = (event: MouseEvent): void => {
-    /* v8 ignore next -- delegated from the panel, whose children are all elements */
+    /* v8 ignore next -- delegato dal pannello, i cui figli sono tutti elementi */
     if (!(event.target instanceof Element)) return
     if (event.target.closest('a[href], [data-mobile-nav-close]')) closeMenu(panel, toggle)
   }
@@ -70,8 +70,8 @@ function bindMobileNavHandlers(panel: HTMLElement, toggle: HTMLButtonElement): (
     if (event.key === 'Tab') cycleFocus(focusableElements(panel), event)
   }
 
-  // Panel and toggle are both `md:hidden`, and a phone in landscape crosses the
-  // 768px breakpoint (a 14 Pro is 852px wide) with the drawer still locking the page.
+  // Pannello e interruttore sono entrambi `md:hidden`, e un telefono in orizzontale supera il
+  // breakpoint di 768px (un 14 Pro è largo 852px) col cassetto che tiene ancora bloccata la pagina.
   const stopViewportWatch = onDesktopViewportChange((isDesktop) => {
     if (isDesktop && !panel.hidden) closeMenu(panel, toggle)
   })
@@ -91,7 +91,7 @@ function bindMobileNavHandlers(panel: HTMLElement, toggle: HTMLButtonElement): (
 function setupMobileNav(): void {
   const panel = document.querySelector<HTMLElement>('[data-mobile-nav]')
   const toggle = document.querySelector<HTMLButtonElement>('[data-mobile-nav-toggle]')
-  // createMotionBinding runs setup twice on a cold load.
+  // createMotionBinding esegue setup due volte a caricamento freddo.
   if (!panel || !toggle || panel.dataset.mobileNavReady !== undefined) return
   panel.dataset.mobileNavReady = ''
 

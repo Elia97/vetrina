@@ -6,7 +6,7 @@ import { SITE } from '@/lib/site'
 <link rel="icon" href="/favicon.ico" sizes="32x32" />
 <link rel="manifest" href="/site.webmanifest" />
 
-{/* theme-script.astro matches on `data-scheme` and flips the `media` of these two,
-    so the browser chrome follows the toggle and not the system preference. */}
+{/* theme-script.astro cerca `data-scheme` e gira il `media` di questi due, così la chrome
+    del browser segue l'interruttore e non la preferenza di sistema. */}
 <meta name="theme-color" data-scheme="light" content={SITE.themeColor.light} media="(prefers-color-scheme: light)" />
 <meta name="theme-color" data-scheme="dark" content={SITE.themeColor.dark} media="(prefers-color-scheme: dark)" />

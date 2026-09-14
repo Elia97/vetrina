@@ -1,11 +1,11 @@
-// Per-instance state: it resets on cold starts and isn't shared across serverless
-// instances — a base anti-abuse layer, not a quota (docs/guides/forms-email.md).
+// Stato per istanza: si azzera agli avvii a freddo e non è condiviso fra le istanze
+// serverless — uno strato anti-abuso di base, non una quota (docs/guides/forms-email.md).
 const WINDOW_MS = 60_000
 const MAX_HITS = 5
 const hits = new Map<string, number[]>()
 
-// [HARD] Sweep the map: under Fluid Compute one instance serves many requests, so
-// rotating IPs grow it unbounded with no error to show for it.
+// [HARD] La mappa va spazzata: sotto Fluid Compute un'istanza serve molte richieste, quindi
+// gli IP che ruotano la fanno crescere senza limite e senza nessun errore che lo mostri.
 const MAX_TRACKED_KEYS = 5_000
 
 function sweepExpired(now: number, windowMs: number): void {
@@ -32,7 +32,7 @@ export function resetRateLimit(): void {
   hits.clear()
 }
 
-/** The sweep is invisible to allow/deny — only the map size tells the two apart. */
+/** La spazzata è invisibile ad allow e deny: a distinguerle è solo la dimensione della mappa. */
 export function trackedKeyCount(): number {
   return hits.size
 }

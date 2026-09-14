@@ -6,8 +6,8 @@ import type { ConsentCategory } from '@/lib/consent/gate'
 
 const GTM = 'GTM-TEST123'
 
-/** The head collects instead of connecting: appending for real would have happy-dom
- *  fetch googletagmanager.com from a unit test. */
+/** La head raccoglie invece di collegarsi: appendere davvero farebbe scaricare a happy-dom
+ *  googletagmanager.com da uno unit test. */
 function makeWin(config?: { gtmId: string }) {
   const appended: HTMLScriptElement[] = []
   const win = {
@@ -57,7 +57,7 @@ describe('bootstrapAnalytics — before consent', () => {
     expect(appended).toHaveLength(0)
   })
 
-  // [HARD] Registering is not loading: nothing reaches Google before the opt-in.
+  // [HARD] Registrare non è caricare: niente raggiunge Google prima dell'opt-in.
   it('registers for measurement consent without loading anything yet', () => {
     const { win, appended } = makeWin({ gtmId: GTM })
     const consent = makeConsent()

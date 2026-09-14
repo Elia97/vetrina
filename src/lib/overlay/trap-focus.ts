@@ -1,4 +1,4 @@
-// `focusables` must be in DOM order: the first and last are read as the trap's ends.
+// `focusables` deve essere nell'ordine del DOM: il primo e l'ultimo si leggono come i capi della trappola.
 
 function isBackwardWrap(event: KeyboardEvent, active: Element | null, first: HTMLElement): boolean {
   return event.shiftKey && active === first

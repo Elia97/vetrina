@@ -18,8 +18,8 @@ interface Props {
   canonicalPath?: string
   ogImage?: string
   jsonLd?: Record<string, unknown>[]
-  // Prerendered pages only, unlike NOINDEX_PATHS in src/middleware.ts — pair it
-  // with the sitemap `filter` in astro.config.mjs.
+  // Solo pagine prerenderizzate, al contrario di NOINDEX_PATHS in src/middleware.ts:
+  // va accompagnato dal `filter` della sitemap in astro.config.mjs.
   noindex?: boolean
   heroOverlay?: boolean
   overlayChrome?: 'auto' | 'light'
@@ -39,11 +39,11 @@ const lang = Astro.currentLocale ?? i18n?.defaultLocale ?? 'it'
 ---
 
 <!doctype html>
-{/* scroll-pt-20: anchor jumps land clear of the 64px sticky header */}
+{/* scroll-pt-20: i salti agli ancoraggi atterrano sotto l'header appiccicato da 64px */}
 <html lang={lang} class="scroll-pt-20">
   <head>
-    {/* The encoding declaration must sit within the document's first 1024 bytes,
-        and the inline theme script below would push it past. */}
+    {/* La dichiarazione di codifica deve stare entro i primi 1024 byte del documento, e
+        lo script inline del tema qui sotto la spingerebbe oltre. */}
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <JsFlag />
@@ -55,7 +55,7 @@ const lang = Astro.currentLocale ?? i18n?.defaultLocale ?? 'it'
   <body class="flex min-h-svh flex-col">
     <SkipLink />
     <Header heroOverlay={heroOverlay} overlayChrome={overlayChrome} />
-    {/* tabindex=-1: the skip-link must move real focus, not just the tab start point */}
+    {/* tabindex=-1: lo skip-link deve muovere il focus vero, non solo il punto di partenza del Tab */}
     <main id="main-content" class="flex-1" tabindex="-1">
       <slot />
     </main>

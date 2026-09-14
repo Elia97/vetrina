@@ -1,5 +1,5 @@
-/** With `<ClientRouter />`, `astro:page-load` also fires on the initial load, so
- *  `setup` runs twice on a cold load and must be idempotent. */
+/** Con `<ClientRouter />`, `astro:page-load` scatta anche al caricamento iniziale, quindi su
+ *  un caricamento a freddo `setup` gira due volte e deve essere idempotente. */
 export function createMotionBinding(setup: () => void, cleanup: () => void): () => void {
   let bound = false
   return (): void => {

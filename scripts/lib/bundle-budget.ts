@@ -10,22 +10,22 @@ export type Expectations = {
   ssr: string[]
 }
 
-// 20 KB is ~2× the heaviest measured starter route (/contatti, ~10 KB gz).
+// 20 KB è ~2× la rotta più pesante misurata nello starter (/contatti, ~10 KB gz).
 const DEFAULT_BUDGET: Budget = { label: 'default', matches: () => true, maxGzip: 20 * 1024 }
 
 const BUDGETS: readonly Budget[] = [DEFAULT_BUDGET]
 
 export function budgetFor(route: string): Budget {
-  /* v8 ignore next -- DEFAULT_BUDGET matches every route, so find() never returns undefined */
+  /* v8 ignore next -- DEFAULT_BUDGET fa match su ogni rotta, quindi find() non restituisce mai undefined */
   return BUDGETS.find((budget) => budget.matches(route)) ?? DEFAULT_BUDGET
 }
 
-/* v8 ignore start -- both call sites use patterns whose group always participates */
+/* v8 ignore start -- entrambi i chiamanti usano pattern il cui gruppo partecipa sempre */
 const captured = (source: string, pattern: RegExp, group: number): Set<string> =>
   new Set([...source.matchAll(pattern)].flatMap((match) => (match[group] === undefined ? [] : [match[group]])))
 /* v8 ignore stop */
 
-/** Rollup quotes static specifiers with `"` and dynamic ones with a template literal. */
+/** Rollup racchiude gli specificatori statici con `"` e i dinamici in un template literal. */
 export function parseEdges(source: string): Pick<Chunk, 'static' | 'dynamic'> {
   return {
     static: captured(source, /(?:from|import)\s*(["'`])\.\/([^"'`]+\.js)\1/g, 2),
@@ -52,7 +52,7 @@ export function staticClosure(entries: Iterable<string>, chunks: Map<string, Chu
 }
 
 export function deferredClosure(reached: Set<string>, chunks: Map<string, Chunk>): Set<string> {
-  /* v8 ignore next -- every reached name came out of the same chunk map */
+  /* v8 ignore next -- ogni nome raggiunto viene dalla stessa mappa dei chunk */
   const entries = [...reached].flatMap((name) => [...(chunks.get(name)?.dynamic ?? [])])
   return new Set([...staticClosure(entries, chunks)].filter((name) => !reached.has(name)))
 }
@@ -67,8 +67,8 @@ export function heaviestStylesheet(sheets: readonly Stylesheet[]): Stylesheet | 
   return sheets.reduce<Stylesheet | null>((worst, sheet) => (worst && worst.gzip >= sheet.gzip ? worst : sheet), null)
 }
 
-// Astro emits one stylesheet per page group and a route links exactly one of them, so their
-// sum is bytes no visitor ever downloads together.
+// Astro emette un foglio di stile per gruppo di pagine e una rotta ne collega esattamente uno,
+// quindi la loro somma è fatta di byte che nessun visitatore scarica mai insieme.
 export function cssBudgetFailure(sheets: readonly Stylesheet[]): string | null {
   const heaviest = heaviestStylesheet(sheets)
   if (heaviest === null || heaviest.gzip <= CSS_BUDGET_GZIP) return null
@@ -98,15 +98,15 @@ function segmentPattern(segment: string): string {
 
 const TRAILING_REST_SEGMENT = /\/\[\.\.\.[^/]*\]$/
 
-// A trailing rest segment also matches nothing: `paginate()` emits page one as the bare
-// path (`/news`, never `/news/1`), so requiring a segment fails a one-page archive.
+// Anche un segmento rest finale fa match col vuoto: `paginate()` emette la prima pagina come
+// percorso nudo (`/news`, mai `/news/1`), quindi esigere un segmento boccia un archivio di una pagina.
 function routePattern(route: string): RegExp {
   const body = (path: string) => path.split('/').map(segmentPattern).join('/')
   if (!TRAILING_REST_SEGMENT.test(route)) return new RegExp(`^${body(route)}$`)
   return new RegExp(`^${body(route.replace(TRAILING_REST_SEGMENT, ''))}(?:/.*)?$`)
 }
 
-/** Only `.astro` pages: an endpoint like `robots.txt.ts` prerenders too but emits no HTML. */
+/** Solo pagine `.astro`: un endpoint come `robots.txt.ts` prerenderizza ma non emette HTML. */
 export function expectedRoutes(pages: readonly PageFile[], pagesDir: string): Expectations {
   const expectations: Expectations = { exact: [], patterns: [], ssr: [] }
   for (const { file, source } of pages) {
@@ -124,7 +124,7 @@ export function expectedRoutes(pages: readonly PageFile[], pagesDir: string): Ex
   return expectations
 }
 
-/** [HARD] Fail-open guard: every per-route assertion iterates the emitted pages, so an empty dist asserts nothing. */
+/** [HARD] Guardia fail-open: ogni asserzione per rotta itera sulle pagine emesse, quindi una dist vuota non asserisce niente. */
 export function missingRouteFailures(expected: Expectations, emitted: readonly string[], dist: string): string[] {
   if (emitted.length === 0) {
     return [`${dist} holds no .html file — no route was measured, so the per-route budgets assert nothing`]
@@ -133,7 +133,7 @@ export function missingRouteFailures(expected: Expectations, emitted: readonly s
   const failures: string[] = []
   const routes = new Set(emitted)
   for (const { route, file } of expected.exact) {
-    /* v8 ignore next -- an exact route missing from a non-empty dist is covered by the pattern branch below */
+    /* v8 ignore next -- una rotta esatta assente da un dist non vuoto la copre il ramo a pattern qui sotto */
     if (!routes.has(route)) failures.push(`missing route ${route} — ${file} is prerendered but emitted no HTML`)
   }
   for (const { pattern, label, file } of expected.patterns) {

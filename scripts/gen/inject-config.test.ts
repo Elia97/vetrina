@@ -6,7 +6,7 @@ import { assertInjectable, injectCollection } from './inject-config.mjs'
 const CONFIG = 'src/content.config.ts'
 const config = (root: string) => read(root, CONFIG)
 
-/** ts-morph emits raw (double quotes, semicolons); Biome normalizes it in the post-gen step. */
+/** ts-morph emette grezzo (doppi apici, punto e virgola); Biome normalizza nel passo post-gen. */
 const block = (root: string, camel: string) =>
   config(root)
     .slice(config(root).indexOf(`const ${camel} = defineCollection(`))

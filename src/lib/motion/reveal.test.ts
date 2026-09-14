@@ -51,7 +51,7 @@ function installEnvironment({ reduced = false } = {}): void {
   }))
 }
 
-/** Geometry the module reads. maxScrollY is 0, so the reveal line is 0.85×innerHeight. */
+/** La geometria che il modulo legge. maxScrollY è 0, quindi la linea di rivelazione è 0,85×innerHeight. */
 function withGeometry(topOf: Record<string, number>): void {
   Object.defineProperty(window, 'innerHeight', { value: 1000, configurable: true })
   Object.defineProperty(document.documentElement, 'scrollHeight', { value: 1000, configurable: true })

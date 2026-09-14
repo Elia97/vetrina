@@ -1,29 +1,29 @@
-// Read by src/pages/robots.txt.ts, the sitemap filter in astro.config.mjs and
+// Letto da src/pages/robots.txt.ts, dal filtro sitemap in astro.config.mjs e da
 // src/middleware.ts.
 
-// [HARD] Import-free: astro.config.mjs loads before Vite resolves the `@/` alias,
-// so only modules with no imports are reachable from there.
+// [HARD] Senza import: astro.config.mjs si carica prima che Vite risolva l'alias `@/`, quindi
+// da lì sono raggiungibili solo i moduli che non importano niente.
 
-/** A sitemap entry for a robots-blocked URL is a Search Console warning, so these
- *  stay out of the sitemap too. */
+/** Una voce di sitemap per un URL bloccato da robots è un avviso in Search Console, quindi
+ *  questi restano fuori anche dalla sitemap. */
 export const ROBOTS_DISALLOWED_PATHS: readonly string[] = []
 
-/** src/middleware.ts reads this too, but only reaches non-HTML SSR responses: on a
- *  prerendered page the layout's `noindex` meta tag is what carries the signal. */
+/** Anche src/middleware.ts legge questa lista, ma arriva solo alle risposte SSR non HTML: su
+ *  una pagina prerenderizzata a portare il segnale è il meta `noindex` del layout. */
 export const NOINDEX_PATHS: readonly string[] = []
 
-/** @astrojs/sitemap drops status-code pages itself, so `/404` and `/500` are absent. */
+/** @astrojs/sitemap scarta da sé le pagine di stato, quindi `/404` e `/500` non ci sono. */
 export const SITEMAP_EXCLUDED_PATHS: readonly string[] = [...ROBOTS_DISALLOWED_PATHS, ...NOINDEX_PATHS]
 
-/** @astrojs/sitemap hands entries over absolute and with a trailing slash despite
+/** @astrojs/sitemap consegna le voci assolute e con lo slash finale nonostante
  *  `trailingSlash: 'never'`. */
 export function crawlPathname(url: string): string {
   const { pathname } = new URL(url, 'https://placeholder.invalid')
   return pathname.length > 1 ? pathname.replace(/\/$/, '') : pathname
 }
 
-/** [HARD] Subtree, never equality: `/area-riservata` in NOINDEX_PATHS covers
- *  `/area-riservata/documenti`, and nothing fails when it doesn't. */
+/** [HARD] Sottoalbero, mai uguaglianza: `/area-riservata` in NOINDEX_PATHS copre
+ *  `/area-riservata/documenti`, e quando non lo fa non fallisce niente. */
 export function matchesSubtree(pathname: string, roots: readonly string[]): boolean {
   const path = crawlPathname(pathname)
   return roots.some((root) => path === root || path.startsWith(`${root}/`))

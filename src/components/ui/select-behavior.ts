@@ -10,14 +10,14 @@ interface SelectElements {
 
 function selectedOptionInfo(native: HTMLSelectElement): { text: string; hasValue: boolean } {
   const selected = native.selectedOptions[0]
-  /* v8 ignore next -- defensive: findSelectElements has already proven these exist */
+  /* v8 ignore next -- difensivo: findSelectElements ha già dimostrato che esistono */
   return { text: selected?.text ?? '', hasValue: Boolean(selected?.value) }
 }
 
 function syncTriggerLabel(root: HTMLElement): void {
   const native = root.querySelector<HTMLSelectElement>('[data-select-native]')
   const label = root.querySelector<HTMLElement>('[data-select-value]')
-  /* v8 ignore next -- defensive: findSelectElements has already proven these exist */
+  /* v8 ignore next -- difensivo: findSelectElements ha già dimostrato che esistono */
   if (!native || !label) return
   const { text, hasValue } = selectedOptionInfo(native)
   label.textContent = text
@@ -38,7 +38,7 @@ function openListbox(root: HTMLElement): void {
 }
 
 function updateNativeValue(native: HTMLSelectElement | null, value: string): void {
-  /* v8 ignore next -- defensive: findSelectElements has already proven these exist */
+  /* v8 ignore next -- difensivo: findSelectElements ha già dimostrato che esistono */
   if (!native) return
   native.value = value
   native.dispatchEvent(new Event('change', { bubbles: true }))
@@ -47,7 +47,7 @@ function updateNativeValue(native: HTMLSelectElement | null, value: string): voi
 function selectOption(root: HTMLElement, option: HTMLElement): void {
   const native = root.querySelector<HTMLSelectElement>('[data-select-native]')
   const listbox = root.querySelector<HTMLElement>('[data-select-listbox]')
-  /* v8 ignore next -- defensive: findSelectElements has already proven these exist */
+  /* v8 ignore next -- difensivo: findSelectElements ha già dimostrato che esistono */
   updateNativeValue(native, option.dataset.value ?? '')
   markSelectedOption(listbox, option)
   syncTriggerLabel(root)
@@ -57,8 +57,8 @@ function selectOption(root: HTMLElement, option: HTMLElement): void {
 
 function moveActive(root: HTMLElement, delta: 1 | -1): void {
   const items = Array.from(root.querySelectorAll<HTMLElement>('[data-select-listbox] [role="option"]'))
-  /* v8 ignore start -- an empty listbox has no trigger to open it, and the roving
-     focus always starts on a real option, so neither guard can fire */
+  /* v8 ignore start -- una listbox vuota non ha nessun trigger che la apra, e il focus
+     rotante parte sempre da un'opzione vera: nessuna delle due guardie può scattare */
   if (items.length === 0) return
   const currentIndex = items.indexOf(document.activeElement as HTMLElement)
   const nextIndex =
@@ -79,7 +79,7 @@ function focusPreviousOption(root: HTMLElement, event: KeyboardEvent): void {
 
 function selectActiveOption(root: HTMLElement, event: KeyboardEvent): void {
   event.preventDefault()
-  /* v8 ignore next -- the handler only fires while an option holds focus */
+  /* v8 ignore next -- il gestore scatta solo mentre il focus sta su un'opzione */
   if (document.activeElement instanceof HTMLElement) {
     selectOption(root, document.activeElement)
   }
@@ -122,7 +122,7 @@ function bindSelectHandlers(root: HTMLElement, { trigger, listbox }: SelectEleme
   }
   const onListboxKeydown = createListboxKeydownHandler(root, trigger)
   const onOptionClick = (event: MouseEvent) => {
-    /* v8 ignore next -- delegated from the listbox, whose children are all elements */
+    /* v8 ignore next -- delegato dalla listbox, i cui figli sono tutti elementi */
     if (!(event.target instanceof HTMLElement)) return
     const option = event.target.closest<HTMLElement>('[role="option"]')
     if (option) selectOption(root, option)

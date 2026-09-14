@@ -2,8 +2,8 @@ import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
 
-// A prerendered page is served as a static file and never reaches src/middleware.ts,
-// so the preview noindex is an edge rule — and `astro dev` never reads vercel.json.
+// Una pagina prerenderizzata è un file statico e non arriva mai a src/middleware.ts, quindi il
+// noindex delle preview è una regola di bordo — che `astro dev` non legge.
 
 type HasCondition = { type: string; value?: string }
 type HeaderEntry = { key: string; value: string }
@@ -27,7 +27,7 @@ describe('vercel.json preview-deploy noindex', () => {
     expect(robotsTag(hostRule)).toContain('noindex')
   })
 
-  // Vercel anchors a route pattern against the whole host — these run it the way the edge does.
+  // Vercel ancora il pattern di una rotta all'host intero: qui lo si esegue come fa il bordo.
   it('matches vercel.app deployment hosts, never the production domain', () => {
     const pattern = hostRule?.has?.find((cond) => cond.type === 'host')?.value
     expect(pattern).toBeDefined()

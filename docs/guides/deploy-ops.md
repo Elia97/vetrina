@@ -1,453 +1,442 @@
-# Deploy & ops
+# Deploy e operatività
 
-Conventions for the Vercel deployment, the release pipeline and everything that
-lives in `vercel.json`. Cross-ref: `rendering-performance.md` (bundle budget),
-`seo.md` (preview deploys, URL policy), `forms-email.md` (the env-var policy for
-vendor keys).
+Convenzioni per il deploy su Vercel, la pipeline di release e tutto ciò che vive in `vercel.json`.
+Rimandi: `rendering-performance.md` (budget di bundle), `seo.md` (deploy di preview, politica degli
+URL), `forms-email.md` (la politica sulle variabili d'ambiente per le chiavi dei fornitori).
 
-**[HARD]** `astro dev` does not read `vercel.json`. Headers, CSP, redirects and
-rewrites are inert locally and can *only* be verified on a real deploy. "It works
-in dev" is not evidence for anything in this file.
+**[HARD]** `astro dev` non legge `vercel.json`. Intestazioni, CSP, redirect e rewrite sono inerti in
+locale e si possono verificare *soltanto* su un deploy vero. «In sviluppo funziona» non è una prova
+di niente, in questo file.
 
-## Deploy model
+## Modello di deploy
 
-Production ships **only from a release tag**, never from a push to `main`:
+La produzione esce **solo da un tag di release**, mai da un push su `main`:
 
-- `scripts/vercel-ignore-build.sh` is wired into Vercel's *Ignored Build Step*
-  (Settings → Build & Deployment → "Run my Bash script"). It exits 0 (skip) on
-  `main` and `release-please--*`, exits 1 (proceed) everywhere else — so the git
-  integration only ever produces **preview** deploys. Dependabot branches are cut
-  earlier still, by `git.deploymentEnabled` in `vercel.json`. A skip shows up in the
-  dashboard as a **Canceled deployment of 1s**, not as a missing one — worth
-  knowing before hunting for a deploy that never happened.
-- **Before the first release tag there is no deployment at all**, preview or
-  production. Early milestones are verifiable only with `pnpm dev` and
-  `pnpm run build` — worth knowing before promising a client a link.
-- The production deploy is `.github/workflows/deploy.yml`: it checks out the
-  released **tag** (not whatever `main` points at by then), then `pnpm run ci` →
-  `vercel pull --prod` → `vercel build --prod` → `vercel deploy --prebuilt --prod`
-  → `pnpm smoke:prod`.
-- **It has two entry points and one path.** `release-please.yml` calls it on a
-  fresh tag; Actions → Deploy → *Run workflow* dispatches it by hand, blank input
-  meaning the most recent tag. Use the button when production must be rebuilt
-  without a code change — a rotated secret, a republished iubenda policy, a
-  rollback to an older tag. It refuses a ref that isn't a tag, so the dispatch
-  can't quietly ship a branch.
-- The job is gated on `check-vercel-secrets`: with `VERCEL_TOKEN` /
-  `VERCEL_ORG_ID` / `VERCEL_PROJECT_ID` unset it emits a notice and skips — a
-  fresh fork never fails CI just because it isn't connected to Vercel yet. The
-  two ids come from the local link under `.vercel/` (gitignored): `project.json`
-  after a plain `vercel link`, or `repo.json` after `vercel link --repo`, where
-  the same values are `projects[].orgId` and `projects[].id`.
-- The Vercel CLI is **version-pinned** (`pnpm dlx vercel@58`) in the `deploy`
-  job — Dependabot doesn't watch `pnpm dlx`, so bump it deliberately.
+- `scripts/vercel-ignore-build.sh` è collegato all'*Ignored Build Step* di Vercel (Settings → Build
+  & Deployment → «Run my Bash script»). Esce 0 (salta) su `main` e su `release-please--*`, esce 1
+  (procedi) su tutto il resto, quindi l'integrazione git produce solo deploy di **preview**. I branch
+  di dependabot vengono tagliati ancora prima, da `git.deploymentEnabled` in `vercel.json`. Un salto
+  compare nel pannello come **deployment annullato di 1s**, non come un deployment mancante: vale la
+  pena saperlo prima di mettersi a cercare un deploy che non è mai avvenuto.
+- **Prima del primo tag di release non esiste nessun deployment**, né di preview né di produzione. Le
+  prime milestone si verificano solo con `pnpm dev` e `pnpm run build`: vale la pena saperlo prima di
+  promettere un link a un cliente.
+- Il deploy di produzione è `.github/workflows/deploy.yml`: fa il checkout del **tag** rilasciato
+  (non di quello che `main` punta in quel momento), poi `pnpm run ci` → `vercel pull --prod` →
+  `vercel build --prod` → `vercel deploy --prebuilt --prod` → `pnpm smoke:prod`.
+- **Ha due punti d'ingresso e una strada sola.** `release-please.yml` lo chiama su un tag nuovo;
+  Actions → Deploy → *Run workflow* lo lancia a mano, e un input vuoto significa il tag più recente.
+  Il bottone si usa quando la produzione va ricostruita senza una modifica al codice: un segreto
+  ruotato, una policy iubenda ripubblicata, un ritorno a un tag più vecchio. Rifiuta un riferimento
+  che non sia un tag, così un lancio a mano non può spedire in silenzio un branch.
+- Il job è subordinato a `check-vercel-secrets`: se `VERCEL_TOKEN`, `VERCEL_ORG_ID` o
+  `VERCEL_PROJECT_ID` non ci sono, emette un avviso e si salta — un progetto appena creato non fa
+  mai fallire la CI solo perché non è ancora collegato a Vercel. I due id vengono dal collegamento
+  locale sotto `.vercel/` (gitignored): da `project.json` dopo un `vercel link` normale, o da
+  `repo.json` dopo `vercel link --repo`, dove gli stessi valori sono `projects[].orgId` e
+  `projects[].id`.
+- La CLI di Vercel è **fissata a una versione** (`pnpm dlx vercel@58`) nel job `deploy`: Dependabot
+  non guarda dentro `pnpm dlx`, quindi si alza di proposito.
 
-**Why `RELEASE_PLEASE_TOKEN` is a separate secret.** A PR opened with the default
-`GITHUB_TOKEN` does not trigger workflows — GitHub's anti-recursion safeguard —
-so without the PAT the release PR never gets a `ci` check. The workflow falls
-back to `GITHUB_TOKEN`, so it still works; the release PR just merges unchecked.
+**Perché `RELEASE_PLEASE_TOKEN` è un secret a parte.** Una PR aperta con il `GITHUB_TOKEN` di default
+non fa scattare i workflow — è la protezione anti-ricorsione di GitHub — quindi senza il PAT la
+release PR non riceve mai un check `ci`. Il workflow ricade sul `GITHUB_TOKEN`, quindi funziona
+comunque: solo che la release PR si merge senza essere stata verificata.
 
-### What the deploy job does, and why
+### Cosa fa il job di deploy, e perché
 
-Every line in `deploy.yml` earns its place:
+Ogni riga di `deploy.yml` si guadagna il suo posto:
 
-- **`fetch-depth: 0`** on the checkout. `actions/checkout` fetches no tags at its
-  default depth, and the tag resolution below needs them.
-- **The ref reaches the shell through `env:`, never `${{ }}` inside `run:`** —
-  that splice is script injection, and the input is attacker-controllable on a
-  `workflow_dispatch`.
-- **`git checkout --detach` on the resolved tag**, not on `main`: without it a
-  commit merged between the release and the deploy would ship untagged.
-- **`corepack enable` before `setup-node`** — pnpm's version comes from
-  `package.json#packageManager` and Node's from `.nvmrc`. Never pin either in the
-  workflow file, or the repo has two sources of truth.
-- **`environment: production`**, so GitHub records deployments and required
-  reviewers can be added later without touching the workflow.
+- **`fetch-depth: 0`** sul checkout. Alla profondità di default `actions/checkout` non scarica nessun
+  tag, e la risoluzione del tag qui sotto ne ha bisogno.
+- **Il riferimento arriva alla shell tramite `env:`, mai con `${{ }}` dentro `run:`**: quella
+  sostituzione è un'iniezione di script, e su un `workflow_dispatch` l'input lo controlla chi
+  attacca.
+- **`git checkout --detach` sul tag risolto**, non su `main`: senza, un commit mergiato fra la
+  release e il deploy finirebbe spedito senza essere taggato.
+- **`corepack enable` prima di `setup-node`**: la versione di pnpm viene da
+  `package.json#packageManager` e quella di Node da `.nvmrc`. Non fissarle mai nel file del workflow,
+  o il repo avrà due fonti di verità.
+- **`environment: production`**, così GitHub registra i deployment e più avanti si possono aggiungere
+  revisori obbligatori senza toccare il workflow.
 
-`regions` in `vercel.json` is `fra1`, and is worth a deliberate decision per
-fork: a build emits a single `_render` function reached by `/_actions`,
-`/_image` and `/_server-islands`, so pin the region near the audience (left
-unset, Vercel defaults to `iad1`, US East). Prerendered pages are unaffected —
-static files off the CDN, whatever the function region.
+`regions` in `vercel.json` è `fra1`, e merita una decisione consapevole per progetto: una build
+emette una sola funzione `_render` raggiunta da `/_actions`, `/_image` e `/_server-islands`, quindi
+la regione si fissa vicino al pubblico (lasciata vuota, Vercel usa `iad1`, Stati Uniti orientali).
+Le pagine prerenderizzate non ne risentono: sono file statici serviti dalla CDN, qualunque sia la
+regione della funzione.
 
-## The gate chain
+## La catena dei gate
 
-Five gates, each covering a moment the others don't:
+Quattro gate, e ognuno copre un momento che gli altri non coprono:
 
-| Gate | Where | Covers |
+| Gate | Dove | Copre |
 |---|---|---|
-| `ci` required check | `main` ruleset, from `scripts/bootstrap-github.sh` | everything that lands on `main` |
-| `pnpm run ci` | `deploy` job, on the tag | what ships from the tag |
-| `pnpm perf:bundle` | `ci.yml`, after the build | client JS per route |
-| `fallow dead-code --boundary-violations` | `ci.yml`, `fallow` job | imports crossing the zones in `.fallowrc.jsonc` |
-| `pnpm smoke:prod` | `deploy` job, after the deploy | what the edge actually serves |
+| il check obbligatorio `ci` | ruleset di `main`, da `scripts/bootstrap-github.sh` | tutto ciò che atterra su `main` |
+| `pnpm run ci` | job `deploy`, sul tag | ciò che parte dal tag |
+| `pnpm perf:bundle` | `ci.yml`, dopo la build | il JavaScript client per rotta |
+| `pnpm smoke:prod` | job `deploy`, dopo il deploy | ciò che il bordo serve davvero |
 
-- **`pnpm run ci` on the tag is not redundant.** `vercel build` is `astro build`:
-  it type-checks nothing and runs no test.
-- **The boundaries gate is the one that fails remotely on a locally-green
-  branch** — it is deliberately outside `pnpm run ci`. Run `pnpm exec fallow
-  dead-code --boundary-violations` by hand after moving code between zones.
-  (`fallow review`, in the same job, is advisory and always exits 0.)
-- **`ci.yml` skips nothing on `pull_request`.** Its `paths-ignore` covers pushes
-  to `main` only: the ruleset requires the check, and a skipped job reports *no*
-  status at all — so a PR that skipped it hangs forever on "Expected — Waiting
-  for status" rather than failing.
-- **The ruleset sets `strict_required_status_checks_policy: true`** — a branch has
-  to be up to date with `main` before it can merge. Without it, two PRs each green
-  against an older `main` both land and leave `main` red on their combination. The
-  cost is a rebase per open PR whenever `main` moves, which is why
-  `.github/dependabot.yml` groups each ecosystem into a single PR.
-- `perf:bundle` stays out of the `deploy` job: it reads `dist/client`, which
-  `vercel build` never emits.
+`pnpm run ci` ne contiene nove in fila, e l'ordine non è casuale: Biome con `--error-on-warnings`
+(un avviso è un errore), il type-check, i confini di `.fallowrc.jsonc`, la lingua, i rimandi fra
+documenti, la roadmap, i commenti, i test, e da ultimo la complessità — che gira per ultima perché
+il suo punteggio CRAP legge la copertura che i test hanno appena scritto.
 
-**[HARD]** Nobody bypasses the ruleset on a client project — `bypass_actors` is
-empty, admins included; the emergency exit is disabling it in Settings → Rules,
-which the audit log records. (`ADMIN_BYPASS=1` on `scripts/bootstrap-github.sh`
-opts the admin role back in — for a repo maintained by direct pushes to `main`,
-this template's own being the case it exists for, never for a client's.)
-release-please needs no bypass: it opens a PR like everyone else, and cuts the
-tag only after the merge.
+Due presidiano la documentazione invece del codice. **`check:routes`** verifica che ogni percorso e
+ogni `§ Sezione` citati in un documento risolvano: un rimando morto non rompe niente, lo si scopre
+seguendolo mesi dopo, e nel frattempo ha mandato qualcuno dalla parte sbagliata. Verifica anche i
+rimandi fra comandi — `/<nome>` e la sua `Fase <N>` — che si rompono quando un comando viene
+rinominato o le sue fasi rinumerate. Il nome lo controlla solo dove il vocabolario è chiuso, perché
+una rotta del sito ha la stessa forma di un comando.
+**`check:roadmap`** verifica che le giornate tornino — i subtotali di fase e il totale contro le
+righe, e la tabella Status contro la testata di ogni sezione, che dicono lo stesso numero in due
+posti.
 
-## `vercel.json` is the only place for headers, redirects and rewrites
+⚠️ **Restano due derivati senza gate, e per la stessa ragione.** La roadmap contro le issue di
+GitHub vuole la rete, quindi vive dentro `/metodo:milestone` in rilettura e non nel gate. La stima sta nel
+sistema, fuori dal repo, quindi su un clone pulito non esiste: un gate che la guardasse passerebbe in
+CI per assenza, che è il modo peggiore di passare.
 
-Never hardcode any of it in application code, and never duplicate what the
-adapter already generates (a trailing-slash redirect from `trailingSlash` is one
-such case). The CSP is the one exception, and it goes the other way: all of it
-except `frame-ancestors` is generated at build time — § Content-Security-Policy.
+- **`pnpm run ci` sul tag non è ridondante.** `vercel build` è `astro build`: non verifica nessun
+  tipo e non esegue nessun test.
+- **I confini sono dentro `pnpm run ci`, non solo in CI.** Erano un gate remoto che falliva su un
+  branch verde in locale: adesso spostare codice fra le zone di `.fallowrc.jsonc` si scopre subito.
+  In `ci.yml` resta `fallow review`, che è informativo ed esce sempre 0.
+- **`ci.yml` non salta niente su `pull_request`.** Il suo `paths-ignore` riguarda solo i push su
+  `main`: il ruleset pretende il check, e un job saltato non riporta *nessuno* stato — quindi una PR
+  che l'ha saltato resta appesa per sempre su «Expected — Waiting for status» invece di fallire.
+- **Il ruleset imposta `strict_required_status_checks_policy: true`**: un branch deve essere
+  aggiornato con `main` prima di poter essere mergiato. Senza, due PR verdi ognuna contro un `main`
+  più vecchio atterrano entrambe e lasciano `main` rosso sulla loro combinazione. Il costo è un
+  rebase per PR aperta ogni volta che `main` si muove, ed è il motivo per cui
+  `.github/dependabot.yml` raggruppa ogni ecosistema in un'unica PR.
+- `perf:bundle` resta fuori dal job `deploy`: legge `dist/client`, che `vercel build` non emette mai.
 
-`git.deploymentEnabled` also lives here, with `dependabot/**` set to `false`:
-dependabot branches get no preview deploy at all.
+**[HARD]** Su un progetto cliente il ruleset non lo scavalca nessuno: `bypass_actors` è vuoto,
+amministratori compresi, e l'uscita d'emergenza è disattivarlo in Settings → Rules, cosa che il log
+di audit registra. (`ADMIN_BYPASS=1` su `scripts/bootstrap-github.sh` rimette dentro il ruolo di
+amministratore, ed esiste per un repo mantenuto a push diretti su `main` — questo template stesso —
+mai per quello di un cliente.) release-please non ha bisogno di nessuna deroga: apre una PR come
+tutti, e taglia il tag solo dopo il merge.
 
-Because none of it runs locally, each rule is pinned by a declarative test —
-that's the only pre-deploy signal there is:
+## `vercel.json` è l'unico posto per intestazioni, redirect e rewrite
 
-| Test | Guards |
+Non se ne scrive mai niente a mano nel codice applicativo, e non si duplica quello che l'adapter già
+genera (il redirect sullo slash finale che nasce da `trailingSlash` è uno di questi casi). La CSP è
+l'unica eccezione, e va nella direzione opposta: tutto tranne `frame-ancestors` viene generato in
+fase di build — vedi § Content-Security-Policy.
+
+Anche `git.deploymentEnabled` vive qui, con `dependabot/**` a `false`: i branch di dependabot non
+ricevono nessun deploy di preview.
+
+Poiché niente di tutto questo gira in locale, ogni regola è fissata da un test dichiarativo, che è
+l'unico segnale disponibile prima del deploy:
+
+| Test | Presidia |
 |---|---|
-| `src/vercel-headers.test.ts` | the six unconditional security headers, and that `frame-ancestors` is the *only* CSP directive here |
-| `src/vercel-robots.test.ts` | the `*.vercel.app` noindex rule, and that it never matches the custom domain |
-| `src/vercel-botid.test.ts` | the BotID proxy rewrites and the `X-Frame-Options` override's position |
-| `src/lib/csp/csp.test.ts` | every other CSP directive — see § Content-Security-Policy |
+| `src/vercel-headers.test.ts` | le sei intestazioni di sicurezza incondizionate, e che `frame-ancestors` sia l'*unica* direttiva CSP qui dentro |
+| `src/vercel-robots.test.ts` | la regola di noindex su `*.vercel.app`, e che non corrisponda mai al dominio personalizzato |
+| `src/vercel-botid.test.ts` | i rewrite del proxy BotID e la posizione della sovrascrittura di `X-Frame-Options` |
+| `src/lib/csp/csp.test.ts` | ogni altra direttiva CSP — vedi § Content-Security-Policy |
 
-Rule order matters and the tests encode it: **the last matching header rule
-wins**, so the `SAMEORIGIN` override for the BotID path has to sit *after* the
-global `DENY`.
+L'ordine delle regole conta e i test lo codificano: **vince l'ultima regola di intestazione che
+corrisponde**, quindi la sovrascrittura `SAMEORIGIN` per il percorso di BotID deve stare *dopo* il
+`DENY` globale.
 
-Preview deploys are noindexed by a `has: host` header rule, not by
-`src/middleware.ts` — see `seo.md` § Preview deploys.
+I deploy di preview sono in noindex per una regola di intestazione `has: host`, non per
+`src/middleware.ts` — vedi `seo.md` § Deploy di preview.
 
-**[HARD] Why the headers cannot live in middleware.** In the adapter's
-`.vercel/output/config.json` the `handle: filesystem` route precedes every
-`dest: _render`: on a prerendered page no function runs at all, so a middleware
-that sets `X-Frame-Options`, `Referrer-Policy` or `X-Robots-Tag` emits none of
-them — silently, on exactly the pages that make up most of a static site. The
-adapter's `staticHeaders` option would propagate them, but it defaults to
-`false`. Declaring them in `vercel.json`, as here, sidesteps the question.
+**[HARD] Perché le intestazioni non possono stare nel middleware.** Nel `.vercel/output/config.json`
+dell'adapter la rotta `handle: filesystem` precede ogni `dest: _render`: su una pagina
+prerenderizzata non gira nessuna funzione, quindi un middleware che imposta `X-Frame-Options`,
+`Referrer-Policy` o `X-Robots-Tag` non ne emette nessuna — in silenzio, e proprio sulle pagine che
+compongono la maggior parte di un sito statico. L'opzione `staticHeaders` dell'adapter le
+propagherebbe, ma il suo default è `false`. Dichiararle in `vercel.json`, come qui, aggira la
+questione.
 
-Related, and the reason this template ships its own CSP integration rather than
-Astro's `security.csp`: Astro picks the policy's destination with
-`cspDestination ?? (prerender ? 'meta' : 'header')`, so on a prerendered page the
-policy becomes a `<meta>` — which any middleware rewriting a directive will never
-touch.
+Collegato, ed è il motivo per cui questo template porta la propria integrazione CSP invece della
+`security.csp` di Astro: Astro sceglie la destinazione della policy con
+`cspDestination ?? (prerender ? 'meta' : 'header')`, quindi su una pagina prerenderizzata la policy
+diventa un `<meta>`, che nessun middleware che riscriva una direttiva toccherà mai.
 
 ## Content-Security-Policy
 
-The policy is **built at build time, not declared in `vercel.json`**. Two halves,
-split by what a `<meta>` CSP can express:
+La policy si **costruisce in fase di build, non si dichiara in `vercel.json`**. Due metà, divise da
+quello che una CSP in `<meta>` può esprimere:
 
-- `vercel.json` carries `frame-ancestors 'none'` and nothing else — it is the one
-  directive a `<meta>` CSP ignores, so it has to travel as a header.
-- Everything else is generated by `cspIntegration()`
-  (`src/lib/csp/integration.ts`), registered in `astro.config.mjs`. On
-  `astro:build:done` it hashes every executable inline script under the build
-  output and injects the policy as a `<meta>` right after `<meta charset>` —
-  a meta CSP governs only what follows it, so it has to precede every script.
+- `vercel.json` porta `frame-ancestors 'none'` e nient'altro: è l'unica direttiva che una CSP in
+  `<meta>` ignora, quindi deve viaggiare come intestazione.
+- Tutto il resto lo genera `cspIntegration()` (`src/lib/csp/integration.ts`), registrata in
+  `astro.config.mjs`. Su `astro:build:done` calcola l'hash di ogni script inline eseguibile
+  nell'output della build e inietta la policy come `<meta>` subito dopo `<meta charset>`: una CSP in
+  meta governa solo quello che la segue, quindi deve precedere ogni script.
 
-`script-src` therefore carries SHA-256 hashes plus `'self'`, and **never**
-`'unsafe-inline'` (`src/lib/csp/csp.test.ts`). Three consequences that are not
-obvious from reading either file alone:
+`script-src` porta quindi degli hash SHA-256 più `'self'`, e **mai** `'unsafe-inline'`
+(`src/lib/csp/csp.test.ts`). Tre conseguenze che non si vedono leggendo un file solo:
 
-- **Every page carries the union of the hashes**, not its own. `ClientRouter`
-  swaps the `<head>`, not the policy, so the first page loaded governs the whole
-  session — a per-page policy would break on the second navigation.
-- **Only prerendered HTML is covered.** The integration walks the emitted
-  `.html`; an on-demand route returning HTML with an inline script needs its own
-  policy.
-- **`style-src` keeps `'unsafe-inline'` deliberately.** This is a browser rule,
-  not an Astro one: **once a hash is present on a directive, `'unsafe-inline'` is
-  ignored**. Astro's native `security.csp` hashes styles too, with no opt-out
-  (astro#14798), so adopting it leaves every scoped `<style>` — and any island
-  writing inline styles at runtime — unstyled. That is why the CSP here is built
-  by an integration that hashes scripts only.
+- **Ogni pagina porta l'unione degli hash**, non i propri. `ClientRouter` scambia la `<head>`, non la
+  policy, quindi la prima pagina caricata governa tutta la sessione: una policy per pagina si
+  romperebbe alla seconda navigazione.
+- **È coperto solo l'HTML prerenderizzato.** L'integrazione attraversa gli `.html` emessi; una rotta
+  on-demand che restituisce HTML con uno script inline ha bisogno di una policy propria.
+- **`style-src` tiene `'unsafe-inline'` di proposito.** È una regola del browser, non di Astro:
+  **nel momento in cui su una direttiva compare un hash, `'unsafe-inline'` viene ignorato**. La
+  `security.csp` nativa di Astro calcola l'hash anche degli stili, senza possibilità di sfilarsi
+  (astro#14798), quindi adottarla lascerebbe senza stile ogni `<style>` con ambito — e ogni isola che
+  scriva stili inline a runtime. Per questo la CSP qui la costruisce un'integrazione che calcola gli
+  hash dei soli script.
 
-The rule that decides whether a vendor touches the CSP at all:
+La regola che decide se un fornitore tocca la CSP oppure no:
 
-- **Server-only vendor → no CSP change.** Brevo is called from an Astro Action on
-  the server; nothing about it reaches the browser, so `connect-src` stays out of
-  it. Adding an origin "to be safe" widens the policy for nothing.
-- **Client-side vendor → one directive per behavior**, added explicitly. Prefer a
-  concrete host — but **[HARD] the GA4 wildcards on `connect-src` are not
-  cleanup material**. GA4 sends its hits to a *regional* endpoint chosen by the
-  visitor's geolocation (`region1.analytics.google.com`, `region2…`), so pinning
-  one region works for whoever develops from there and silently blocks everyone
-  served by another. The names also collide: `region1.analytics.google.com` (the
-  current endpoint) is **not** `region1.google-analytics.com` (the legacy one) —
-  allowing only the second leaves GA4 mute with nothing failing server-side. A
-  wrong CSP breaks no build and no test: the refusals appear only in the
-  visitor's browser console.
-- **Consent doesn't enter the decision.** An origin contacted regardless of what
-  the visitor chooses (an image CDN, say) belongs in the policy either way. The
-  gate decides *when* a script runs, never whether its origin is allowed.
+- **Fornitore solo lato server → nessuna modifica alla CSP.** Brevo viene chiamato da un'Astro Action
+  sul server; niente di lui arriva al browser, quindi `connect-src` non c'entra. Aggiungere
+  un'origine «per sicurezza» allarga la policy per niente.
+- **Fornitore lato client → una direttiva per comportamento**, aggiunta esplicitamente. Meglio un
+  host concreto, ma **[HARD] i caratteri jolly di GA4 su `connect-src` non sono roba da ripulire**.
+  GA4 manda i suoi dati a un endpoint *regionale* scelto dalla geolocalizzazione del visitatore
+  (`region1.analytics.google.com`, `region2…`), quindi fissarne uno funziona per chi sviluppa da lì e
+  blocca in silenzio tutti quelli serviti da un altro. I nomi poi collidono:
+  `region1.analytics.google.com` (l'endpoint attuale) **non** è `region1.google-analytics.com`
+  (quello storico), e permettere solo il secondo lascia GA4 muto senza che niente fallisca lato
+  server. Una CSP sbagliata non rompe nessuna build e nessun test: i rifiuti compaiono solo nella
+  console del browser del visitatore.
+- **Il consenso non entra nella decisione.** Un'origine contattata a prescindere da cosa sceglie il
+  visitatore (una CDN di immagini, per dire) sta nella policy comunque. Il gate decide *quando* uno
+  script gira, mai se la sua origine è permessa.
 
-- **Adding a vendor means editing `src/lib/csp/directives.ts`**, never
-  `vercel.json`: widen the *specific* directive it needs (`script-src`,
-  `connect-src`, `img-src`, `frame-src`), never `default-src`, and update
-  `src/lib/csp/csp.test.ts` in the same commit.
-- One missing entry fails **silently** in a way local dev cannot show: `astro
-  dev` never reads `vercel.json`, and the build-time injection only runs on a
-  real build. Deploy a preview and watch the console on both the accept and the
-  reject path before calling it done.
-- `'unsafe-eval'` is refused and nothing here needs it.
-- BotID needs **no** CSP entry: its challenge is proxied same-origin through the
-  `vercel.json` rewrites, which is also what keeps ad-blockers out of the way.
-- **The Vercel Toolbar needs its own allowance, and the template does not grant
-  it.** `frame-ancestors 'none'` plus `X-Frame-Options: DENY` keep it off preview
-  deploys. A fork that wants it adds `https://vercel.live` (script/style/img,
-  `connect-src` plus `wss://ws-us3.pusher.com`, `assets.vercel.com` for fonts)
-  and relaxes `frame-ancestors` to `'self' https://vercel.live` — and drops
-  `X-Frame-Options`, since `frame-ancestors` supersedes it and is the only one of
-  the two that can express the allowance.
+- **Aggiungere un fornitore significa modificare `src/lib/csp/directives.ts`**, mai `vercel.json`: si
+  allarga la direttiva *specifica* che gli serve (`script-src`, `connect-src`, `img-src`,
+  `frame-src`), mai `default-src`, e si aggiorna `src/lib/csp/csp.test.ts` nello stesso commit.
+- Una voce mancante fallisce **in silenzio** in un modo che lo sviluppo locale non può mostrare:
+  `astro dev` non legge mai `vercel.json`, e l'iniezione in fase di build gira solo su una build
+  vera. Si deploya una preview e si guarda la console sia sul percorso di accettazione sia su quello
+  di rifiuto prima di dire che è fatta.
+- `'unsafe-eval'` è rifiutato, e qui non serve a niente.
+- BotID **non** ha bisogno di nessuna voce nella CSP: la sua sfida passa da un proxy di stessa
+  origine attraverso i rewrite di `vercel.json`, che è anche quello che tiene alla larga i blocca-
+  pubblicità.
+- **La Vercel Toolbar vuole il suo permesso, e il template non glielo dà.** `frame-ancestors 'none'`
+  più `X-Frame-Options: DENY` la tengono fuori dai deploy di preview. Un progetto che la vuole
+  aggiunge `https://vercel.live` (script, stili, immagini, `connect-src` più
+  `wss://ws-us3.pusher.com`, e `assets.vercel.com` per i font) e rilassa `frame-ancestors` a
+  `'self' https://vercel.live` — togliendo `X-Frame-Options`, perché `frame-ancestors` lo supera ed è
+  l'unico dei due capace di esprimere quel permesso.
 
-## Tracking & Consent Mode v2
+## Tracciamento e Consent Mode v2
 
-Off unless configured. `getTrackingConfig()` (`src/lib/analytics/tracking.ts`)
-returns `null` unless **both** `PUBLIC_GTM_ID` and `PUBLIC_IUBENDA_SITE_ID` are
-set — with `null` the layout renders no CMP, no tags and no cookie, which is how
-the template ships and how dev always runs.
+Spento se non configurato. `getTrackingConfig()` (`src/lib/analytics/tracking.ts`) restituisce `null`
+se non ci sono **entrambi** `PUBLIC_GTM_ID` e `PUBLIC_IUBENDA_SITE_ID`: con `null` il layout non rende
+nessun CMP, nessun tag e nessun cookie, che è come il template viene consegnato e come lo sviluppo
+gira sempre.
 
-**[HARD]** Nothing reaches Google before the visitor opts in. The order inside
-`src/components/head/tracking.astro` is normative, not stylistic:
+**[HARD]** Prima che il visitatore acconsenta, a Google non arriva niente. L'ordine dentro
+`src/components/head/tracking.astro` è normativo, non stilistico:
 
-1. the `is:inline` Consent Mode defaults — all four keys `denied`, plus
-   `wait_for_update: 500`, `ads_data_redaction` and `url_passthrough`. It must be
-   the first thing that touches `dataLayer`, or a tag can queue ahead of the
-   defaults and run unrestricted;
-2. the inline config block, which publishes the ids on `window`;
-3. the module scripts, which register `bootstrapAnalytics()` on the gate and then
-   boot the CMP. The GTM container is appended **inside**
-   `onConsent('measurement')`, never before.
+1. i default `is:inline` del Consent Mode — tutte e quattro le chiavi `denied`, più
+   `wait_for_update: 500`, `ads_data_redaction` e `url_passthrough`. Deve essere la prima cosa che
+   tocca `dataLayer`, altrimenti un tag può accodarsi prima dei default e girare senza restrizioni;
+2. il blocco di configurazione inline, che pubblica gli id su `window`;
+3. gli script a modulo, che registrano `bootstrapAnalytics()` sul gate e poi avviano il CMP. Il
+   container GTM viene appeso **dentro** `onConsent('measurement')`, mai prima.
 
-Consequences worth stating outright:
+Conseguenze che vale la pena dichiarare apertamente:
 
-- **[HARD]** No `<noscript>` GTM iframe. The standard snippet's second half loads
-  the container unconditionally, which is precisely the invariant above. A
-  vendor checklist asking for it does not override this.
-- GA4 is configured **inside the GTM container**, not in the app. New events are
-  `dataLayer` pushes (`src/lib/analytics/data-layer.ts`) plus GTM-side config —
-  adding a tag is not a code change.
-- The split has a failure mode with no symptom: the app pushes an event and the
-  container listens for nothing, so the tag never fires and the build stays green.
-  `pnpm run analytics:verify` reads the container's public `gtm.js` and reports any
-  event `src/lib/analytics/link-tracking.ts` pushes without a trigger behind it. It
-  exits 0 with a notice when `PUBLIC_GTM_ID` is unset, so it is safe in a pipeline
-  before the container exists.
-- Consent Mode is the **basic** shape, deliberately: advanced sends cookieless
-  pings for modeling, which needs roughly 1k daily events on each side of the
-  consent split to produce anything — traffic a site this size won't have.
-- `mapPreferenceToConsentMode()` is fail-safe by construction: anything not
-  explicitly `true` maps to `denied`. Purpose ids `4` (measurement) and `5`
-  (marketing) are iubenda's numbering — don't renumber them.
-- `consentOnContinuedBrowsing: false` **[HARD]** — scroll or continued browsing
-  is not valid consent under the Garante's 2021 cookie guidelines.
-  `floatingPreferencesButtonDisplay: false` is acceptable only because consent
-  stays revocable through the footer's `.iubenda-cs-preferences-link`. Keep that
-  link if you keep the flag.
-- Only `iubenda_cs.js` loads — no autoblocking, no GPP stub. Autoblocking would
-  add a parser-blocking request and a second source of truth for a gate the app
-  already owns.
-- Turning this on needs **no CSP change**: `src/lib/csp/directives.ts` already
-  carries the GTM and iubenda hosts on every directive they touch, and both
-  bootstraps append their script through `createElement('script').src`
-  (`src/lib/analytics/bootstrap.ts`), which the host allowlist covers — no hash
-  is involved. A vendor *beyond* this set is a `directives.ts` change, under the
-  rules in § Content-Security-Policy above.
+- **[HARD]** Nessun iframe `<noscript>` di GTM. La seconda metà dello snippet standard carica il
+  container senza condizioni, che è esattamente l'invariante qui sopra. Una checklist di un fornitore
+  che lo chiede non basta a scavalcare questa regola.
+- GA4 si configura **dentro il container GTM**, non nell'applicazione. Gli eventi nuovi sono push su
+  `dataLayer` (`src/lib/analytics/data-layer.ts`) più configurazione lato GTM: aggiungere un tag non
+  è una modifica al codice.
+- La divisione ha un modo di fallire senza sintomi: l'applicazione manda un evento e il container non
+  ascolta niente, quindi il tag non scatta mai e la build resta verde. `pnpm run analytics:verify`
+  legge il `gtm.js` pubblico del container e segnala ogni evento che
+  `src/lib/analytics/link-tracking.ts` manda senza un trigger dietro. Esce 0 con un avviso quando
+  `PUBLIC_GTM_ID` non è impostato, quindi è sicuro in una pipeline prima che il container esista.
+- Il Consent Mode è nella forma **base**, di proposito: quella avanzata manda ping senza cookie per
+  la modellazione, e per produrre qualcosa vuole circa mille eventi al giorno su ciascun lato della
+  divisione del consenso — traffico che un sito di queste dimensioni non ha.
+- `mapPreferenceToConsentMode()` è a prova di errore per costruzione: tutto ciò che non è
+  esplicitamente `true` diventa `denied`. Gli id di finalità `4` (misurazione) e `5` (marketing) sono
+  la numerazione di iubenda: non rinumerarli.
+- `consentOnContinuedBrowsing: false` **[HARD]**: lo scroll o la navigazione continuata non sono un
+  consenso valido secondo le linee guida sui cookie del Garante del 2021.
+  `floatingPreferencesButtonDisplay: false` è accettabile solo perché il consenso resta revocabile
+  dal `.iubenda-cs-preferences-link` nel footer. Se tieni il flag, tieni quel link.
+- Si carica solo `iubenda_cs.js`: niente autoblocking, niente stub GPP. L'autoblocking aggiungerebbe
+  una richiesta che blocca il parser e una seconda fonte di verità per un gate che l'applicazione già
+  possiede.
+- Accendere tutto questo **non richiede nessuna modifica alla CSP**: `src/lib/csp/directives.ts`
+  porta già gli host di GTM e iubenda su ogni direttiva che toccano, ed entrambi gli avvii appendono
+  il proprio script con `createElement('script').src` (`src/lib/analytics/bootstrap.ts`), che
+  l'allowlist degli host copre — nessun hash è coinvolto. Un fornitore *oltre* questo insieme è una
+  modifica a `directives.ts`, secondo le regole della § Content-Security-Policy qui sopra.
 
-## Rebuilding the legal pages after a policy change
+## Ricostruire le pagine legali dopo una modifica alle policy
 
-The privacy and cookie policies are fetched from iubenda **at build time**
-(`src/lib/legal/documents.ts`, prerendered pages). An edit made in the iubenda
-dashboard is therefore invisible to the live site until someone redeploys, and
-nothing warns anyone that the two have drifted.
+Le policy di privacy e cookie si scaricano da iubenda **in fase di build**
+(`src/lib/legal/documents.ts`, pagine prerenderizzate). Una modifica fatta nel pannello iubenda è
+quindi invisibile al sito vivo finché qualcuno non rideploya, e niente avverte nessuno che i due sono
+andati alla deriva.
 
-- Publish the change on iubenda, then trigger a production deploy
-  (Actions → Deploy → *Run workflow*, no code change needed).
-- **[HARD] Configured means required.** Without a policy id the pages state that
-  the document isn't available — the template's default, and deliberately not
-  placeholder legal prose, which on a live page reads as a real policy. But once an id IS set, a
-  production build that cannot fetch the policy **fails** rather than falling
-  back: the fallback carries a visible "draft, not yet legally reviewed" notice,
-  and publishing that in place of a client's real policy over one transient
-  network error is not a degradation worth accepting. A red build on a flaky
-  iubenda is the cheap outcome; re-run the deploy. Dev still falls back, so a
-  bad connection cannot stop `astro dev`.
+- Si pubblica la modifica su iubenda, poi si lancia un deploy di produzione (Actions → Deploy → *Run
+  workflow*, senza bisogno di toccare il codice).
+- **[HARD] Configurato significa obbligatorio.** Senza un id di policy le pagine dichiarano che il
+  documento non è disponibile — è il default del template, e di proposito non è prosa legale
+  segnaposto, che su una pagina viva si legge come una policy vera. Ma una volta che un id C'È, una
+  build di produzione che non riesce a scaricare la policy **fallisce** invece di ricadere sul
+  ripiego: quel ripiego porta un avviso visibile «bozza, non ancora rivista legalmente», e
+  pubblicarlo al posto della policy vera di un cliente per un solo errore di rete passeggero non è
+  una degradazione accettabile. Una build rossa per un iubenda instabile è l'esito economico: si
+  rilancia il deploy. In sviluppo il ripiego resta, così una connessione ballerina non può fermare
+  `astro dev`.
 
-## Health & monitoring
+## Salute e monitoraggio
 
-`/api/health` (`src/pages/api/health.ts`) is the liveness endpoint — the URL to
-hand to an uptime monitor. It is **on-demand on purpose** (`prerender = false`):
-prerendered, its `ts` would pin to build time and the endpoint would keep
-answering 200 long after the site stopped working. `no-store` and
-`X-Robots-Tag: noindex` for the same reason — a cached liveness check is not one.
+`/api/health` (`src/pages/api/health.ts`) è l'endpoint di vitalità, l'URL da dare a un servizio di
+monitoraggio. È **on-demand di proposito** (`prerender = false`): prerenderizzato, il suo `ts`
+resterebbe fissato al momento della build e l'endpoint continuerebbe a rispondere 200 molto dopo che
+il sito ha smesso di funzionare. `no-store` e `X-Robots-Tag: noindex` per la stessa ragione: un
+controllo di vitalità in cache non è un controllo di vitalità.
 
-There is no error monitoring and no analytics beyond the consent-gated GTM
-container. Both are deliberate omissions in a template, not oversights: a fork
-adds what its project needs.
+Non c'è nessun monitoraggio degli errori e nessuna analitica oltre al container GTM dietro il
+consenso. Sono omissioni volute in un template, non sviste: un progetto aggiunge quello che gli
+serve.
 
-## After every release
+## Dopo ogni release
 
-`pnpm smoke:prod` runs automatically in the `deploy` job and fails it. It checks
-the served routes (`/api/health` included), the security headers, the absence of
-`X-Robots-Tag` on the production host, and that the BotID challenge really is
-proxied.
+`pnpm smoke:prod` gira da solo nel job `deploy` e lo fa fallire. Verifica le rotte servite
+(`/api/health` compreso), le intestazioni di sicurezza, l'assenza di `X-Robots-Tag` sull'host di
+produzione, e che la sfida di BotID passi davvero dal proxy.
 
-It hits the **apex**, not the `*.vercel.app` URL `vercel deploy` prints. Pass a
-URL explicitly to smoke anything else: `pnpm smoke:prod https://…`.
+Interroga l'**apice**, non l'URL `*.vercel.app` che `vercel deploy` stampa. Per verificare altro si
+passa un URL esplicito: `pnpm smoke:prod https://…`.
 
-## Runbook
+## Procedure
 
-**Ship a release** — merge the feature PRs (squash, Conventional title), then
-merge the release PR release-please keeps open. The tag, the GitHub release and
-the production deploy follow on their own; the deployment URL is echoed in the
-job log and recorded on the `production` environment. Confirm with
-`pnpm smoke:prod` against the apex.
+**Spedire una release** — si mergiano le PR di funzionalità (in squash, con titolo Conventional), poi
+si merge la release PR che release-please tiene aperta. Il tag, la release GitHub e il deploy di
+produzione seguono da soli; l'URL del deployment viene riportato nel log del job e registrato
+sull'ambiente `production`. Si conferma con `pnpm smoke:prod` contro l'apice.
 
-**Check a preview** — every pushed branch gets one except `main`,
-`release-please--*` and `dependabot/**`, with no PR required. Preview hosts are
-noindexed by the `vercel.json` rule; confirm with
-`curl -sI https://<preview>.vercel.app/ | grep -i x-robots-tag`.
+**Controllare una preview** — ogni branch pushato ne riceve una, tranne `main`, `release-please--*` e
+`dependabot/**`, e non serve nessuna PR. Gli host di preview sono in noindex per la regola di
+`vercel.json`; si conferma con `curl -sI https://<preview>.vercel.app/ | grep -i x-robots-tag`.
 
-**Roll back** — see below.
+**Tornare indietro** — vedi sotto.
 
 ## Rollback
 
-Production is live and broken:
+La produzione è viva e rotta:
 
-1. Vercel dashboard → Deployments → the last known-good **production**
-   deployment → *Promote to Production*. This is the fast path; it changes no
-   code.
-2. Confirm with `pnpm smoke:prod` against the apex.
-3. Then fix forward on a branch. Do **not** delete the bad tag — release-please
-   reads the tag history, and removing one desynchronises the next version bump.
-   Ship the fix as a new patch release instead.
+1. pannello Vercel → Deployments → l'ultimo deployment **di produzione** noto come buono →
+   *Promote to Production*. È la strada veloce e non cambia una riga di codice.
+2. Si conferma con `pnpm smoke:prod` contro l'apice.
+3. Poi si corregge in avanti su un branch. **Non** cancellare il tag guasto: release-please legge la
+   storia dei tag, e toglierne uno desincronizza l'incremento di versione successivo. La correzione
+   si spedisce come una nuova release patch.
 
-Promoting reuses the old build as-is. When the fix is *outside* the code — a
-corrected env var, a republished policy — that build has to be made again:
-Actions → Deploy → *Run workflow*, with the tag to rebuild. Same gates, so a
-rebuild can't ship something the release path would have caught.
+La promozione riusa la vecchia build così com'è. Quando la correzione è *fuori* dal codice — una
+variabile d'ambiente corretta, una policy ripubblicata — quella build va rifatta: Actions → Deploy →
+*Run workflow*, indicando il tag da ricostruire. Stessi gate, quindi una ricostruzione non può
+spedire qualcosa che la strada della release avrebbe preso.
 
-## Environment variables
+## Variabili d'ambiente
 
-- Every key is declared in `astro.config.mjs` → `env.schema` with an explicit
-  `context`/`access`, and documented in `.env.example`.
-  **[HARD]** `.env.example` carries key names and intent, never real values;
-  `.env`/`.env.local` are gitignored and must never be read into a report, a log
-  or a commit.
-- `context: 'client'` (and by convention the `PUBLIC_` prefix) means the value is
-  **inlined into the bundle** — public by construction. A secret there is a leak,
-  regardless of how the deploy provider labels it.
-- Recurring pattern for anything vendor-backed: declare it `optional`, then
-  **no-op in dev and refuse explicitly in production** when it's missing
-  (`BREVO_API_KEY` is the reference). Silence is the failure mode to avoid — a
-  form that "succeeds" while dropping the lead is worse than an error.
-- On Vercel, create build-time-readable variables as **Plain**, not Sensitive:
-  the build reads env at `vercel pull` time, and a Sensitive value isn't
-  available there (`BOTID_ENFORCE` is the live example). A Sensitive variable
-  doesn't fail loudly either — it arrives as the literal string `[SENSITIVE]`,
-  which is why the iubenda ids are validated as numeric before use
-  (`src/lib/analytics/tracking.ts`, `src/lib/legal/documents.ts`) rather than
-  spliced into an API URL. **`vercel env add` stores Sensitive by default**, so
-  pass `--no-sensitive` and confirm with a `vercel pull` before trusting it —
-  otherwise the deployed function receives `[SENSITIVE]` as its API key.
-- **[HARD] That failure reaches production and skips preview.** The release job
-  builds *outside* Vercel (`vercel pull` → `vercel build --prod`), so a Sensitive
-  `PUBLIC_*` is inlined into the bundle as an empty value and the feature reading
-  it goes quietly no-op. A preview is built *by* Vercel, which has the real
-  values, so it looks fine — the bug exists only where nobody is testing.
-- **An account without Production access reports variables as absent, not
-  forbidden.** The CLI lists nothing where a variable does exist, so check
-  `vercel whoami` before concluding one is missing.
-- **A site URL read from env takes `||`, not `??`.** An empty string is a value,
-  so `??` passes it through and Astro fails the build with "Invalid URL"; `||`
-  falls through to the literal fallback.
-- **A partial pnpm build cache on Vercel surfaces as unexplained flakiness** — a
-  preview failing with "Rollup failed to resolve tslib" that a redeploy fixes.
-  `VERCEL_FORCE_NO_BUILD_CACHE` on the project is the blunt cure; leave it set
-  once it is.
-- Feature flags default to the safe side and are flipped in the provider once
-  verified on a real deploy — `BOTID_ENFORCE=false` ships observe-only because a
-  false positive silently costs a lead (`forms-email.md` § Abuse protection has
-  the promotion path).
-- Repo secrets for the release pipeline: `VERCEL_TOKEN`, `VERCEL_ORG_ID`,
-  `VERCEL_PROJECT_ID`, plus `RELEASE_PLEASE_TOKEN` — scopes and rationale in
-  `HOW_TO_USE.md` § Release secrets. The full list is printed by
-  `scripts/bootstrap-github.sh` when it finishes.
+- Ogni chiave è dichiarata in `astro.config.mjs` → `env.schema` con `context` e `access` espliciti, ed
+  è documentata in `.env.example`. **[HARD]** `.env.example` porta i nomi delle chiavi e la loro
+  ragione, mai valori reali; `.env` e `.env.local` sono gitignored e non devono mai finire in un
+  rapporto, in un log o in un commit.
+- `context: 'client'` (e per convenzione il prefisso `PUBLIC_`) significa che il valore viene
+  **incorporato nel bundle**, quindi è pubblico per costruzione. Un segreto lì è una fuga di dati, a
+  prescindere da come lo etichetta il provider di deploy.
+- Il pattern ricorrente per tutto ciò che si appoggia a un fornitore: si dichiara `optional`, e poi
+  quando manca **in sviluppo non fa niente ma lo dice, in produzione rifiuta esplicitamente**
+  (`BREVO_API_KEY` è il riferimento). Il silenzio è il modo di fallire da evitare: un form che
+  «riesce» perdendo il contatto è peggio di un errore.
+- Su Vercel, le variabili che la build deve poter leggere si creano come **Plain**, non Sensitive: la
+  build legge l'ambiente al momento del `vercel pull`, e lì un valore Sensitive non è disponibile
+  (`BOTID_ENFORCE` è l'esempio vivo). Una variabile Sensitive non fallisce nemmeno rumorosamente:
+  arriva come la stringa letterale `[SENSITIVE]`, ed è il motivo per cui gli id di iubenda si
+  validano come numerici prima dell'uso (`src/lib/analytics/tracking.ts`,
+  `src/lib/legal/documents.ts`) invece di essere infilati dentro l'URL di un'API. **`vercel env add`
+  salva come Sensitive di default**, quindi si passa `--no-sensitive` e si conferma con un
+  `vercel pull` prima di fidarsi, altrimenti la funzione deployata riceve `[SENSITIVE]` come chiave
+  API.
+- **[HARD] Quel guasto arriva in produzione e salta la preview.** Il job di release costruisce
+  *fuori* da Vercel (`vercel pull` → `vercel build --prod`), quindi una `PUBLIC_*` Sensitive viene
+  incorporata nel bundle come valore vuoto e la funzionalità che la legge smette di fare qualcosa in
+  silenzio. Una preview la costruisce *Vercel*, che i valori veri ce li ha, quindi sembra tutto a
+  posto: il difetto esiste solo dove nessuno sta guardando.
+- **Un account senza accesso alla produzione riporta le variabili come assenti, non come vietate.** La
+  CLI non elenca niente dove una variabile esiste eccome, quindi si controlla `vercel whoami` prima
+  di concludere che ne manchi una.
+- **Un URL del sito letto dall'ambiente prende `||`, non `??`.** Una stringa vuota è un valore, quindi
+  `??` la lascia passare e Astro fa fallire la build con «Invalid URL»; `||` ricade sul valore
+  letterale di ripiego.
+- **Una cache di build pnpm parziale su Vercel si manifesta come instabilità inspiegabile**: una
+  preview che fallisce con «Rollup failed to resolve tslib» e che un nuovo deploy sistema.
+  `VERCEL_FORCE_NO_BUILD_CACHE` sul progetto è la cura brutale; una volta impostata, si lascia.
+- I feature flag partono dal lato sicuro e si girano nel provider una volta verificati su un deploy
+  vero: `BOTID_ENFORCE=false` arriva in sola osservazione perché un falso positivo costa un contatto
+  in silenzio (il percorso di promozione sta in `forms-email.md` § Protezione dagli abusi).
+- Secret del repo per la pipeline di release: `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID`,
+  più `RELEASE_PLEASE_TOKEN` — ambiti e ragioni in il README del template, sezione «Secret di release». L'elenco
+  completo lo stampa `scripts/bootstrap-github.sh` quando finisce.
 
-## Release flow
+## Flusso di release
 
-- Conventional Commits, enforced by commitlint on a lefthook `commit-msg` hook.
-- Squash-merge only, with an **empty** commit body
-  (`squash_merge_commit_message=BLANK`, set by `bootstrap-github.sh`).
-  release-please parses body lines too, so anything left there re-lists the same
-  change in the CHANGELOG.
-- Consequence: a breaking change is marked with `!` in the **PR title**
-  (`feat(ui)!: …`). A `BREAKING CHANGE:` footer never survives the squash.
-- Same for every other release-please footer: **an override goes in
-  `release-please-config.json`, never in a commit message**. Forcing a first
-  release below `1.0.0`, or pinning any later version, is `release-as` in that
-  file — and it is sticky, so it needs a follow-up commit to remove it once the
-  release is out.
-- Same reason: `Closes #N` goes in the PR description, not in the commit message.
-- **[HARD] `changelog-sections` is what decides which types release.** A type
-  listed there *without* `hidden: true` is releasable: it earns a changelog
-  section and cuts at least a patch. `feat` bumps the minor, the other visible
-  ones — `fix`, `perf`, `revert`, `refactor` — bump the patch. The hidden ones
-  (`docs`, `style`, `chore`, `test`, `build`, `ci`) reach `main` and stop there.
-- **Visible and releasable are the same property**, and release-please gives no
-  way to have one without the other: a type earns a changelog section *because*
-  it cuts a release. `docs` is hidden here for that reason — a documentation-only
-  PR would otherwise cut a patch and redeploy production with identical code.
-- The consequence bites in the other direction too. A change that has to reach
-  production must carry a releasable type: merged as `chore` — or as `docs` — it
-  stops on `main` with no symptom, CI green and PR merged while production still
-  serves the old build. It is why content edits are `fix(content)`. Dependabot
-  is deliberately on the other side of the line: its bumps are `chore(deps)`, so
-  an updated dependency ships with the next releasable commit — a CVE patch that
-  has to go out now needs one, or a manual run of `deploy.yml` on a tag.
+- Conventional Commits, imposti da commitlint su un hook `commit-msg` di lefthook.
+- Merge solo in squash, con il corpo del commit **vuoto**
+  (`squash_merge_commit_message=BLANK`, impostato da `bootstrap-github.sh`). release-please legge
+  anche le righe del corpo, quindi qualunque cosa vi resti rielenca la stessa modifica nel CHANGELOG.
+- Conseguenza: un breaking change si marca con `!` nel **titolo della PR** (`feat(ui)!: …`). Un
+  footer `BREAKING CHANGE:` non sopravvive mai allo squash.
+- Stessa cosa per ogni altro footer di release-please: **una forzatura va in
+  `release-please-config.json`, mai in un messaggio di commit**. Forzare una prima release sotto
+  `1.0.0`, o fissare una versione successiva, è `release-as` in quel file — ed è appiccicoso, quindi
+  richiede un commit successivo per toglierlo una volta uscita la release.
+- Per la stessa ragione, `Closes #N` va nella descrizione della PR, non nel messaggio di commit.
+- **[HARD] È `changelog-sections` a decidere quali tipi rilasciano.** Un tipo elencato lì *senza*
+  `hidden: true` è rilasciabile: si guadagna una sezione nel changelog e taglia almeno una patch.
+  `feat` alza la minor, e gli altri visibili — `fix`, `perf`, `revert`, `refactor` — alzano la patch.
+  Quelli nascosti (`docs`, `style`, `chore`, `test`, `build`, `ci`) arrivano su `main` e si fermano
+  lì.
+- **Visibile e rilasciabile sono la stessa proprietà**, e release-please non offre nessun modo di
+  avere l'una senza l'altra: un tipo si guadagna una sezione nel changelog *perché* taglia una
+  release. `docs` è nascosto qui per questo motivo — una PR di sola documentazione taglierebbe
+  altrimenti una patch e rideployerebbe la produzione con codice identico.
+- La conseguenza morde anche nell'altra direzione. Una modifica che deve arrivare in produzione deve
+  portare un tipo rilasciabile: mergiata come `chore` — o come `docs` — si ferma su `main` senza
+  nessun sintomo, con la CI verde e la PR mergiata mentre la produzione serve ancora la build
+  vecchia. È il motivo per cui le modifiche ai contenuti sono `fix(content)`. Dependabot sta di
+  proposito dall'altra parte della linea: i suoi aggiornamenti sono `chore(deps)`, quindi una
+  dipendenza aggiornata viaggia col primo commit rilasciabile — e una patch di sicurezza che deve
+  uscire subito ne ha bisogno di uno, oppure di un lancio manuale di `deploy.yml` su un tag.
 
-## Go-live checklist
+## Checklist per il go-live
 
-1. `SITE.url` is the real domain (it feeds every canonical, OG and hreflang URL,
-   and `pnpm smoke:prod` refuses to run while it's the placeholder).
-2. Domain added in Vercel, DNS pointed, HTTPS issued. Decide the canonical host
-   (apex or `www`) and declare the redirect in `vercel.json`.
-3. Ignored Build Step set to `bash scripts/vercel-ignore-build.sh`.
-4. `bash scripts/bootstrap-github.sh` run against the repo (idempotent).
-5. Repo secrets set; the first release-please PR merged.
-6. Sender domain's DKIM/SPF/DMARC verified in Brevo, `CONTACT_*` and
-   `BREVO_API_KEY` set in the Vercel project.
-7. A real browser submit of the contact form seen arriving; then consider
+1. `SITE.url` è il dominio vero (alimenta ogni canonical, OG e hreflang, e `pnpm smoke:prod` si
+   rifiuta di girare finché è il segnaposto).
+2. Dominio aggiunto in Vercel, DNS puntato, HTTPS emesso. Si decide l'host canonico (apice o `www`) e
+   si dichiara il redirect in `vercel.json`.
+3. Ignored Build Step impostato su `bash scripts/vercel-ignore-build.sh`.
+4. `bash scripts/bootstrap-github.sh` lanciato sul repo (è idempotente).
+5. Secret del repo impostati; la prima PR di release-please mergiata.
+6. DKIM, SPF e DMARC del dominio mittente verificati in Brevo, `CONTACT_*` e `BREVO_API_KEY`
+   impostati nel progetto Vercel.
+7. Un invio vero del form di contatto da un browser visto arrivare; poi si valuta
    `BOTID_ENFORCE=true`.
-8. `pnpm smoke:prod` green against the apex.
-9. **DPA signed with every processor that touches personal data** — hosting
-   (Vercel), the email/CRM vendor (Brevo), the CMP (iubenda), plus anything else
-   the project added. The client's legal contact is the signatory, not you.
-10. **Every credential used during development rotated.** Anything that lived in
-    a `.env`, a shared note or a preview environment is burned: issue new values,
-    set them in production, revoke the old ones. Same for the repo secrets.
-11. **Consent flows verified on a preview**, both accept and reject, with GA4
-    Realtime open: no Google request before opt-in, events flowing after. This
-    is also the only place a missing CSP entry shows up.
-12. **Security headers verified on a preview** — no CSP violation on any page
-    type, HSTS present, `X-Robots-Tag` on `*.vercel.app` and absent on the
-    production host.
-13. **Whoever maintains the iubenda policy knows the rebuild runbook** above: an
-    edit there is invisible until a redeploy, and nothing warns them.
+8. `pnpm smoke:prod` verde contro l'apice.
+9. **DPA firmato con ogni responsabile che tocca dati personali**: hosting (Vercel), fornitore di
+   email e CRM (Brevo), CMP (iubenda), più tutto ciò che il progetto ha aggiunto. A firmare è il
+   referente legale del cliente, non tu.
+10. **Ogni credenziale usata durante lo sviluppo ruotata.** Tutto ciò che è passato da un `.env`, da
+    una nota condivisa o da un ambiente di preview è bruciato: si emettono valori nuovi, si mettono
+    in produzione, si revocano i vecchi. Lo stesso per i secret del repo.
+11. **Flussi di consenso verificati su una preview**, sia accettando sia rifiutando, con GA4 Realtime
+    aperto: nessuna richiesta a Google prima del consenso, eventi che scorrono dopo. È anche l'unico
+    posto in cui una voce mancante nella CSP si manifesta.
+12. **Intestazioni di sicurezza verificate su una preview**: nessuna violazione CSP su nessun tipo di
+    pagina, HSTS presente, `X-Robots-Tag` su `*.vercel.app` e assente sull'host di produzione.
+13. **Chi mantiene la policy iubenda conosce la procedura di ricostruzione** qui sopra: una modifica
+    lì è invisibile finché non si rideploya, e niente lo segnala.

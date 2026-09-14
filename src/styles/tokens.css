@@ -1,6 +1,5 @@
-/* ─── Brand primitives (NEUTRAL PLACEHOLDERS — replace values per project) ───
-   Raw palette + radius, theme-agnostic. `light.css`/`dark.css` map semantic
-   roles onto these steps: this is THE file to touch when rebranding a fork. */
+/* ─── Primitive del marchio (SEGNAPOSTO NEUTRI — i valori si sostituiscono per progetto) ───
+   È IL file da toccare per il rebranding: light.css e dark.css mappano i ruoli su questi gradini. */
 :root {
   --neutral-50: oklch(0.985 0 0);
   --neutral-100: oklch(0.97 0 0);
@@ -11,35 +10,31 @@
   --neutral-900: oklch(0.205 0 0);
   --neutral-950: oklch(0.145 0 0);
 
-  /* Brand ramp — THE rebrand surface. Ships as the neutral steps so the default
-     look is achromatic, but `--primary`, `--accent` and `--ring` map onto these
-     rather than onto `--neutral-*`: giving a client their colour is editing this
-     block and nothing else. Replacing a step in light.css/dark.css instead is
-     the thing this exists to make unnecessary. */
+  /* Rampa del marchio: `--primary`, `--accent` e `--ring` si appoggiano qui e non a
+     `--neutral-*`, così dare a un cliente il suo colore è modificare solo questo blocco. */
   --brand-50: oklch(0.985 0 0);
   --brand-100: oklch(0.97 0 0);
   --brand-500: oklch(0.556 0 0);
   --brand-700: oklch(0.371 0 0);
   --brand-900: oklch(0.205 0 0);
 
-  /* Status colors. Two steps each, because one cannot clear 4.5:1 on both
-     themes: the darker step is the light-theme value, the lighter one the
-     dark-theme value — all of it asserted in src/styles/contrast.test.ts. */
+  /* Colori di stato, due gradini ciascuno perché uno solo non supera 4,5:1 su entrambi i
+     temi: il più scuro è il valore del tema chiaro. Verificati in src/styles/contrast.test.ts. */
   --red-500: oklch(0.637 0.237 27.325);
   --red-600: oklch(0.577 0.245 27.325);
   --green-600: oklch(0.627 0.194 149.214);
   --green-700: oklch(0.527 0.154 150.069);
 
-  /* Stacking ladder, in one place so a new overlay can be placed by reading it
-     rather than by guessing a number that happens to work. */
+  /* Scala di impilamento, in un posto solo: un overlay nuovo si colloca leggendola
+     invece di indovinare un numero. */
   --z-raised: 10;
   --z-dropdown: 20;
   --z-header: 50;
   --z-overlay: 60;
   --z-skip-link: 100;
 
-  /* Timing and easing are tokens like the colours: the effect sheets consume these,
-     they never spell a duration or a curve out. src/styles/motion.test.ts holds it. */
+  /* Tempi e curve sono token come i colori: i fogli degli effetti li consumano e non ne
+     scrivono mai uno per esteso. Lo verifica src/styles/motion.test.ts. */
   --ease-emphasized: cubic-bezier(0.22, 1, 0.36, 1);
   --duration-slower: 0.6s;
 

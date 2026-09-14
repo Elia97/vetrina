@@ -1,5 +1,5 @@
-// Table layout and inline styles because email clients ignore stylesheets.
-// Every user-provided value goes through escapeHtml before interpolation.
+// Layout a tabella e stili inline perché i client email ignorano i fogli di stile.
+// Ogni valore fornito dall'utente passa da escapeHtml prima dell'interpolazione.
 import type { ContactRequest } from '@/lib/contact'
 import { SITE } from '@/lib/site'
 
@@ -11,7 +11,7 @@ function escapeHtml(value: string): string {
     '"': '&quot;',
     "'": '&#39;',
   }
-  /* v8 ignore next -- the regex only matches keys the map defines */
+  /* v8 ignore next -- la regex fa match solo sulle chiavi che la mappa definisce */
   return value.replace(/[&<>"']/g, (c) => map[c] ?? c)
 }
 

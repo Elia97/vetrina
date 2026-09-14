@@ -37,11 +37,11 @@ export const buttonVariants = cva(
   },
 )
 
-// astro check (0.9.x) doesn't resolve generic Props at call sites, so this is an
-// explicit discriminated union instead of the docs' Polymorphic pattern.
+// astro check (0.9.x) non risolve le Props generiche nei punti di chiamata, quindi qui c'è
+// un'unione discriminata esplicita invece del pattern Polymorphic della documentazione.
 type Props = VariantProps<typeof buttonVariants> &
-  // TypeScript's excess-property check runs against the whole union, so `href` alone
-  // compiles without `href?: never`.
+  // Il controllo delle proprietà in eccesso di TypeScript gira sull'intera unione, quindi `href` da solo
+  // compila senza `href?: never`.
   (({ as?: 'button'; href?: never } & HTMLAttributes<'button'>) | ({ as: 'a'; href: string } & HTMLAttributes<'a'>))
 
 const { as: Tag = 'button', variant, size, shape, class: className, ...rest } = Astro.props

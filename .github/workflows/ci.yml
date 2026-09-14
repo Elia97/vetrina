@@ -1,8 +1,8 @@
 name: CI
 
 on:
-  # No paths-ignore on pull_request: `ci` is a required check in the repository ruleset,
-  # and a skipped job reports nothing — the PR hangs on "Expected — Waiting for status".
+  # Niente paths-ignore su pull_request: `ci` è un check obbligatorio nel ruleset, e un job
+  # saltato non riporta niente — la PR resta appesa su "Expected — Waiting for status".
   pull_request:
   push:
     branches: [main]
@@ -12,8 +12,8 @@ on:
       - '.github/**/*.md'
       - '.claude/**/*.md'
 
-# Declared rather than inherited: running on PRs, this is the workflow a third-party
-# action would ride in on.
+# Dichiarati invece che ereditati: girando sulle PR, è questo il workflow su cui entrerebbe
+# un'action di terze parti.
 permissions:
   contents: read
 
@@ -22,12 +22,14 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
-  # No `name:` here: the check run would take it, and the ruleset requires the context
-  # `ci`, which is the job id.
+  # Niente `name:` qui: lo prenderebbe il check run, e il ruleset pretende il contesto `ci`,
+  # che è l'id del job.
   ci:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0 # scripts/gates.test.ts gira i gate con --diff, e defaultBase() cerca origin/main
 
       - run: corepack enable
 
@@ -42,18 +44,18 @@ jobs:
 
       - run: pnpm run build
 
-      # Reads dist/client, so it has to follow the build.
+      # Legge dist/client, quindi deve seguire la build.
       - run: pnpm run perf:bundle
 
-  # `fallow audit` otherwise only runs inside `/pr`: a PR opened by hand or by
-  # Dependabot never sees it.
+  # Altrimenti `fallow review` gira solo a mano: una PR aperta a mano o da Dependabot non lo
+  # vedrebbe mai. I confini stanno invece dentro `pnpm run ci`, che gira nel job qui sopra.
   fallow:
-    name: fallow (boundaries gate + dead-code advisory)
+    name: fallow (review informativa)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
         with:
-          fetch-depth: 0 # the review brief diffs against the merge-base
+          fetch-depth: 0 # il riepilogo di review fa il diff contro il merge-base
 
       - run: corepack enable
 
@@ -64,9 +66,5 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
-      - name: fallow review (advisory, always exits 0)
+      - name: fallow review (informativa, esce sempre 0)
         run: pnpm exec fallow review
-
-      # The only gate that fails on a boundary violation.
-      - name: fallow boundaries
-        run: pnpm exec fallow dead-code --boundary-violations

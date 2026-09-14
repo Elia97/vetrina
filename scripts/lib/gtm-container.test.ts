@@ -13,7 +13,7 @@ const container = (over: Partial<ContainerResource> = {}): ContainerResource => 
   ...over,
 })
 
-// A GA4 tag fired by one rule, with the three condition shapes the reader knows.
+// Un tag GA4 fatto scattare da una regola, con le tre forme di condizione che il lettore conosce.
 const sample = container({
   macros: [
     { function: '__e' },

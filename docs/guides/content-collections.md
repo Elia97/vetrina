@@ -1,212 +1,200 @@
-# Content collections
+# Content collection
 
-## Choosing the archetype
+## Scegliere l'archetipo
 
-Three shapes — pick by the content's structure, not its topic.
+Tre forme, e si sceglie dalla struttura del contenuto, non dal suo argomento.
 
-- **Singleton split into sections** — one page built from heterogeneous
-  blocks. Schema is a `z.discriminatedUnion` on a `section` field, one file
-  per section, fronted by a dedicated data-access function
-  (`getXSections(locale?)`) that assembles the page. The homepage pattern
-  below is the reference — replicate it verbatim.
-- **Flat shared-schema** — many entries sharing ONE schema shape, each a full
-  page/record. Read them directly (`getCollection` for the listing, `getEntry`
-  for one), keyed on the file's `generateId` (the slug); no data-access layer.
-- **Document** (`gen:collection` document mode) — the only form with a
-  renderable `body` (MDX/MD). Frontmatter is a flat schema like the
-  shared-schema form; the body renders via `render(entry)` → `<Content />`.
+- **Singleton diviso in sezioni** — una pagina sola costruita da blocchi eterogenei. Lo schema è una
+  `z.discriminatedUnion` su un campo `section`, un file per sezione, dietro una funzione di accesso
+  dedicata (`getXSections(locale?)`) che assembla la pagina. Il pattern della homepage qui sotto è
+  il riferimento: si replica parola per parola.
+- **Piatta a schema condiviso** — molte voci che condividono UNA sola forma di schema, ognuna una
+  pagina o un record completo. Si leggono direttamente (`getCollection` per il listing, `getEntry`
+  per una sola), con chiave sul `generateId` del file (lo slug); nessuno strato di accesso ai dati.
+- **Documento** (`gen:collection` in modalità documento) — l'unica forma con un `body` renderizzabile
+  (MDX o MD). Il frontmatter è uno schema piatto come nella forma a schema condiviso; il corpo si
+  rende con `render(entry)` → `<Content />`.
 
-Decision rule: reach for a **dedicated collection only when you have many
-interchangeable entries**. A fixed, one-off block on a singleton page is a
-**section**, not a collection — don't spin one up for it.
+Regola di decisione: si tira in ballo una **collection dedicata solo quando ci sono molte voci
+intercambiabili**. Un blocco fisso e unico su una pagina singleton è una **sezione**, non una
+collection: non montarne una per lui.
 
-## Homepage: singleton split into sections
+## Homepage: singleton diviso in sezioni
 
-- One `.yml` per section under `src/content/homepage/` (DATA shape: only
-  `entry.data`, no renderable body). Schema = `z.discriminatedUnion` on the
-  `section` field (`src/lib/schemas/homepage/index.ts`), one schema file per
-  section (`hero.ts`, …), shared primitives in `src/lib/schemas/common.ts`.
-- Access ONLY through `getHomepageSections(locale?)` in `src/lib/homepage.ts` —
-  never `getCollection('homepage')` directly from a page. The SSoT chain is
-  Zod schema → `CollectionEntry<'homepage'>['data']` → `HomepageSections` →
-  component Props (`type Props = HomepageSections['hero']`), so a schema change
-  propagates to component types with zero hand-written duplication.
-- Section components live in `src/components/home/`, one per section, and are
-  wired in `src/pages/index.astro`.
+- Un `.yml` per sezione sotto `src/content/homepage/` (forma DATI: solo `entry.data`, nessun corpo
+  renderizzabile). Lo schema è una `z.discriminatedUnion` sul campo `section`
+  (`src/lib/schemas/homepage/index.ts`), un file di schema per sezione (`hero.ts`, …), e le
+  primitive condivise in `src/lib/schemas/common.ts`.
+- L'accesso passa SOLO da `getHomepageSections(locale?)` in `src/lib/homepage.ts`, mai da
+  `getCollection('homepage')` chiamato direttamente da una pagina. La catena della fonte unica è
+  schema Zod → `CollectionEntry<'homepage'>['data']` → `HomepageSections` → Props del componente
+  (`type Props = HomepageSections['hero']`), così una modifica allo schema si propaga ai tipi dei
+  componenti senza una riga di duplicazione scritta a mano.
+- I componenti di sezione vivono in `src/components/home/`, uno per sezione, e si agganciano in
+  `src/pages/index.astro`.
 
-## Locale layout (matches the native i18n routing decision)
+## Disposizione per lingua (segue la decisione sul routing i18n nativo)
 
-- Default-locale content is FLAT: `src/content/homepage/hero.yml` (entry id
-  `hero`). Additional locales go in a subfolder: `src/content/homepage/en/hero.yml`
-  (entry id `en/hero`). Adding a locale is purely additive — never move the
-  default locale's files.
-- `getHomepageSections()` defaults to `i18n.defaultLocale` from
-  `astro:config/client`; pass `Astro.currentLocale` from pages.
+- Il contenuto nella lingua di default è PIATTO: `src/content/homepage/hero.yml` (id della voce:
+  `hero`). Le lingue in più vanno in una sottocartella, `src/content/homepage/<lingua>/hero.yml`
+  (per l'inglese l'id diventa `en/hero`). Aggiungere una lingua è puramente additivo: i file della lingua di default non si
+  spostano mai.
+- `getHomepageSections()` ricade su `i18n.defaultLocale` da `astro:config/client`; dalle pagine si
+  passa `Astro.currentLocale`.
 
-## Fail-loud contract
+## Il contratto del fallire rumorosamente
 
-- A section declared in `getHomepageSections`'s return object but missing its
-  content file throws at build time (`pick()`), so a forgotten file breaks CI
-  instead of shipping a broken page. The same throw covers duplicate sections
-  within a locale and default-locale files misplaced in a locale folder.
-- The build-time guarantee holds because every consumer of
-  `getHomepageSections` is prerendered (the default). A consumer that opted out
-  with `prerender = false` would turn these throws into runtime 500s — keep
-  homepage routes prerendered.
-- **Don't drop the homepage collection's custom `generateId`** — the default one
-  slugifies segments and honors a YAML `slug` key, which lets content land
-  silently in the wrong locale (reasons pinned at the loader in
-  `src/content.config.ts`). It is archetype-specific, not a house rule:
-  `gen:collection` emits it for a **data** collection, which may be read back by
-  locale folder, and deliberately leaves the default in place for a **document**
-  collection, whose id becomes the route slug and therefore *wants* slugification
-  and a frontmatter `slug`.
-- **[HARD] Content schemas use `z.strictObject`, never `z.object`.** A plain
-  object strips unknown keys, so a typo'd or renamed field disappears from the
-  page with a green build — the one content failure the throws above can't
-  catch, and the one a non-technical editor actually produces. Strictness
-  survives `z.discriminatedUnion` and is pinned in
-  `src/lib/schemas/homepage/hero.test.ts`; both generator templates emit it.
-- **Local-cache gotcha (verified)**: with a warm content-layer store, deleting
-  a content file may NOT fail a local `pnpm run build` — the stale entry is
-  served from `node_modules/.astro/data-store.json`. CI is always cold, so the
-  guarantee holds there. If a local build behaves suspiciously after
-  adding/removing content files, clear `node_modules/.astro` (and `.astro/`).
+- Una sezione dichiarata nell'oggetto di ritorno di `getHomepageSections` ma senza il suo file di
+  contenuto solleva un errore in fase di build (`pick()`), così un file dimenticato rompe la CI
+  invece di spedire una pagina rotta. Lo stesso errore copre le sezioni duplicate dentro una lingua
+  e i file della lingua di default finiti per sbaglio in una cartella di lingua.
+- La garanzia in fase di build regge perché ogni consumatore di `getHomepageSections` è
+  prerenderizzato (il default). Un consumatore che si fosse sfilato con `prerender = false`
+  trasformerebbe questi errori in 500 a runtime: le rotte della homepage restano prerenderizzate.
+- **Non togliere il `generateId` personalizzato della collection homepage**: quello di default
+  slugifica i segmenti e onora una chiave `slug` nello YAML, il che fa atterrare il contenuto in
+  silenzio nella lingua sbagliata (le ragioni sono fissate accanto al loader in
+  `src/content.config.ts`). È specifico dell'archetipo e non una regola di casa: `gen:collection` lo
+  emette per una collection **dati**, che può essere riletta per cartella di lingua, e lascia di
+  proposito quello di default per una collection **documento**, il cui id diventa lo slug della
+  rotta e che quindi *vuole* la slugificazione e uno `slug` nel frontmatter.
+- **[HARD] Gli schemi di contenuto usano `z.strictObject`, mai `z.object`.** Un oggetto normale
+  scarta le chiavi sconosciute, quindi un campo scritto male o rinominato sparisce dalla pagina con
+  la build verde: è l'unico guasto di contenuto che gli errori qui sopra non prendono, ed è proprio
+  quello che produce davvero chi scrive i contenuti senza essere tecnico. La strettezza sopravvive a
+  `z.discriminatedUnion`, è fissata in `src/lib/schemas/homepage/hero.test.ts`, e i template di
+  entrambi i generatori la emettono.
+- **Trappola della cache locale (verificata)**: con lo store del content layer già caldo, cancellare
+  un file di contenuto può NON far fallire una `pnpm run build` in locale, perché la voce vecchia
+  arriva da `node_modules/.astro/data-store.json`. La CI è sempre fredda, quindi lì la garanzia
+  regge. Se una build locale si comporta in modo sospetto dopo aver aggiunto o tolto file di
+  contenuto, svuota `node_modules/.astro` (e `.astro/`).
 
-## Flat shared-schema collections
+## Collection piatte a schema condiviso
 
-- Make sub-sections beyond the first and last block **optional**, so a lighter
-  entry (e.g. an index page reusing only the opening block and the closing
-  call-to-action) validates against the same schema without carrying empty
-  middle blocks.
-- Add a thin data-access layer **only** when a visibility filter enters the
-  picture, and route both listing and detail through it (see *Testable domain
-  rules*).
+- Le sotto-sezioni oltre la prima e l'ultima si rendono **facoltative**, così una voce più leggera
+  (per esempio una pagina indice che riusa solo il blocco d'apertura e la chiamata all'azione
+  finale) valida contro lo stesso schema senza portarsi dietro blocchi centrali vuoti.
+- Uno strato sottile di accesso ai dati si aggiunge **solo** quando entra in gioco un filtro di
+  visibilità, e allora ci passano sia il listing sia il dettaglio (vedi *Regole di dominio
+  testabili*).
 
-## Document collections (MDX / MD)
+## Collection di documenti (MDX e MD)
 
-The only archetype with a renderable `body`. Scaffold with `gen:collection` in
-document mode, then hand-fix — the generator hardcodes a `**/*.md` glob and a
-matching `generateId` regex.
+L'unico archetipo con un `body` renderizzabile. Si impalca con `gen:collection` in modalità
+documento e poi si sistema a mano: il generatore fissa un glob `**/*.md` e una regex `generateId`
+corrispondente.
 
-- **MDX takes extra edits.** After generation, change the glob and the
-  `generateId` regex to `**/*.mdx` / `\.(mdx)$` in `content.config.ts`, and
-  register the `@astrojs/mdx` integration in `astro.config.mjs`. Missing the
-  integration fails the build with an **unrecognized-extension** error — not a
-  schema error, so don't go debugging the schema.
-- **Rendering the body.** On a prerendered detail route (a `getStaticPaths`
-  that enumerates the entries), `const { Content } = await
-  render(entry)` (`render` from `astro:content`, the Content Layer API) yields
-  a `<Content />` for the body.
-- **`{…}` is JS in MDX.** Any authoring marker (layout hint on a heading,
-  image sizing, …) goes in **plain text** — never `{.class}`, which is parsed
-  as a JS expression and breaks the build.
-- **Processor / rehype plugins don't hot-reload.** They're config-imported
-  (`markdown.processor: unified({ rehypePlugins: [...] })`, the non-deprecated
-  API), so editing a local plugin needs a **dev-server restart** — the page
-  won't reflect the change on save.
-- **Draft = 404 for free.** If the visibility filter (below) drops drafts from
-  `getStaticPaths` in a prod build and there's no `fallback`, draft slugs are
-  never generated → Astro's native `404.astro` serves them. Zero manual 404
-  code: a route never enumerated in prod is simply not built. The same
-  contract covers the sitemap — only prerendered routes are emitted, so an
-  unbuilt draft URL can't leak in (no sitemap `filter` needed).
+- **MDX richiede modifiche in più.** Dopo la generazione, cambia il glob e la regex di `generateId`
+  in `**/*.mdx` e `\.(mdx)$` dentro `content.config.ts`, e registra l'integrazione `@astrojs/mdx` in
+  `astro.config.mjs`. Se l'integrazione manca, la build fallisce con un errore di **estensione non
+  riconosciuta** e non con un errore di schema: non metterti a debuggare lo schema.
+- **Rendere il corpo.** Su una rotta di dettaglio prerenderizzata (un `getStaticPaths` che enumera
+  le voci), `const { Content } = await render(entry)` (`render` da `astro:content`, la Content Layer
+  API) restituisce un `<Content />` per il corpo.
+- **`{…}` in MDX è JavaScript.** Qualunque marcatore di redazione (un suggerimento di layout su un
+  titolo, la dimensione di un'immagine, …) va in **testo semplice**, mai come `{.classe}`, che viene
+  letto come espressione JS e rompe la build.
+- **I plugin del processore e di rehype non si ricaricano a caldo.** Sono importati dalla
+  configurazione (`markdown.processor: unified({ rehypePlugins: [...] })`, l'API non deprecata),
+  quindi modificare un plugin locale richiede il **riavvio del server di sviluppo**: la pagina non
+  riflette la modifica al salvataggio.
+- **La bozza è un 404 gratis.** Se il filtro di visibilità (sotto) toglie le bozze da
+  `getStaticPaths` in una build di produzione e non c'è nessun `fallback`, gli slug delle bozze non
+  vengono mai generati e a servirli è il `404.astro` nativo di Astro. Zero codice di 404 scritto a
+  mano: una rotta mai enumerata in produzione semplicemente non viene costruita. Lo stesso contratto
+  copre la sitemap — vengono emesse solo le rotte prerenderizzate, quindi l'URL di una bozza non
+  costruita non può trapelare (nessun `filter` necessario).
 
-## Paginated listings (when a fork adds one)
+## Listing paginati (quando un progetto ne aggiunge uno)
 
-An archive pages through `paginate()` from `getStaticPaths`, and a facet
-(category, tag, year) is **another set of generated routes** — never a
-client-side filter. Under `output: 'static'` nothing else survives pagination: a
-script filtering the current page silently drops the entries on page two, and
-with them everything past the first page leaves the index.
+Un archivio pagina con `paginate()` da `getStaticPaths`, e una faccetta (categoria, tag, anno) è
+**un altro insieme di rotte generate**, mai un filtro lato client. Sotto `output: 'static'` niente
+altro sopravvive alla paginazione: uno script che filtra la pagina corrente perde in silenzio le
+voci della seconda pagina, e con loro tutto quello che sta oltre la prima esce dall'indice.
 
-- **Page one has no page segment.** `[...page].astro` emits `/news`, never
-  `/news/1`, and the canonical must follow (`currentPage === 1` → the bare path).
-  Anything reading routes as patterns has to allow the **empty** rest segment —
-  `scripts/lib/bundle-budget.ts` does, and a test pins it: without that a
-  one-page archive is reported as a route that emitted nothing.
-- **Don't annotate the return type.** Return `paginate(...)` as it comes:
-  `PaginateFunction` carries `page: Page<T>` plus your own props through to
-  `Astro.props`, and a `GetStaticPathsResult` annotation erases both — the route
-  then sees `unknown`.
-- **`page.url.prev`/`next` already carry the locale prefix**, being built from
-  the route the file sits in: pagination links need no `localizedHref()`.
-- **One shell, N routes.** Index and facet render the same page with a different
-  slice, so the markup lives in one component and each route file is a
-  `getStaticPaths` plus the mount. Copies of a listing page diverge.
-- **A facet generates only the values actually in use**, or the filter offers
-  links to empty pages; a value the UI has no label for is dropped, never printed
-  raw.
-- Client enhancement (an endless feed appending the next page) sits **on top** of
-  the generated routes and never replaces them: without the script the same
-  element stays a real link, which is what crawlers follow.
+- **La prima pagina non ha segmento di pagina.** `[...page].astro` emette `/news`, mai `/news/1`, e
+  il canonical deve seguirlo (`currentPage === 1` → il percorso nudo). Qualunque cosa legga le rotte
+  come pattern deve ammettere il segmento finale **vuoto**: `scripts/lib/bundle-budget.ts` lo fa, e
+  un test lo fissa, perché senza quello un archivio di una pagina sola verrebbe riportato come una
+  rotta che non ha emesso niente.
+- **Non annotare il tipo di ritorno.** Restituisci `paginate(...)` così com'è: `PaginateFunction`
+  porta `page: Page<T>` più le tue prop fino ad `Astro.props`, e un'annotazione
+  `GetStaticPathsResult` cancella entrambe — a quel punto la rotta vede `unknown`.
+- **`page.url.prev` e `page.url.next` portano già il prefisso di lingua**, essendo costruiti dalla
+  rotta in cui il file si trova: i link di paginazione non hanno bisogno di `localizedHref()`.
+- **Un guscio, N rotte.** Indice e faccetta rendono la stessa pagina con una fetta diversa, quindi
+  il markup vive in un componente solo e ogni file di rotta è un `getStaticPaths` più il montaggio.
+  Le copie di una pagina di listing divergono.
+- **Una faccetta genera solo i valori davvero in uso**, altrimenti il filtro offre link a pagine
+  vuote; un valore per cui l'interfaccia non ha un'etichetta si scarta, non si stampa grezzo.
+- Il miglioramento lato client (un feed infinito che accoda la pagina successiva) sta **sopra** le
+  rotte generate e non le sostituisce mai: senza lo script lo stesso elemento resta un link vero, ed
+  è quello che i crawler seguono.
 
-## Testable domain rules
+## Regole di dominio testabili
 
-Any predicate with branching (draft visibility, environment-gated filters, …)
-is **extracted into a pure module** that takes the environment as a parameter
-— `isPublished(entry, isProd)`, not a function that reads `import.meta.env`
-inside. Two properties make it unit-testable:
+Ogni predicato con dei rami (visibilità delle bozze, filtri legati all'ambiente, …) si **estrae in
+un modulo puro** che riceve l'ambiente come parametro — `isPublished(entry, isProd)`, non una
+funzione che legge `import.meta.env` al suo interno. Due proprietà lo rendono testabile:
 
-- It **receives** the environment, so a test pins both prod and dev without
-  touching globals.
-- It does **not** import `astro:content`, so the test imports it directly with
-  no collection to mock — the same split rationale as keeping head-SEO logic
-  in a plain `.ts` beside the `.astro` head component.
+- **riceve** l'ambiente, quindi un test fissa sia produzione sia sviluppo senza toccare i global;
+- **non** importa `astro:content`, quindi il test lo importa direttamente senza nessuna collection
+  da simulare — la stessa ragione per cui la logica SEO della head sta in un `.ts` normale accanto
+  al componente `.astro`.
 
-Route every consumer through **one** shared helper (listing filter, detail
-`getStaticPaths`, anything downstream) so the rule can't drift between call
-sites.
+Ogni consumatore passa da **un solo** helper condiviso (filtro del listing, `getStaticPaths` del
+dettaglio, tutto quello che sta a valle), così la regola non può divergere fra i punti di chiamata.
 
-## Schema-shape conventions
+## Convenzioni sulla forma degli schemi
 
-- **String-driven fields → loose schema.** For a field that selects a
-  component option by name (`icon`, `variant`, …) use a plain `z.string()`,
-  never `z.enum`. The name→value map and its type guard live in the
-  **component**; an unknown value degrades to a **no-op** (render nothing, or a
-  default), never a build error. The schema stays stable while the option set
-  evolves — adding or renaming an option touches only the component's map, and
-  content on an old name fails soft.
-- **Nest a lone button under `action`, not `cta`.** A block already named for
-  its purpose otherwise reads `cta.cta`; `action` kills the stutter. Applies to
-  any block wrapping a single call-to-action, in either archetype.
+- **Campi guidati da stringa → schema lasco.** Per un campo che seleziona per nome un'opzione di un
+  componente (`icon`, `variant`, …) si usa un `z.string()` semplice, mai `z.enum`. La mappa
+  nome→valore e la sua type guard vivono nel **componente**; un valore sconosciuto degrada a un
+  **nulla di fatto** (non rende niente, o rende un default), mai a un errore di build. Lo schema
+  resta stabile mentre l'insieme delle opzioni evolve: aggiungere o rinominare un'opzione tocca solo
+  la mappa del componente, e il contenuto rimasto sul nome vecchio fallisce in modo morbido.
+- **Un bottone solo si annida sotto `action`, non sotto `cta`.** Un blocco già chiamato col suo
+  scopo altrimenti si legge `cta.cta`; `action` toglie la balbuzie. Vale per qualunque blocco che
+  avvolga una singola chiamata all'azione, in entrambi gli archetipi.
 
-## The CMS seam (per-fork decision, researched 2026-07)
+## La cucitura verso un CMS (decisione per progetto, ricerca di luglio 2026)
 
-`getHomepageSections` is the adapter seam: components consume ONLY its typed
-output, so a fork can swap the content backend by reimplementing that one
-function (build-time loader, or a live collection for SSR freshness) — the
-Zod → Props chain stays intact. Don't bake a CMS into the template.
+`getHomepageSections` è la cucitura dell'adapter: i componenti consumano SOLO il suo output
+tipizzato, quindi un progetto può sostituire il backend dei contenuti reimplementando quella
+funzione sola (un loader in fase di build, o una collection viva per avere freschezza in SSR) e la
+catena Zod → Props resta intatta. Non incorporare un CMS nel template.
 
-- Client needs self-service editing of THESE files: **Sveltia CMS** maps 1:1
-  onto this exact layout (file collections with per-file schemas;
-  `omit_default_locale_from_file_path: true` = our flat-default + locale
-  subfolders). A static `/admin` page per fork, MIT, $0, no restructuring.
-- Client needs workflows/visual editing: evaluate Sanity or Storyblok per
-  fork (both first-party Astro SDKs; Storyblok's visual editor needs SSR,
-  which this template already runs).
+- Il cliente ha bisogno di modificare da solo QUESTI file: **Sveltia CMS** si sovrappone uno a uno a
+  questa disposizione (file collection con schema per file;
+  `omit_default_locale_from_file_path: true` è esattamente il nostro default piatto con
+  sottocartelle di lingua). Una pagina statica `/admin` per progetto, licenza MIT, costo zero,
+  nessuna ristrutturazione.
+- Il cliente ha bisogno di flussi di approvazione o di modifica visuale: si valutano Sanity o
+  Storyblok progetto per progetto (entrambi con SDK Astro ufficiali; l'editor visuale di Storyblok
+  richiede SSR, che qui c'è già).
 
-## Generator injection points
+## Punti di iniezione dei generatori
 
-Marked with `INJECTION POINT` comments, asserted (throw, never silent no-op)
-by the generators:
+Marcati con commenti `INJECTION POINT` e verificati dai generatori (che sollevano un errore, mai un
+silenzioso nulla di fatto):
 
-- `src/content.config.ts` — `gen:collection` (shipped). The contract:
-  `export const collections = { … }` — **exported** (Astro silently ignores a
-  non-exported object) and initialized with an object literal. Duplicates and
-  identifier collisions (imports/variables) throw descriptive errors in a
-  pre-flight check, before any file is written. The INJECTION POINT comment
-  lives INSIDE the literal — statements injected above the declaration would
-  detach a leading comment.
-- `gen:section` (shipped) asserts three hook points in a pre-flight (before
-  any file is written), throwing descriptive errors on each:
-  1. `src/lib/schemas/homepage/index.ts` — the `z.discriminatedUnion` call
-     inside `homepageCollectionSchema`
-  2. `src/lib/homepage.ts` — `getHomepageSections`'s return object literal
-  3. `src/pages/index.astro` — the `// @gen:home-imports` and
-     `{/* @gen:home-sections */}` markers. **Insertion side is part of the
-     contract: insert ABOVE the marker.** Verified: inserting below
-     `@gen:home-imports` makes Biome's `organizeImports` adopt the marker as
-     leading trivia of the new import and relocate it into the sorted block.
-  No `image()` option yet — no real image section exists to derive it from;
-  add it (schema function gains a `SchemaContext` param) when one does.
+- `src/content.config.ts` — `gen:collection` (già presente). Il contratto è
+  `export const collections = { … }`: **esportato** (Astro ignora in silenzio un oggetto non
+  esportato) e inizializzato con un letterale. Duplicati e collisioni di identificatori (import o
+  variabili) sollevano errori descrittivi in un pre-volo, prima che venga scritto un solo file. Il
+  commento INJECTION POINT sta DENTRO il letterale: le istruzioni iniettate sopra la dichiarazione
+  staccherebbero un commento in testa.
+- `gen:section` (già presente) verifica tre punti di aggancio in un pre-volo, prima che venga
+  scritto un solo file, e su ciascuno solleva un errore descrittivo:
+  1. `src/lib/schemas/homepage/index.ts` — la chiamata `z.discriminatedUnion` dentro
+     `homepageCollectionSchema`;
+  2. `src/lib/homepage.ts` — il letterale dell'oggetto di ritorno di `getHomepageSections`;
+  3. `src/pages/index.astro` — i marcatori `// @gen:home-imports` e `{/* @gen:home-sections */}`.
+     **Il lato dell'inserimento è parte del contratto: si inserisce SOPRA il marcatore.** Verificato:
+     inserendo sotto `@gen:home-imports`, l'`organizeImports` di Biome adotta il marcatore come
+     trivia iniziale del nuovo import e lo sposta dentro il blocco ordinato.
+
+  Non c'è ancora un'opzione `image()`, perché non esiste una sezione con immagini vera da cui
+  derivarla: si aggiunge quando ci sarà (la funzione di schema guadagna un parametro
+  `SchemaContext`).

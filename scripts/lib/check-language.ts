@@ -1,60 +1,102 @@
-import { isComment, styleOf } from './check-comments.ts'
+import type { Hit } from './cli.ts'
+import { commentBlocks, type Line, styleOf } from './comment-syntax.ts'
+import { ENGLISH, ITALIAN } from './language-words.ts'
 
-// The files that travel between projects. The living per-project documents (ROADMAP,
-// DECISIONS, PROJECT, plans) are deliberately absent — CLAUDE.md § Language.
-const STABLE = [
-  /^CLAUDE\.md$/,
-  /^docs\/ARCHITECTURE\.md$/,
-  /^docs\/guides\//,
-  /^docs\/milestone-templates\//,
-  /^docs\/proposal-templates\//,
-  /^\.claude\/(?:commands|agents)\//,
-  /^scripts\/.*\.sh$/,
+const CODE =
+  /^(?:(?:src|scripts|test|\.claude\/hooks|\.github)\/.*|[^/]+)\.(?:ts|tsx|astro|mjs|cjs|js|css|ya?ml|jsonc)$/
+// Fuori le fonti del cliente (materiale altrui) e i changelog, generati in inglese.
+const DOCS = /^(?!docs\/sources\/)(?!(?:.*\/)?CHANGELOG\.md$).*\.md$/
+// I dizionari sono copy per l'utente nelle lingue del sito: en e de leggono inglese e tedesco
+// per definizione, ed è il solo posto sotto CODE dove non deve leggersi italiano.
+const LOCALIZED = /^src\/i18n\/strings\//
+
+// Sotto questa soglia il campione non dice niente: meglio indeciso che indovinato.
+const MIN_HITS = 4
+// Un documento italiano che cita frasi inglesi non deve scattare: serve una maggioranza netta.
+const ENGLISH_SHARE = 0.6
+
+// Inglese per costruzione, da togliere prima di contare: frontmatter, blocchi e span di
+// codice, URL, destinazioni dei link, riferimenti puntati (`this.cache`), chiamate, direttive.
+const NOISE: RegExp[] = [
+  /^---\r?\n[\s\S]*?\r?\n---/,
+  /```[\s\S]*?```/g,
+  /`[^`\n]*`/g,
+  /https?:\/\/\S+/g,
+  /\]\([^)]*\)/g,
+  /[\w$]+(?:\.[\w$]+)+/g,
+  /[\w$]+\([^)]*\)/g,
+  /@[\w-]+/g,
 ]
 
-// scripts/ travels between projects too, and is judged on its comments like any code.
-const CODE = /^(?:src|scripts)\/.*\.(?:ts|tsx|mjs|astro)$/
-
-// Translation dictionaries are user-facing copy in the project's own language: they live
-// under CODE by extension, and are the one thing there that must not read as English.
-const LOCALIZED = /^src\/i18n\/(?:strings|dictionaries)\//
-
-// Function words that belong to one language only: "in", "come" and "solo" exist in both
-// and would blur the count.
-const ITALIAN =
-  /\b(?:che|non|per|della|delle|degli|dei|gli|una|sono|viene|questo|questa|quando|anche|già|ogni|nella|nel|con|sul|dalla|essere|senza|quindi|perché)\b/gi
-const ENGLISH =
-  /\b(?:the|and|that|with|from|this|is|are|of|when|only|also|already|every|but|which|what|they|their|does|has|without|so|because)\b/gi
-
-// Under this many hits the sample says nothing. 6 rather than 12: measured against the
-// template and atc, both fully English, 12 left every source file undecided and 6 none.
-const MIN_HITS = 6
-
-export function isStable(path: string): boolean {
+export function isScanned(path: string): boolean {
   if (LOCALIZED.test(path)) return false
-  return STABLE.some((pattern) => pattern.test(path)) || CODE.test(path)
+  return CODE.test(path) || DOCS.test(path)
 }
 
-/** Only the comments carry prose in a source file — the code itself is English by construction. */
-export function proseOf(path: string, source: string): string {
-  if (!CODE.test(path)) return source
-  return source
-    .split('\n')
-    .filter((line) => isComment(line, styleOf(path)))
-    .join('\n')
+function clean(prose: string): string {
+  return NOISE.reduce((text, re) => text.replace(re, ' '), prose)
+}
+
+export interface Tally {
+  italian: number
+  english: number
+}
+
+export function tally(prose: string): Tally {
+  const text = clean(prose)
+  return {
+    italian: (text.match(ITALIAN) ?? []).length,
+    english: (text.match(ENGLISH) ?? []).length,
+  }
 }
 
 export type Verdict = 'english' | 'italian' | 'undecided'
 
-export function classify(prose: string): Verdict {
-  const italian = (prose.match(ITALIAN) ?? []).length
-  const english = (prose.match(ENGLISH) ?? []).length
-
-  if (italian + english < MIN_HITS) return 'undecided'
-  return italian > english ? 'italian' : 'english'
+export function classify({ italian, english }: Tally, minHits = MIN_HITS): Verdict {
+  const hits = italian + english
+  // Le liste di language-words.ts portano solo parole di una lingua sola: una inglese senza
+  // nessuna italiana decide anche un commento troppo corto per raggiungere MIN_HITS.
+  if (english > 0 && italian === 0) return 'english'
+  if (hits < minHits) return 'undecided'
+  return english / hits >= ENGLISH_SHARE ? 'english' : 'italian'
 }
 
-export function findingFor(path: string, source: string): string | null {
-  if (classify(proseOf(path, source)) !== 'italian') return null
-  return `${path}  reads as Italian — files that travel between projects stay English`
+const describe = ({ english, italian }: Tally, sample: string) =>
+  `legge come inglese (en ${english} / it ${italian}): ${sample.replace(/\s+/g, ' ').trim().slice(0, 60)}`
+
+const toLines = (source: string): Line[] => source.split('\n').map((text, i) => ({ n: i + 1, text }))
+
+/** In un sorgente la prosa sta solo nei commenti: il codice è inglese per costruzione. */
+export function findingsFor(path: string, source: string): Hit[] {
+  if (!CODE.test(path)) {
+    const counts = tally(source)
+    return classify(counts) === 'english' ? [{ line: 1, message: describe(counts, source) }] : []
+  }
+
+  const blocks = commentBlocks(toLines(source), styleOf(path))
+  const findings: Hit[] = []
+  const total: Tally = { italian: 0, english: 0 }
+
+  for (const block of blocks) {
+    const [first] = block.lines
+    const text = block.lines.map((line) => line.text).join('\n')
+    const counts = tally(text)
+    total.italian += counts.italian
+    total.english += counts.english
+    if (first && classify(counts) === 'english')
+      findings.push({
+        line: first.n,
+        message: describe(counts, text),
+      })
+  }
+
+  // Molti commenti brevi in inglese non fanno scattare nessun blocco da soli, ma insieme sì.
+  const firstLine = blocks[0]?.lines[0]
+  if (findings.length === 0 && classify(total) === 'english' && firstLine)
+    findings.push({
+      line: firstLine.n,
+      message: describe(total, 'nel complesso'),
+    })
+
+  return findings
 }

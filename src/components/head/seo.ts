@@ -25,15 +25,15 @@ interface HeadSeoParams {
   ogImage: string | undefined
 }
 
-// Astro's i18n APIs and Astro.currentLocale speak locale codes (codes[0] for
-// object entries); URLs carry paths.
+// Le API i18n di Astro e Astro.currentLocale parlano codici di lingua (codes[0] per
+// le voci oggetto); gli URL portano percorsi.
 function configuredLocaleCodes(): string[] {
-  /* v8 ignore next -- object locale entries ({ path, codes }) are an Astro feature this template's single string locale never produces */
+  /* v8 ignore next -- le voci locale a oggetto ({ path, codes }) sono una funzione di Astro che la lingua singola di questo template non produce mai */
   return (i18n?.locales ?? []).map((l) => (typeof l === 'string' ? l : (l.codes[0] ?? l.path)))
 }
 
-// Search engines ignore an hreflang set that disagrees with the canonical: both
-// re-localize the same base path.
+// I motori di ricerca ignorano un insieme di hreflang che non concorda col canonical:
+// entrambi rilocalizzano lo stesso percorso di base.
 function resolveLocaleAlternates(canonicalPath: string): LocaleAlternate[] {
   return configuredLocaleCodes().map((code) => ({
     tag: localeTag(code),
@@ -42,7 +42,7 @@ function resolveLocaleAlternates(canonicalPath: string): LocaleAlternate[] {
 }
 
 export function resolveHeadSeoMeta({ currentLocale, canonicalPath, ogImage }: HeadSeoParams): HeadSeoMeta {
-  /* v8 ignore next -- astro:config/client is injected by Astro on every render; the fallback guards a module that cannot be missing */
+  /* v8 ignore next -- astro:config/client lo inietta Astro a ogni render; il ripiego protegge un modulo che non può mancare */
   const defaultLocale = i18n?.defaultLocale ?? 'it'
   const locale = currentLocale ?? defaultLocale
   const canonical = localeAgnosticPath(canonicalPath, locale)

@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { ROBOTS_DISALLOWED_PATHS } from '@/lib/seo/crawl-policy'
 
-// ROBOTS_DISALLOWED_PATHS ships empty: the mock is what gives the Disallow branch input.
+// ROBOTS_DISALLOWED_PATHS arriva vuoto: è il mock a dare un input al ramo Disallow.
 vi.mock('@/lib/seo/crawl-policy', () => ({ ROBOTS_DISALLOWED_PATHS: [] }))
 
 async function get(site?: URL): Promise<{ body: string; type: string | null }> {
@@ -31,7 +31,7 @@ describe('robots.txt', () => {
     expect(body).toContain('Sitemap: https://example.test/sitemap-index.xml')
   })
 
-  // Astro leaves `site` undefined in dev.
+  // Astro lascia `site` undefined in dev.
   it('falls back to localhost when `site` is unset', async () => {
     const { body } = await get(undefined)
 

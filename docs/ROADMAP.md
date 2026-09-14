@@ -1,43 +1,36 @@
 # Roadmap
 
-> Ledger of this project's milestones — a human-readable index cross-referenced
-> to GitHub Issues/Milestones, which are the actual source of truth for
-> per-issue progress. Model: **one milestone = one GitHub Milestone = N GitHub
-> issues = N PRs** (one issue = one PR = one squash commit).
+> Elenco del codice da scrivere. Modello: **una milestone = una GitHub Milestone = N issue = N PR**
+> (una issue = una PR = un commit squash). Ogni sezione `## Milestone N` è **bespoke**; le issue si
+> implementano con `/metodo:pr <issue-number>`, mai inline da questo file.
 >
-> Two ways to add a milestone:
-> - **Bespoke path**: write a `## Milestone N` section below, then `/milestone <N>`
->   seeds it. This is the path for everything planned up front — including
->   Milestone 1, transcribed from `docs/milestone-templates/foundations.md`.
-> - **Fast path**: `/milestone <template-name>` instantiates a blueprint from
->   `docs/milestone-templates/*.md` and **appends** it as the next milestone
->   number. For blueprints reached for mid-project, not for sections already
->   written here — against an existing section it would create a duplicate one
->   number higher.
+> Due modi per aggiungere una milestone. Il **percorso bespoke**: si scrive una sezione
+> `## Milestone N` qui sotto, poi `/metodo:milestone <N>` la semina — è la strada per tutto ciò che è
+> pianificato in anticipo. Il **percorso rapido**: `/metodo:milestone <nome-template>` istanzia un
+> blueprint del plugin `metodo` e lo **accoda** come milestone successiva, per i
+> blueprint a cui si arriva a metà progetto e mai contro una sezione già scritta qui, dove creerebbe
+> un doppione un numero più avanti.
 >
-> Either way, implement each seeded issue with `/pr <issue-number>` — never
-> implement inline from this file.
->
-> **Two estimation rules**: a **system** milestone is worth **one day**;
-> **front-end** counts **half a day per page**. Both are **minimum effort** —
-> the days actually accrued are consolidated at the end of the period. Estimate
-> per milestone, never per sub-task: summing sub-task guesses buys apparent
-> precision and costs real accuracy. `docs/ESTIMATE.md` (untracked) is derived
-> from the `days` column below and is never written before it.
+> **Due regole di stima:** una milestone di **sistema** vale **una giornata**; il **front-end** si
+> conta **mezza giornata per pagina**. In entrambi i casi è lo **sforzo minimo** — le giornate
+> effettivamente maturate si consolidano a fine periodo. Si stima per milestone, mai per sotto-task:
+> sommare le stime dei sotto-task compra precisione apparente e costa accuratezza vera.
+> La stima, che è un'offerta nel sistema e non un file di questo repo, è derivata dalla colonna
+> `gg` qui sotto e non si scrive mai prima.
 
 ## Status
 
-| # | Milestone | Phase | days | Status |
+| # | Milestone | Fase | gg | Status |
 |---|---|:-:|:-:|---|
 | 1 | Difetti verificati e fondamenta mancanti | 1 | 12 | 🟡 seeded |
 | | **TOTALE** | | **12** | |
 
-<!-- Legend: 🔲 planned (not yet seeded) · 🟡 seeded (issues open on GitHub) · 🟢 done (GitHub Milestone closed) -->
+<!-- Legenda: 🔲 planned (non ancora seminata) · 🟡 seeded (issue aperte su GitHub) · 🟢 done (Milestone GitHub chiusa) -->
 
 Lavoro interno sul template, non preventivato a un cliente: la stima serve a
 ordinare, non a fatturare.
 
-## Dependencies
+## Dipendenze
 
 Non c'è una seconda milestone: le dipendenze che contano sono fra le issue.
 
@@ -55,10 +48,10 @@ verificate su un preview con la CMP attiva **prima** di scrivere codice.
 
 ## Milestone 1 — Difetti verificati e fondamenta mancanti
 
-**Source:** bespoke — analisi tecnica del 2026-09-03, corretta e ampliata dal
+**Fonte:** bespoke — analisi tecnica del 2026-09-03, corretta e ampliata dal
 confronto con i sei progetti che discendono dal template
-**GitHub Milestone:** #1 (https://github.com/Elia97/astro-template/milestone/1)
-**Phase 1** · **12 giorni**
+**GitHub Milestone:** #1 (https://github.com/Elia97/vetrina/milestone/1)
+**Fase 1** · **12 gg**
 
 Alla fine di questa milestone il template non spedisce più segnaposto in
 produzione, rende l'identità legale che il mercato italiano richiede, ha un

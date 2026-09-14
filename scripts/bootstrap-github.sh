@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# GitHub-side config no file in the tree can carry. Idempotent — re-run it whenever (HOW_TO_USE.md).
+# GitHub-side config no file in the tree can carry. Idempotent — re-run it whenever (README.md).
 set -euo pipefail
 
 echo "==> 1/4 Labels: dependabot's (without them every dependabot PR logs 'label could not be found') and lighthouse's (the Lighthouse CI workflow runs on a PR only when it carries it)"

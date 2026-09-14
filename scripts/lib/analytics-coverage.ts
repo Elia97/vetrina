@@ -6,10 +6,10 @@ export type Coverage = { event: string; prefix: string; covered: boolean }
 
 const LINK_EVENT = /startsWith\('([^']+)'\)\)\s*return\s*'([^']+)'/g
 
-// Read off the source of src/lib/analytics/link-tracking.ts rather than restated here: the
-// two lists drift the day someone adds a scheme, and nothing would fail.
+// Letto dal sorgente di src/lib/analytics/link-tracking.ts invece di essere riscritto qui: le
+// due liste divergono il giorno in cui qualcuno aggiunge uno schema, e non fallirebbe niente.
 export function extractLinkEvents(source: string): LinkEvent[] {
-  /* v8 ignore next 2 -- both groups always participate when LINK_EVENT matches at all */
+  /* v8 ignore next 2 -- se LINK_EVENT fa match, entrambi i gruppi partecipano sempre */
   return [...source.matchAll(LINK_EVENT)].map(([, prefix, event]) => ({
     prefix: prefix ?? '',
     event: event ?? '',

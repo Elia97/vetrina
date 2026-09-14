@@ -32,7 +32,7 @@ export const PAGES = [
   { path: '/api/health', type: 'application/json' },
 ] as const
 
-// From vercel.json's global `/(.*)` rule. `null` = assert presence only; src/vercel-headers.test.ts pins the values.
+// Dalla regola globale `/(.*)` di vercel.json. `null` = verifica solo la presenza; src/vercel-headers.test.ts fissa i valori.
 export const SECURITY_HEADERS: Record<string, string | null> = {
   'content-security-policy': null,
   'strict-transport-security': null,
@@ -42,10 +42,10 @@ export const SECURITY_HEADERS: Record<string, string | null> = {
   'permissions-policy': null,
 }
 
-/** Must match the rewrite `source` in vercel.json. */
+/** Deve corrispondere al `source` del rewrite in vercel.json. */
 export const BOTID_CHALLENGE = '/149e9513-01fa-4fb0-aad4-566afd725d1b/2d206a39-8ed7-437e-a3be-862e0f06eea3/a-4-a/c.js'
 
-/** Vercel's production alias takes a moment to point at the deployment just uploaded. */
+/** L'alias di produzione di Vercel impiega un attimo a puntare al deployment appena caricato. */
 export async function waitForAlias(
   { get, baseUrl }: SmokeContext,
   sleep: (ms: number) => Promise<void>,
@@ -93,7 +93,7 @@ export async function checkSecurityHeaders({ get, baseUrl }: SmokeContext): Prom
     return pass(check)
   })
 
-  // vercel.json's `has: host = *.vercel.app` noindex on the custom domain drops the site out of every search index.
+  // Il noindex `has: host = *.vercel.app` di vercel.json applicato al dominio vero farebbe sparire il sito da ogni indice.
   const check = 'no x-robots-tag on the production host'
   const robots = response.headers.get('x-robots-tag')
   results.push(robots === null ? pass(check) : fail(check, `present on ${baseUrl}: "${robots}"`))
@@ -111,7 +111,7 @@ export async function checkBotIdChallenge({ get, baseUrl }: SmokeContext): Promi
   }
 }
 
-/** The www → apex 308 from vercel.json: depends on DNS and the Vercel project's domain, not on the deployment. */
+/** Il 308 da www all'apice, da vercel.json: dipende dal DNS e dal dominio del progetto Vercel, non dal deployment. */
 export async function checkCanonicalHost({ get, baseUrl, siteUrl }: SmokeContext): Promise<CheckResult[]> {
   const check = 'www → apex 308'
   if (baseUrl !== siteUrl) return [skip(check, `base URL is not ${siteUrl}`)]
@@ -129,7 +129,7 @@ export async function checkCanonicalHost({ get, baseUrl, siteUrl }: SmokeContext
 export async function checkTrailingSlash({ get, baseUrl }: SmokeContext): Promise<CheckResult[]> {
   const page = PAGES.find(({ path, type }) => type === 'text/html' && path !== '/')
   const check = 'trailing slash → 308'
-  /* v8 ignore next -- PAGES always carries an HTML page other than /, but find() types it optional */
+  /* v8 ignore next -- PAGES porta sempre una pagina HTML diversa da /, ma find() la tipizza facoltativa */
   if (page === undefined) return [skip(check, 'no HTML page other than / to probe')]
   try {
     const response = await get(`${baseUrl}${page.path}/`)

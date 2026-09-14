@@ -20,13 +20,13 @@ export function adoptNativeRelationships(
 }
 
 export function markSelectedOption(listbox: HTMLElement | null, option: HTMLElement): void {
-  /* v8 ignore next -- every caller passes the listbox findSelectElements resolved */
+  /* v8 ignore next -- ogni chiamante passa la listbox che findSelectElements ha risolto */
   for (const item of listbox?.querySelectorAll<HTMLElement>('[role="option"]') ?? []) {
     item.setAttribute('aria-selected', String(item === option))
   }
 }
 
-// select-listbox.astro renders every option `aria-selected="false"` at SSR.
+// select-listbox.astro renderizza ogni opzione con `aria-selected="false"` in SSR.
 export function markSelectedValue(listbox: HTMLElement, value: string): void {
   const current = Array.from(listbox.querySelectorAll<HTMLElement>('[role="option"]')).find(
     (item) => item.dataset.value === value,

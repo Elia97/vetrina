@@ -37,7 +37,7 @@ export const it = {
   'contact.error': 'Invio non riuscito. Riprova tra poco.',
   'contact.genericFieldError': 'Controlla i dati inseriti.',
 
-  // Shown to the user verbatim by src/components/forms/field-errors.ts.
+  // Mostrato all'utente alla lettera da src/components/forms/field-errors.ts.
   'forms.error.firstNameRequired': 'Inserisci il tuo nome.',
   'forms.error.firstNameTooLong': 'Il nome è troppo lungo (massimo 100 caratteri).',
   'forms.error.lastNameRequired': 'Inserisci il tuo cognome.',

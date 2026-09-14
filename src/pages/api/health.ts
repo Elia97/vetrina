@@ -1,7 +1,7 @@
 import type { APIRoute } from 'astro'
 
-// `prerender = false` is what makes `ts` a freshness signal: prerendered, it is stamped once at
-// build time and the endpoint answers 200 forever.
+// È `prerender = false` a rendere `ts` un segnale di freschezza: prerenderizzato, verrebbe
+// stampato una volta in fase di build e l'endpoint risponderebbe 200 per sempre.
 export const prerender = false
 
 export const GET: APIRoute = () =>

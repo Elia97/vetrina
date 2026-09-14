@@ -2,8 +2,9 @@ import { defineMiddleware } from 'astro:middleware'
 
 import { isNoindexPath } from '@/lib/seo/crawl-policy'
 
-// [HARD] Header-setting only. Under the adapter's default middlewareMode a prerendered page
-// runs this once at build time against a synthetic request: branch on it and use `prerender = false`.
+// [HARD] Solo impostazione di intestazioni. Col middlewareMode di default dell'adapter, una
+// pagina prerenderizzata lo esegue una volta in fase di build contro una richiesta sintetica:
+// se serve ramificare, si usa `prerender = false`.
 
 export const onRequest = defineMiddleware(async (context, next) => {
   const response = await next()

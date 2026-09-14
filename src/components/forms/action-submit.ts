@@ -12,7 +12,7 @@ function submitLabel(form: HTMLFormElement, pending: boolean): string {
 
 function setPending(form: HTMLFormElement, pending: boolean): void {
   const submit = form.querySelector<HTMLButtonElement>('button[type="submit"]')
-  /* v8 ignore next -- every action form the template renders carries a submit button */
+  /* v8 ignore next -- ogni form di azione che il template renderizza ha un pulsante di invio */
   if (!submit) return
   submit.disabled = pending
   submit.textContent = submitLabel(form, pending)
@@ -25,8 +25,8 @@ function messageOf(form: HTMLFormElement, error: unknown): string | undefined {
   return form.dataset.i18nGenericError
 }
 
-// A screen reader reads a message twice when both the field slot and the
-// form-level alert carry it, so the alert speaks only for what found no slot.
+// Un lettore di schermo legge due volte un messaggio che sta sia nello slot del campo sia
+// nell'avviso di form, quindi l'avviso parla solo per ciò che non ha trovato uno slot.
 function reportError(form: HTMLFormElement, error: unknown): void {
   if (!isInputError(error)) {
     showFeedback(form, 'error', messageOf(form, error))
@@ -35,7 +35,7 @@ function reportError(form: HTMLFormElement, error: unknown): void {
   const { matched, unmatched } = applyFieldErrors(form, error.fields)
   focusFirstInvalid(form)
   if (matched && unmatched.length === 0) return
-  /* v8 ignore next -- reached only if applyFieldErrors matched nothing AND collected nothing, which its own contract excludes */
+  /* v8 ignore next -- ci si arriva solo se applyFieldErrors non ha trovato nulla E non ha raccolto nulla, che il suo contratto esclude */
   showFeedback(form, 'error', unmatched[0] ?? form.dataset.i18nGenericError)
 }
 
@@ -47,9 +47,9 @@ function showFeedback(form: HTMLFormElement, kind: 'success' | 'error' | 'none',
   if (kind === 'error' && error && message) error.textContent = message
 }
 
-// [HARD] An action fails through two channels: the returned `{ error }` and a throw — a 413
-// over `actionBodySizeLimit`, or a network failure, arrives as the second. Uncaught, the
-// form stays pending with its button disabled and says nothing.
+// [HARD] Un'azione fallisce per due strade: l'`{ error }` restituito e un'eccezione — un 413
+// oltre `actionBodySizeLimit`, o un guasto di rete, arriva per la seconda. Non intercettata, il
+// form resta in attesa col bottone disabilitato e non dice niente.
 async function submitActionForm<P>(form: HTMLFormElement, payload: P, submit: ActionSubmit<P>): Promise<void> {
   setPending(form, true)
   try {
@@ -77,7 +77,7 @@ export function createActionFormBinding<P>(config: {
   async function handleSubmit(event: SubmitEvent): Promise<void> {
     event.preventDefault()
     const form = event.currentTarget
-    /* v8 ignore next -- the listener is bound to the form, so currentTarget is always it */
+    /* v8 ignore next -- il listener è agganciato al form, quindi currentTarget è sempre lui */
     if (!(form instanceof HTMLFormElement)) return
     showFeedback(form, 'none')
     clearFieldErrors(form)

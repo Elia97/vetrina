@@ -16,8 +16,8 @@ function walkHtml(dir: string): string[] {
   return out
 }
 
-// Astro's native `security.csp` hashes styles too, which breaks every scoped `<style>`.
-// Only prerendered HTML is covered: an on-demand route with inline scripts needs its own.
+// La `security.csp` nativa di Astro calcola l'hash anche degli stili, rompendo ogni `<style>`
+// con ambito. Copre solo l'HTML prerenderizzato: docs/guides/deploy-ops.md § Content-Security-Policy.
 export function cspIntegration(): AstroIntegration {
   return {
     name: 'csp-hashes',
@@ -26,8 +26,8 @@ export function cspIntegration(): AstroIntegration {
         const files = walkHtml(fileURLToPath(dir))
         const sources = new Map<string, string>()
         const union = new Set<string>()
-        // The session is governed by the meta CSP of the first page loaded, so every
-        // page carries the union: ClientRouter swaps the `<head>`, not the policy.
+        // La sessione è governata dalla CSP in meta della prima pagina caricata, quindi ogni
+        // pagina porta l'unione: ClientRouter scambia la `<head>`, non la policy.
         for (const file of files) {
           const html = readFileSync(file, 'utf-8')
           sources.set(file, html)

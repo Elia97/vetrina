@@ -1,6 +1,6 @@
 #!/usr/bin/env node
-// Does the live GTM container fire on the events this site emits? Reads the container's
-// public gtm.js — no credentials, nothing written.
+// Il container GTM vivo scatta sugli eventi che questo sito emette? Legge il gtm.js pubblico
+// del container: nessuna credenziale, niente da scrivere.
 
 import { readFileSync } from 'node:fs'
 

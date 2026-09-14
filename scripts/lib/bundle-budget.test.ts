@@ -106,7 +106,7 @@ describe('expectedRoutes', () => {
     expect(expected.patterns[0]?.pattern.test('/a/b/c')).toBe(true)
   })
 
-  // paginate() emits page one as the bare path, so a one-page archive emits only `/news`.
+  // paginate() emette la prima pagina come percorso nudo, quindi un archivio di una pagina emette solo `/news`.
   it('matches a paginated route that emitted page one alone', () => {
     const expected = expectedRoutes([{ file: 'src/pages/news/[...page].astro', source: prerendered }], 'src/pages')
 
@@ -135,7 +135,7 @@ describe('missingRouteFailures', () => {
     ])
   })
 
-  // [HARD] Fail-open: every other assertion iterates the emitted pages.
+  // [HARD] Fail-open: ogni altra asserzione itera sulle pagine emesse.
   it('refuses to pass on an empty dist', () => {
     expect(missingRouteFailures(expected, [], 'dist/client')).toEqual([expect.stringContaining('no .html file')])
   })

@@ -28,13 +28,13 @@ describe('collectInlineScriptHashes', () => {
   })
 
   it('does not mistake data-src/data-type for an external script or a data block', () => {
-    // `data-src`/`data-type` are NOT `src`/`type`: the script is executable and must be hashed.
+    // `data-src` e `data-type` NON sono `src` e `type`: lo script è eseguibile e va incluso nell'hash.
     expect(collectInlineScriptHashes('<script data-src="x">a=1</script>')).toEqual([sha('a=1')])
     expect(collectInlineScriptHashes('<script data-type="application/json">a=2</script>')).toEqual([sha('a=2')])
   })
 
   it('matches the digest the browser expects (known baseline)', () => {
-    // Sanity check: SHA-256 base64 of 'a=1'. If this changes, hashing stopped matching.
+    // Controllo di sanità: SHA-256 base64 di 'a=1'. Se cambia, l'hashing ha smesso di corrispondere.
     expect(sha('a=1')).toBe('sha256-wi/qXXQo5c9H72NUyXySI8ldbc3D4NIwD/eQVrH/PYU=')
   })
 })
@@ -82,8 +82,8 @@ describe('buildCspContent', () => {
   })
 
   it('carries the hosts the CMP and analytics need, on every directive they touch', () => {
-    // Get one of these wrong and the cookie banner never renders in production,
-    // with no error anywhere: a GDPR failure that looks like nothing.
+    // Sbagliarne una e il banner dei cookie non compare mai in produzione, senza un errore
+    // da nessuna parte: un guasto GDPR che non sembra niente.
     expect(directive('script-src')).toContain('https://cdn.iubenda.com')
     expect(directive('script-src')).toContain('https://cs.iubenda.com')
     expect(directive('script-src')).toContain('https://www.googletagmanager.com')

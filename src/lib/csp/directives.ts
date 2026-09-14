@@ -1,12 +1,12 @@
-// Every third-party origin goes here, never in `vercel.json`: a policy that blocks the
-// CMP raises no error, it just renders no cookie banner in production.
+// Ogni origine di terze parti va qui, mai in `vercel.json`: una policy che blocca il CMP non
+// solleva nessun errore, semplicemente in produzione non rende nessun banner dei cookie.
 
 const SCRIPT_HOSTS = ['https://www.googletagmanager.com', 'https://cdn.iubenda.com', 'https://cs.iubenda.com']
 
 const STATIC_DIRECTIVES = [
   "default-src 'self'",
-  // Hashing styles instead would make `'unsafe-inline'` inert and break every scoped
-  // `<style>` Astro emits.
+  // Hashare gli stili renderebbe inerte `'unsafe-inline'` e romperebbe ogni
+  // `<style>` con scope che Astro emette.
   "style-src 'self' 'unsafe-inline' https://cdn.iubenda.com",
   "img-src 'self' data: https://www.googletagmanager.com https://*.google-analytics.com https://cdn.iubenda.com",
   "font-src 'self' data:",

@@ -1,161 +1,170 @@
-# Architecture
+# Architettura
 
 ## Stack
 
-- **Framework**: [Astro](https://astro.build) 7, `output: "static"` (prerendered by default) with `@astrojs/vercel` as the deployment adapter — which is what provides the server, so the contact action and any `prerender = false` route are on-demand regardless of the output mode. Toolchain and the rules that govern it — pnpm/corepack, Node, Biome, `astro/tsconfigs/strictest`, the `prerender = false` opt-out — are in `CLAUDE.md` § Stack and conventions.
-- **`@types/node` is a direct devDependency on purpose**, even though nothing imports it by hand. Vite's `UserConfig` type is peer-keyed on it: left to transitive resolution, pnpm installs one copy of Vite for astro and another for vitest, and the `test` key `vitest/config` augments onto `UserConfig` never reaches the type `getViteConfig()` accepts — `vitest.config.ts` then fails to typecheck with "'test' does not exist in type 'UserConfig'". Declaring it pins one peer for both. Don't drop it as unused.
-- **Deploy**: Vercel. Production ships only from a release tag, never from a push to `main` — `scripts/vercel-ignore-build.sh` is wired into Vercel's Ignored Build Step, so the git integration only ever produces previews. See `docs/guides/deploy-ops.md` § Deploy model.
-- **Images**: local assets go under `src/assets/**` — a folder the template doesn't ship, since it has no images of its own; create it with the first one, and add `sharp` then. `biome.json` already excludes `src/assets/**/*.svg` from formatting. See `docs/guides/rendering-performance.md` § Images.
-- **Quality gates**: four, each covering a moment the others don't; nothing reaches production without passing all four. See `docs/guides/deploy-ops.md` § The gate chain.
-- **Abuse protection**: three layers on the public action, cheapest-first — an in-app honeypot, an in-memory rate limit, and Vercel BotID Basic (observe-only until `BOTID_ENFORCE=true`). See `docs/guides/forms-email.md` § Abuse protection.
-- **Crawl policy**: `src/lib/seo/crawl-policy.ts` is the single source of truth for what stays out of search — read by the sitemap filter, `robots.txt` and the middleware. See `docs/guides/seo.md` § Sitemap & robots.
-- **Consent and analytics**: off unless configured — without **both** a GTM container id and an iubenda site id the layout renders no CMP, no tag and no cookie. Turning it on requires widening the CSP in `vercel.json`. See `docs/guides/deploy-ops.md` § Tracking & Consent Mode v2.
-- **Function region**: `fra1` (`vercel.json`). Left unset, Vercel defaults to `iad1` and every SSR route and action round-trips across the Atlantic.
+- **Framework**: [Astro](https://astro.build) 7, `output: "static"` (prerenderizzato di default) con `@astrojs/vercel` come adapter di deploy — è lui a fornire il server, quindi l'azione di contatto e ogni rotta `prerender = false` sono on-demand a prescindere dalla modalità di output. La toolchain e le regole che la governano — pnpm e corepack, Node, Biome, `astro/tsconfigs/strictest`, la deroga `prerender = false` — stanno in `CLAUDE.md` § Stack e convenzioni.
+- **`@types/node` è una devDependency diretta di proposito**, anche se nessuno lo importa a mano. Il tipo `UserConfig` di Vite lo tiene come peer: lasciato alla risoluzione transitiva, pnpm installa una copia di Vite per astro e un'altra per vitest, e la chiave `test` che `vitest/config` aggiunge a `UserConfig` non arriva mai al tipo che `getViteConfig()` accetta — a quel punto `vitest.config.ts` non passa il typecheck con «'test' does not exist in type 'UserConfig'». Dichiararlo fissa un peer solo per entrambi. Non toglierlo come inutilizzato.
+- **Deploy**: Vercel. La produzione esce solo da un tag di release, mai da un push su `main`: `scripts/vercel-ignore-build.sh` è collegato all'Ignored Build Step di Vercel, quindi l'integrazione git produce soltanto preview. Vedi `docs/guides/deploy-ops.md` § Modello di deploy.
+- **Immagini**: gli asset locali vanno sotto `src/assets/**`, una cartella che il template non porta perché non ha immagini proprie; si crea con la prima, e allora si aggiunge `sharp`. `biome.json` esclude già `src/assets/**/*.svg` dalla formattazione. Vedi `docs/guides/rendering-performance.md` § Immagini.
+- **Gate di qualità**: quattro, e ognuno copre un momento che gli altri non coprono; niente arriva in produzione senza passarli tutti. Vedi `docs/guides/deploy-ops.md` § La catena dei gate.
+- **Protezione dagli abusi**: tre livelli sull'azione pubblica, dal più economico — honeypot applicativo, rate limit in memoria e Vercel BotID Basic (in sola osservazione finché `BOTID_ENFORCE=true`). Vedi `docs/guides/forms-email.md` § Protezione dagli abusi.
+- **Politica di scansione**: `src/lib/seo/crawl-policy.ts` è la fonte unica di verità su cosa resta fuori dalla ricerca, letta dal filtro della sitemap, da `robots.txt` e dal middleware. Vedi `docs/guides/seo.md` § Sitemap e robots.
+- **Consenso e analytics**: spenti se non configurati — senza **entrambi** un id di container GTM e un id di sito iubenda il layout non rende nessun CMP, nessun tag e nessun cookie. Accenderli richiede di allargare la CSP in `vercel.json`. Vedi `docs/guides/deploy-ops.md` § Tracciamento e Consent Mode v2.
+- **Regione delle funzioni**: `fra1` (`vercel.json`). Lasciata vuota, Vercel usa `iad1` e ogni rotta SSR e ogni azione attraversano l'Atlantico due volte.
 
-## Repository layout
+## Struttura del repository
 
-Every path carries one of four roles. The labels exist for what they let you
-**skip**: machinery is roughly two thirds of the tree and a fork never edits it.
+Ogni percorso porta uno di quattro ruoli. Le etichette esistono per quello che permettono di
+**saltare**: la machinery è circa due terzi dell'albero, e un progetto nuovo non la tocca.
 
-- `machinery` — the template working. Open it when something breaks, not before.
-- `config` — the shape stays, the values are yours.
-- `chrome` — page furniture you keep and restyle.
-- `seed` — where your code starts. Not a demo to delete: the generators write
-  into these exact paths, so `pnpm gen:section` extends them.
-- `example` — a worked reference to rewrite or delete outright.
+- `machinery` — il template che funziona. Si apre quando qualcosa si rompe, non prima.
+- `config` — la forma resta, i valori sono tuoi.
+- `chrome` — arredo di pagina che si tiene e si ristila.
+- `seed` — dove comincia il tuo codice. Non è una demo da cancellare: i generatori scrivono
+  esattamente in questi percorsi, quindi `pnpm gen:section` li estende.
+- `example` — un riferimento svolto, da riscrivere o cancellare del tutto.
 
-`seed` and `example` are the distinction worth getting right, because they pull
-in opposite directions. `src/content/homepage/hero.yml` is example — real copy
-replaces it. `src/lib/schemas/homepage/` is seed — `gen:section` adds a file to
-that folder and injects into the barrel next to it. Deleting a seed path doesn't
-declutter the fork, it breaks a generator.
+`seed` ed `example` sono la distinzione che vale la pena capire, perché tirano in direzioni
+opposte. `src/content/homepage/hero.yml` è example: il copy vero lo sostituisce.
+`src/lib/schemas/homepage/` è seed: `gen:section` aggiunge un file in quella cartella e inietta nel
+barrel accanto. Cancellare un percorso seed non sfoltisce il progetto, rompe un generatore.
 
 ```text
 src/
-  pages/       # file-based routing                                     example
-               #   robots.txt, site.webmanifest, 404, 500               machinery
-  layouts/     # main.astro: document shell (lang, head, chrome)        chrome
+  pages/       # routing basato sui file                                 example
+               #   robots.txt, site.webmanifest, 404, 500                machinery
+  layouts/     # main.astro: guscio del documento (lang, head, chrome)   chrome
   components/
-    head/      # metadata, icons, manifest link, pre-paint scripts      machinery
-    ui/        # design system (cva + cn), zero client JS               machinery
-    forms/     # submit binder, field errors, honeypot, BotID           machinery
-    layout/    # header, footer, mobile nav, skip-link                  chrome
-    contact/   # worked reference: an action-backed form                example
-    legal/     # worked reference: a legal page                         example
-    home/      # a homepage section                                     example
-  lib/         # logic without markup — leaf layers (rule below)
-    seo/       #   json-ld, crawl-policy, manifest                      machinery
-    forms/     #   honeypot, honeypot-schema, rate-limit, form-fields   machinery
-    overlay/   #   trap-focus, scroll-lock                              machinery
-    motion/    #   client-side motion lifecycle                         machinery
-    a11y/      #   route-focus (post-swap focus reset)                  machinery
-    consent/   #   consent gate + iubenda CMP                           machinery
-    analytics/ #   GTM behind the gate, dataLayer bridge                machinery
-    legal/     #   hosted legal documents (iubenda)                     machinery
-    content/   #   locale-aware collection reader                       machinery
-    vendor/    #   third-party clients (brevo)                          machinery
-    schemas/   #   content collection schemas                           seed
-    site.ts    #   site identity, SSoT                                  config
-    company.ts #   legal entity, SSoT                                   config
-    utils.ts   #   cn()                                                 machinery
-    contact.ts, homepage.ts # the worked example's domain modules       seed
-  types/       # ambient Window declarations for the browser globals    machinery
-  i18n/        # href/path/route-segments/translate/ui                  machinery
-               #   strings/<locale>.ts                                  config
-  actions/     # the contact action; handlers exported by name so the
-               #   orchestration is testable                            seed
-  content/     # collection data                                        example
-  styles/      # tokens.css — the rebrand surface                       config
-               #   light/dark/globals                                   machinery
-  middleware.ts # X-Robots-Tag for non-HTML SSR responses               machinery
-test/          # test-only infra, never bundled                         machinery
-  stubs/       # the astro:* virtual modules, resolved through vitest aliases
-  helpers/     # shared fixtures and mocks (action handlers)
-  container.ts # Container API render helpers for .astro components
-public/        # static assets, served as-is (favicons, og-default.png placeholder)
-docs/          # planning docs for whichever project is built from this template:
-               #   PROJECT (the client's voice) · DECISIONS · ROADMAP (carries the days)
-               #   ESTIMATE.md and MEETING-*.md sit here too, untracked by design
-  sources/     # the client's own material — brief, attachments, transcripts. Tracked: it is
-               #   what PROJECT.md is read from, and the only defence against re-reading it
-  guides/      # domain-specific pattern references, consulted by the vertical agents (see below)
-  milestone-templates/ # reusable milestone blueprints (see docs/milestone-templates/README.md)
-  proposal-templates/  # blueprints for the two untracked pre-approval documents
-scripts/       # operational tooling — never imported by src/
-  lib/         # pure logic split out of a script so vitest can cover it
-  gen/         # plop generators (page/component/collection/section) + ts-morph injection
-  templates/   # .hbs templates the generators render
-plopfile.mjs   # CLI harness: `pnpm gen` / `pnpm gen:<name>`
+    head/      # metadati, icone, manifest, script pre-paint             machinery
+    ui/        # design system (cva + cn), zero JS lato client           machinery
+    forms/     # binder di invio, errori di campo, honeypot, BotID       machinery
+    layout/    # header, footer, nav mobile, skip-link                   chrome
+    contact/   # riferimento svolto: un form dietro un'azione            example
+    legal/     # riferimento svolto: una pagina legale                   example
+    home/      # una sezione di homepage                                 example
+  lib/         # logica senza markup — strati foglia (regola sotto)
+    seo/       #   json-ld, crawl-policy, manifest                       machinery
+    forms/     #   honeypot, honeypot-schema, rate-limit, form-fields    machinery
+    overlay/   #   trap-focus, scroll-lock                               machinery
+    motion/    #   ciclo di vita delle animazioni lato client            machinery
+    a11y/      #   route-focus (ripristino del focus dopo lo swap)       machinery
+    consent/   #   gate del consenso e CMP iubenda                       machinery
+    analytics/ #   GTM dietro il gate, ponte verso dataLayer             machinery
+    legal/     #   documenti legali ospitati (iubenda)                   machinery
+    content/   #   lettore di collection consapevole della lingua        machinery
+    vendor/    #   client di terze parti (brevo)                         machinery
+    schemas/   #   schemi delle content collection                       seed
+    site.ts    #   identità del sito, fonte unica                        config
+    company.ts #   soggetto giuridico, fonte unica                       config
+    utils.ts   #   cn()                                                  machinery
+    contact.ts, homepage.ts # i moduli di dominio dell'esempio svolto    seed
+  types/       # dichiarazioni ambient di Window per i global del browser machinery
+  i18n/        # href, path, route-segments, translate, ui               machinery
+               #   strings/<lingua>.ts                                   config
+  actions/     # l'azione di contatto; gli handler sono esportati per
+               #   nome, così l'orchestrazione è testabile               seed
+  content/     # dati delle collection                                   example
+  styles/      # tokens.css — la superficie del rebranding               config
+               #   light, dark, globals                                  machinery
+  middleware.ts # X-Robots-Tag per le risposte SSR non HTML              machinery
+test/          # infrastruttura di test, mai inclusa nel bundle          machinery
+  stubs/       # i moduli virtuali astro:*, risolti dagli alias di vitest
+  helpers/     # fixture e mock condivisi (handler delle azioni)
+  container.ts # helper della Container API per rendere i componenti .astro
+public/        # asset statici serviti così come sono (favicon, og-default.png segnaposto)
+docs/          # i documenti tecnici del progetto: ROADMAP (milestone, sotto-task, giornate) e
+               #   questo file. Brief, decisioni, stima e verbali stanno nel sistema di lavoro,
+               #   fuori dal repo; i blueprint delle milestone li porta il plugin `metodo`
+  guides/      # riferimenti di pattern per dominio, consultati dagli agenti verticali (sotto)
+scripts/       # strumenti operativi — mai importati da src/
+  lib/         # logica pura estratta da uno script, così vitest la copre
+  gen/         # generatori plop (page, component, collection, section) e iniezione ts-morph
+  templates/   # i template .hbs che i generatori rendono
+plopfile.mjs   # aggancio da riga di comando: `pnpm gen` / `pnpm gen:<nome>`
 .claude/
-  agents/      # vertical subagent definitions
-  commands/    # /milestone (seed issues) + /pr (implement one) commands
+  agents/      # definizioni dei sottoagenti verticali
+  commands/    # /metodo:decisions (i bivi) · /metodo:milestone (l'insieme) · /metodo:pr (una issue)
+  hooks/       # guardrail dell'agente: cosa non può eseguire e cosa non può scrivere
+    lib/       #   parser shell, regole e verdetti — con i loro test
 ```
 
-`src/lib/` groups machinery by the same domains as the guides and the vertical
-agents — `seo/` ↔ `seo.md`, `forms/` ↔ `forms-email.md`, `motion/` ↔
-`rendering-performance.md`, `overlay/` and `a11y/` ↔ `ui-components.md`,
-`content/` ↔ `content-collections.md`, `consent/` + `analytics/` + `legal/` ↔
-`deploy-ops.md`. So the path answers which agent owns a file. The rule for a new
-one: **domain machinery goes in its domain folder; cross-cutting config and the
-seed stay flat.**
+### I domini
 
-What stays flat, and why it isn't an oversight:
+Percorsi, agente e guida coincidono per costruzione, ed è il percorso a dire chi possiede un file.
 
-- `site.ts` and `company.ts` are the two config SSoTs, imported from everywhere —
-  a folder would add a hop to the most-read files in the repo.
-- `utils.ts` is `cn()`, imported by nearly every component.
-- `contact.ts`, `homepage.ts` and `schemas/` stay flat because they are `seed`,
-  not because moving them would be expensive: the plop generators reach them by
-  hardcoded path, and those paths are where a fork's own sections land. Filing
-  them under something like `example/` would have `pnpm gen:section` writing
-  real project code into a folder named after a demo.
+**[HARD] Questa tabella esiste qui e in nessun altro posto.** La leggono `/metodo:milestone` per suggerire
+un agente per issue, `/metodo:pr` per sceglierlo, e `metodo.md` del plugin per dire quale guida serve:
+tutti e tre ci rimandano invece di ricopiarla, perché tre copie da tenere allineate a mano sono tre
+copie che divergono.
 
-**[HARD]** The roles are a reading aid, not an import boundary: `example` code
-imports `machinery` freely, and the layering rules in the next section are what
-actually constrain the direction. Don't turn a label into a lint rule — the
-labels describe intent for a human, and intent is exactly what a fork changes.
+| Dominio | Percorsi | Agente | Guida |
+|---|---|---|---|
+| Content collection, schemi Zod, MDX/Markdown, i18n | `src/content/**`, `src/lib/content/**`, `src/lib/schemas/**` | `content-agent` | `content-collections.md` |
+| Componenti, isole interattive, markup e accessibilità | `src/components/**` (non di contenuto), `src/lib/overlay/**`, `src/lib/a11y/**`, `src/styles/**` | `ui-agent` | `ui-components.md` |
+| Meta tag, JSON-LD, sitemap e robots, OG | `src/lib/seo/**`, `src/components/head/**` | `seo-agent` | `seo.md` |
+| Form, Astro Action, email | `src/actions/**`, `src/emails/**`, `src/lib/forms/**`, `src/lib/vendor/**` | `forms-agent` | `forms-email.md` |
+| Prerender e SSR, immagini, animazioni, bundle | `astro.config.mjs`, `src/lib/motion/**`, `prerender` | `perf-rendering-agent` | `rendering-performance.md` |
+| Vercel, variabili d'ambiente, deploy, consenso | `vercel.json`, `scripts/vercel-ignore-build.sh`, `src/lib/consent/**`, `src/lib/analytics/**`, `src/lib/legal/**` | `ops-agent` | `deploy-ops.md` |
+| Nessuno dei precedenti | refactor generico, tooling | `general-purpose` | — |
 
-## Source layering
+La regola per un dominio nuovo: **la machinery va nella cartella del suo dominio; la configurazione
+trasversale e il seed restano piatti.** E se nasce un dominio, nasce con la sua riga qui.
 
-`src/` is the boundary for everything the app build bundles — runtime code never
-lives outside it, tooling never lives inside it. Within `src/`, dependencies
-flow one way:
+Cosa resta piatto, e perché non è una svista:
 
-- `lib/` — leaf layers: no imports from the rendering tree (no `.astro`, no
-  layouts/pages). `site.ts` is the single source of truth for site metadata and
-  chrome content; `motion/` owns the client-side motion lifecycle.
-- `components/` consume `lib/`. `components/layout/` is the page chrome, driven
-  entirely by `SITE` (nav/CTA/legal/microcopy — no hardcoded content).
-- `layouts/` compose components into the document shell; `pages/` talk to
-  layouts, never to `head.astro` directly.
+- `site.ts` e `company.ts` sono le due fonti uniche di configurazione, importate da ovunque: una
+  cartella aggiungerebbe un salto ai file più letti del repo;
+- `utils.ts` è `cn()`, importato da quasi ogni componente;
+- `contact.ts`, `homepage.ts` e `schemas/` restano piatti perché sono `seed`, non perché spostarli
+  costerebbe: i generatori plop li raggiungono per percorso fisso, e quei percorsi sono dove
+  atterrano le sezioni di un progetto vero. Metterli sotto qualcosa tipo `example/` farebbe scrivere
+  a `pnpm gen:section` del codice di progetto dentro una cartella che si chiama come una demo.
 
-**[HARD]** This is enforced, not just described: `boundaries` in `.fallowrc.jsonc`
-maps these zones and `pnpm exec fallow dead-code` fails on a crossing. The
-direction that matters is the one prose kept losing — a component may not reach
-back into a layout. Doing so inverts composition and makes the component
-unusable inside any other layout, which is exactly how the legal pages had
-drifted before the check existed.
+**[HARD]** I ruoli sono un aiuto alla lettura, non un confine di import: il codice `example` importa
+`machinery` liberamente, e a vincolare la direzione sono le regole di stratificazione della sezione
+seguente. Non trasformare un'etichetta in una regola di lint — le etichette descrivono un'intenzione
+per una persona, ed è esattamente l'intenzione che un progetto nuovo cambia.
 
-## UI primitives — no React/Radix in the base scaffold
+## Stratificazione dei sorgenti
 
-`src/components/ui/` holds native `.astro` primitives (button, badge, alert,
-card, input, textarea) using `cva` variants + `cn()` — shadcn's API shape with
-zero client runtime. This is deliberate: across real projects the friction with
-shadcn-on-Astro came specifically from *stateful, portal-based* Radix
-components inside islands, not from the presentational layer.
+`src/` è il confine di tutto ciò che la build dell'applicazione mette nel bundle: il codice di
+runtime non vive mai fuori di lì, gli strumenti non vivono mai dentro. Dentro `src/` le dipendenze
+vanno in una direzione sola:
 
-If a fork genuinely needs a stateful component (Dialog, Calendar, Accordion),
-bringing in React + Radix **for that specific island** is fine — with these
-known failure modes in mind (hit in production, don't rediscover them):
+- `lib/` — strati foglia: nessun import dall'albero di rendering (niente `.astro`, niente layout o
+  pagine). `site.ts` è la fonte unica dei metadati del sito e dei contenuti della chrome; `motion/`
+  possiede il ciclo di vita delle animazioni lato client.
+- `components/` consuma `lib/`. `components/layout/` è l'arredo di pagina, guidato interamente da
+  `SITE` (nav, CTA, legali, microcopy: nessun contenuto fisso).
+- `layouts/` compone i componenti nel guscio del documento; `pages/` parla ai layout, mai
+  direttamente a `head.astro`.
 
-- Use `client:idle`, not `client:visible`, for portal content that is zero-size
-  while closed — a closed Dialog never intersects, so `client:visible` never
-  hydrates it.
-- Astro's CSP needs `unsafe-inline` in `style-src` (or the `styleDirective`
-  escape hatch) for Radix's runtime-injected styles.
-- Islands don't share state: bridge static markup ↔ island through `data-*`
-  attributes explicitly.
+**[HARD]** Non è solo descritto, è imposto: `boundaries` in `.fallowrc.jsonc` mappa queste zone e
+`pnpm run check:deadcode`, dentro `pnpm run ci`, fallisce su un attraversamento. La direzione che conta è quella che la
+prosa continuava a perdere: un componente non può risalire dentro un layout. Farlo inverte la
+composizione e rende il componente inutilizzabile in qualsiasi altro layout — che è esattamente
+come le pagine legali erano andate alla deriva prima che il controllo esistesse.
 
-## Planning and vertical agents
+## Primitive di interfaccia — niente React o Radix nello scaffold di base
 
-Milestones are seeded as GitHub issues (`/milestone`) and implemented one issue at a time (`/pr <issue-number>`) by the vertical agents in `.claude/agents/` — see `CLAUDE.md` § Planning and vertical agents.
+`src/components/ui/` contiene primitive `.astro` native (button, badge, alert, card, input,
+textarea) costruite con le varianti di `cva` e `cn()`: la forma dell'API di shadcn con zero runtime
+lato client. È una scelta: sui progetti veri l'attrito di shadcn su Astro veniva specificamente dai
+componenti Radix *con stato e basati su portali* dentro le isole, non dallo strato di presentazione.
+
+Se un progetto ha davvero bisogno di un componente con stato (Dialog, Calendar, Accordion), tirare
+dentro React e Radix **per quella singola isola** va bene — tenendo a mente questi modi di fallire
+già noti, incontrati in produzione e da non riscoprire:
+
+- usa `client:idle`, non `client:visible`, per il contenuto di un portale che da chiuso ha
+  dimensione zero: un Dialog chiuso non interseca mai niente, quindi `client:visible` non lo idrata;
+- la CSP di Astro ha bisogno di `unsafe-inline` in `style-src` (o della via d'uscita
+  `styleDirective`) per gli stili che Radix inietta a runtime;
+- le isole non condividono stato: il ponte fra markup statico e isola si fa esplicitamente con
+  attributi `data-*`.
+
+## Pianificazione e agenti verticali
+
+Le milestone si seminano come issue GitHub (`/metodo:milestone`) e si implementano una issue alla volta
+(`/metodo:pr <numero-issue>`) grazie agli agenti verticali del plugin `metodo` — vedi la sezione «Pianificazione e
+agenti verticali» di `metodo.md`, nel plugin.

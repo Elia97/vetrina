@@ -39,7 +39,7 @@ interface ArticleEntry {
   image?: string | undefined
 }
 
-/** schema.org Article — one per detail URL, alongside its own BreadcrumbList. @public */
+/** schema.org Article — uno per URL di dettaglio, accanto al suo BreadcrumbList. @public */
 export function buildArticle({ headline, description, url, datePublished, image }: ArticleEntry) {
   return {
     '@context': 'https://schema.org',
@@ -67,7 +67,7 @@ export function buildFaqPage(entries: readonly { question: string; answer: strin
   }
 }
 
-/** schema.org BreadcrumbList — pass the trail in order, home first. */
+/** schema.org BreadcrumbList — passa il percorso in ordine, la home per prima. */
 export function buildBreadcrumbList(items: ListEntry[]) {
   return {
     '@context': 'https://schema.org',

@@ -19,8 +19,8 @@ jobs:
       release_created: ${{ steps.release.outputs.release_created }}
       tag_name: ${{ steps.release.outputs.tag_name }}
     steps:
-      # GitHub raises no workflow run on events made with GITHUB_TOKEN, so the release PR gets
-      # no CI until RELEASE_PLEASE_TOKEN is set (HOW_TO_USE.md).
+      # GitHub non fa partire nessun workflow sugli eventi generati col GITHUB_TOKEN, quindi la
+      # release PR resta senza CI finché non c'è RELEASE_PLEASE_TOKEN (README.md).
       - uses: googleapis/release-please-action@v5
         id: release
         with:

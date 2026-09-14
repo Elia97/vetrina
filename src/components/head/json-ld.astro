@@ -1,6 +1,6 @@
 ---
-// The left angle bracket is escaped so content can't close the script element
-// early — never `set:html` raw JSON.stringify output.
+// La parentesi angolare aperta è codificata così il contenuto non può chiudere in anticipo
+// l'elemento script: mai `set:html` sull'output grezzo di JSON.stringify.
 interface Props {
   items?: Record<string, unknown>[] | undefined
 }

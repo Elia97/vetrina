@@ -6,8 +6,8 @@ import { HONEYPOT_FIELD } from '@/lib/forms/honeypot'
 import { renderContactAutoreply, renderContactNotification } from '@/emails/contact'
 
 const baseRequest: ContactRequest = {
-  // Part of the parsed payload, never of the rendered email — a request that
-  // reaches the renderer has already cleared the decoy.
+  // Fa parte del payload validato, mai dell'email resa: una richiesta che arriva al
+  // renderer ha già superato l'esca.
   [HONEYPOT_FIELD]: '',
   firstName: 'Mario',
   lastName: 'Rossi',

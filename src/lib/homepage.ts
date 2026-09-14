@@ -11,8 +11,8 @@ export type HomepageSections = { [S in SectionId]: SectionData<S> }
 export async function getHomepageSections(locale?: string): Promise<HomepageSections> {
   const { pick } = await loadLocalizedSections('homepage', locale)
 
-  // INJECTION POINT for `pnpm gen:section` (ts-morph): new sections add their
-  // pick() here — the generator asserts on this return object literal.
+  // INJECTION POINT per `pnpm gen:section` (ts-morph): le sezioni nuove aggiungono qui il
+  // loro pick() — il generatore verifica questo letterale di ritorno.
   return {
     hero: pick('hero'),
   }

@@ -6,8 +6,8 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { cspIntegration } from '@/lib/csp/integration'
 
-// Exercised against a real directory rather than a mocked fs: what this hook has to
-// get right is the walk and the write-back, and a mock would assert the mock.
+// Provato contro una directory vera invece che su un filesystem simulato: quello che questo
+// hook deve azzeccare è l'attraversamento e la riscrittura, e un mock verificherebbe il mock.
 
 let root = ''
 
@@ -28,7 +28,7 @@ function run(dir: URL): { info: ReturnType<typeof vi.fn> } {
   const hook = cspIntegration().hooks['astro:build:done']
   if (!hook)
     throw new Error('the integration declares no astro:build:done hook')
-    // The hook takes the full Astro payload; only `dir` and `logger` are read here.
+    // L'hook riceve l'intero payload di Astro; qui si leggono solo `dir` e `logger`.
   ;(hook as unknown as (options: { dir: URL; logger: { info: (m: string) => void } }) => void)({
     dir,
     logger: { info },
@@ -58,8 +58,8 @@ describe('cspIntegration', () => {
   })
 
   it('gives every page the union of the hashes, not just its own', () => {
-    // ClientRouter swaps the head, not the policy: the meta CSP of the page loaded
-    // first governs the whole session.
+    // ClientRouter scambia la head, non la policy: la CSP in meta della prima pagina
+    // caricata governa tutta la sessione.
     const dir = buildOutput({
       'a.html': '<head><meta charset="utf-8"><script>a=1</script></head>',
       'b.html': '<head><meta charset="utf-8"><script>b=2</script></head>',

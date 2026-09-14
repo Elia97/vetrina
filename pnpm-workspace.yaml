@@ -6,12 +6,12 @@ allowBuilds:
 minimumReleaseAgeExclude:
   - '@astrojs/vercel@11.0.1'
 
-# TODO: drop each override once its parent ships a release that resolves the advisory
-# on its own — `pnpm why <pkg>` says when.
+# TODO: togliere ogni override quando il pacchetto che lo tira dentro pubblica una release che
+# risolve l'avviso da sé — `pnpm why <pkg>` dice quando.
 overrides:
-  # GHSA-9wv6-86v2-598j — backtracking regex, transitive through
-  # @astrojs/vercel > @vercel/routing-utils and bundled into the deployed function.
+  # GHSA-9wv6-86v2-598j — regex con backtracking, transitiva da
+  # @astrojs/vercel > @vercel/routing-utils e inclusa nella funzione deployata.
   path-to-regexp@<6.3.0: '>=6.3.0'
-  # GHSA-mh99-v99m-4gvg + GHSA-rgw5-rvv9-x895 — unbounded expansion. Dev-only
-  # (ts-morph > @ts-morph/common > minimatch), never in the shipped bundle.
+  # GHSA-mh99-v99m-4gvg e GHSA-rgw5-rvv9-x895 — espansione senza limiti. Solo in sviluppo
+  # (ts-morph > @ts-morph/common > minimatch), mai nel bundle consegnato.
   brace-expansion@<5.0.9: '>=5.0.9'
