@@ -10,7 +10,7 @@ export type Expectations = {
   ssr: string[]
 }
 
-// 20 KB è ~2× la rotta più pesante misurata nello starter (/contatti, ~10 KB gz).
+// 20 KB è ~1,5× la rotta più pesante misurata nello starter (/contatti, 13,4 KB gz).
 const DEFAULT_BUDGET: Budget = { label: 'default', matches: () => true, maxGzip: 20 * 1024 }
 
 const BUDGETS: readonly Budget[] = [DEFAULT_BUDGET]
