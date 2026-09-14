@@ -1,7 +1,7 @@
-# astro-template
+# vetrina
 
 Template Astro per siti vetrina, uso personale e freelance: per ogni progetto nuovo si riparte da qui
-invece di lavorare dentro `astro-template` stesso.
+invece di lavorare dentro `vetrina` stesso. È il primo dei tre template del sistema, con `ecommerce` e `monorepo`.
 
 Il metodo di lavoro — commit e PR, commenti, lingua, pianificazione, agenti verticali — non sta in
 questo repository: è il plugin `metodo` e `metodo.md` del repository `metodo-astro`, che il sistema
@@ -41,7 +41,7 @@ commerciale: brief, decisioni, stima e verbali stanno nel sistema; qui si scrive
    (`git remote set-url origin …`) e verifica che l'app Vercel sia installata sull'organizzazione
    di destinazione, altrimenti il collegamento git del progetto si rompe.
 7. Riallinea lo scaffold al template corrente, che nel frattempo è cambiato: `git remote add
-   template git@github.com:Elia97/astro-template.git`, `git fetch template`, `git diff HEAD
+   template git@github.com:Elia97/vetrina.git`, `git fetch template`, `git diff HEAD
    template/main -- ':!docs' ':!README.md' ':!.github/dependabot.yml'`. Le storie sono scorrelate:
    si legge il diff e si riportano a mano le differenze che contano, non si fa merge.
 8. `bash scripts/bootstrap-github.sh` da dentro il clone (serve `gh` autenticato): label di
@@ -73,7 +73,7 @@ commerciale: brief, decisioni, stima e verbali stanno nel sistema; qui si scrive
 La superficie completa, in un posto solo — la milestone `foundations` la distribuisce su tre issue:
 
 - `package.json#name` (e `release-please-config.json`): trapela nel changelog che release-please
-  genera, quindi deve corrispondere al progetto nuovo e non restare `astro-template`;
+  genera, quindi deve corrispondere al progetto nuovo e non restare `vetrina`;
 - `src/lib/site.ts`: nome, url, descrizione, voci di nav, CTA e legali (la chrome si rende da qui, e
   le voci portano chiavi i18n, non testo);
 - `src/styles/tokens.css`: l'UNICO file da toccare per il rebranding visivo (primitive oklch grezze;

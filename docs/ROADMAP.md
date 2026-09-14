@@ -50,7 +50,7 @@ verificate su un preview con la CMP attiva **prima** di scrivere codice.
 
 **Fonte:** bespoke — analisi tecnica del 2026-09-03, corretta e ampliata dal
 confronto con i sei progetti che discendono dal template
-**GitHub Milestone:** #1 (https://github.com/Elia97/astro-template/milestone/1)
+**GitHub Milestone:** #1 (https://github.com/Elia97/vetrina/milestone/1)
 **Fase 1** · **12 gg**
 
 Alla fine di questa milestone il template non spedisce più segnaposto in
