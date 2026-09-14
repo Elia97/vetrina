@@ -7,17 +7,19 @@ afterEach(() => {
   vi.unstubAllEnvs()
 })
 
-const righeStampate = (fn: () => void): string[] => {
-  const righe: string[] = []
-  vi.spyOn(console, 'log').mockImplementation((riga: string) => {
-    righe.push(riga)
+const printedLines = (fn: () => void): string[] => {
+  const lines: string[] = []
+  vi.spyOn(console, 'log').mockImplementation((line: string) => {
+    lines.push(line)
   })
   fn()
-  return righe
+  return lines
 }
 
 describe('cliOptions', () => {
   it('parte dai default quando non riceve argomenti', () => {
+    vi.stubEnv('GITHUB_ACTIONS', undefined)
+
     expect(cliOptions([])).toMatchObject({
       diff: false,
       strict: false,
@@ -54,20 +56,20 @@ describe('isGenerated', () => {
 })
 
 describe('exitCode', () => {
-  const errore = {
+  const errorFinding = {
     path: 'a.ts',
     message: 'x',
     severity: 'error' as const,
   }
-  const avviso = { path: 'a.ts', message: 'x', severity: 'warning' as const }
+  const warningFinding = { path: 'a.ts', message: 'x', severity: 'warning' as const }
 
   it('esce 1 sugli errori, sempre', () => {
-    expect(exitCode([errore], false)).toBe(1)
+    expect(exitCode([errorFinding], false)).toBe(1)
   })
 
   it('gli avvisi bloccano solo con --strict', () => {
-    expect(exitCode([avviso], false)).toBe(0)
-    expect(exitCode([avviso], true)).toBe(1)
+    expect(exitCode([warningFinding], false)).toBe(0)
+    expect(exitCode([warningFinding], true)).toBe(1)
   })
 
   it('nessun ritrovamento, nessun errore', () => {
@@ -79,44 +81,44 @@ describe('printFindings', () => {
   const finding = {
     path: 'src/a.ts',
     line: 12,
-    message: 'commento troppo lungo',
+    message: 'comment too long',
     severity: 'error' as const,
   }
 
   it('in formato testo mostra percorso, riga e messaggio', () => {
-    const [riga] = righeStampate(() => printFindings([finding], 'text'))
-    expect(riga).toContain('src/a.ts:12')
-    expect(riga).toContain('commento troppo lungo')
+    const [line] = printedLines(() => printFindings([finding], 'text'))
+    expect(line).toContain('src/a.ts:12')
+    expect(line).toContain('comment too long')
   })
 
   it('omette la riga quando il ritrovamento riguarda il file intero', () => {
-    const { line: _riga, ...senzaRiga } = finding
-    const [riga] = righeStampate(() => printFindings([senzaRiga], 'text'))
-    expect(riga).toContain('src/a.ts:')
-    expect(riga).not.toMatch(/src\/a\.ts:\d/)
+    const { line: _line, ...withoutLine } = finding
+    const [line] = printedLines(() => printFindings([withoutLine], 'text'))
+    expect(line).toContain('src/a.ts:')
+    expect(line).not.toMatch(/src\/a\.ts:\d/)
   })
 
   it('in formato github emette un comando di annotazione', () => {
-    const [riga] = righeStampate(() => printFindings([finding], 'github'))
-    expect(riga).toBe('::error file=src/a.ts,line=12::commento troppo lungo')
+    const [line] = printedLines(() => printFindings([finding], 'github'))
+    expect(line).toBe('::error file=src/a.ts,line=12::comment too long')
   })
 
   it('in github omette il parametro line quando il ritrovamento è sul file', () => {
-    const { line: _riga, ...senzaRiga } = finding
-    const [riga] = righeStampate(() => printFindings([senzaRiga], 'github'))
-    expect(riga).toBe('::error file=src/a.ts::commento troppo lungo')
+    const { line: _line, ...withoutLine } = finding
+    const [line] = printedLines(() => printFindings([withoutLine], 'github'))
+    expect(line).toBe('::error file=src/a.ts::comment too long')
   })
 
   it('distingue gli avvisi dagli errori con un segno diverso', () => {
-    const avviso = { ...finding, severity: 'warning' as const }
-    const [riga] = righeStampate(() => printFindings([avviso], 'text'))
-    expect(riga).toContain('·')
-    expect(riga).not.toContain('✗')
+    const warningFinding = { ...finding, severity: 'warning' as const }
+    const [line] = printedLines(() => printFindings([warningFinding], 'text'))
+    expect(line).toContain('·')
+    expect(line).not.toContain('✗')
   })
 
   it('codifica i caratteri che romperebbero il comando di annotazione', () => {
-    const [riga] = righeStampate(() => printFindings([{ ...finding, message: 'prima\nseconda 50% in più' }], 'github'))
-    expect(riga).toContain('prima%0Aseconda 50%25 in più')
+    const [line] = printedLines(() => printFindings([{ ...finding, message: 'first\nsecond 50% more' }], 'github'))
+    expect(line).toContain('first%0Asecond 50%25 more')
   })
 })
 

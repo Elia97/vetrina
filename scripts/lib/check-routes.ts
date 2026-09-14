@@ -16,9 +16,9 @@ const IGNORED = [
   /^docs\/sources\//,
 ]
 
-const PERCORSO = /`((?:docs|src|scripts|test|public|\.claude|\.github)\/[A-Za-z0-9._/-]+\.[a-z]+)`/g
+const PATH_REFERENCE = /`((?:docs|src|scripts|test|public|\.claude|\.github)\/[A-Za-z0-9._/-]+\.[a-z]+)`/g
 // `file.md` § Titolo — la virgola non delimita, perché i titoli la contengono.
-const SEZIONE = /`([A-Za-z0-9._/-]+\.md)`\s*§\s*([^.·|)§]{1,80})/g
+const SECTION_REFERENCE = /`([A-Za-z0-9._/-]+\.md)`\s*§\s*([^.·|)§]{1,80})/g
 
 const isIgnored = (path: string) => IGNORED.some((re) => re.test(path))
 
@@ -68,22 +68,22 @@ export function findingsFor(path: string, source: string): Hit[] {
   // uno, quindi gli offset restano quelli del sorgente e la riga si conta da lì.
   const flat = source.replace(/\n/g, ' ')
   const lineOf = (index: number) => source.slice(0, index).split('\n').length
-  const mancanti = new Set<string>()
+  const missingTargets = new Set<string>()
 
-  for (const match of flat.matchAll(PERCORSO)) {
+  for (const match of flat.matchAll(PATH_REFERENCE)) {
     const target = match[1]
     if (!target || isIgnored(target) || target.includes('*') || existsSync(target)) continue
-    mancanti.add(target)
+    missingTargets.add(target)
     findings.push({ line: lineOf(match.index), message: `percorso che non esiste: ${target}` })
   }
 
-  for (const match of flat.matchAll(SEZIONE)) {
+  for (const match of flat.matchAll(SECTION_REFERENCE)) {
     const [, file, title] = match
     /* v8 ignore next -- i due gruppi sono obbligatori nella regex, ma noUncheckedIndexedAccess pretende la guardia */
     if (!file || !title) continue
     const line = lineOf(match.index)
     const target = resolveTarget(path, file)
-    if (isIgnored(target) || mancanti.has(target)) continue
+    if (isIgnored(target) || missingTargets.has(target)) continue
     if (!existsSync(target)) {
       findings.push({ line, message: `sezione in un file che non esiste: ${target}` })
       continue

@@ -90,29 +90,29 @@ describe('styleOf', () => {
     ['globals.css', 'css'],
     ['Card.astro', 'astro'],
     ['index.ts', 'slash'],
-  ])('%s usa i commenti in stile %s', (file, atteso) => {
-    expect(styleOf(file)).toBe(atteso)
+  ])('%s usa i commenti in stile %s', (file, expected) => {
+    expect(styleOf(file)).toBe(expected)
   })
 })
 
 describe('aperture di commento per stile', () => {
-  const conta = (file: string, testo: string) => report(file, lines(testo)).comments
+  const commentCount = (file: string, text: string) => report(file, lines(text)).comments
 
   it('in CSS le due barre non aprono un commento', () => {
-    expect(conta('a.css', '// non è un commento\n')).toBe(0)
-    expect(conta('a.css', '/* questo sì */\n')).toBe(1)
+    expect(commentCount('a.css', '// non è un commento\n')).toBe(0)
+    expect(commentCount('a.css', '/* questo sì */\n')).toBe(1)
   })
 
   it('riconosce il commento JSX, che apre con una graffa', () => {
-    expect(conta('a.tsx', '{/* commento */}\n')).toBe(1)
+    expect(commentCount('a.tsx', '{/* commento */}\n')).toBe(1)
   })
 
   it('in uno script shell lo shebang non è un commento', () => {
-    expect(conta('a.sh', '#!/usr/bin/env bash\n# questo sì\n')).toBe(1)
+    expect(commentCount('a.sh', '#!/usr/bin/env bash\n# questo sì\n')).toBe(1)
   })
 
   it('in Astro riconosce il commento del markup', () => {
-    expect(conta('a.astro', '<!-- commento -->\n')).toBe(1)
+    expect(commentCount('a.astro', '<!-- commento -->\n')).toBe(1)
   })
 })
 
@@ -120,7 +120,7 @@ describe('ordine dei ritrovamenti', () => {
   // Il report ordina per riga: senza, un blocco lungo trovato dopo un verbo al passato uscirebbe
   // prima di lui, e chi legge l'elenco non ritrova la sequenza del file.
   it("elenca i problemi nell'ordine in cui compaiono nel file", () => {
-    const sorgente = [
+    const source = [
       '// Prima riga di prosa lunga che continua',
       '// su una seconda riga di prosa',
       '// e anche su una terza riga di prosa.',
@@ -129,8 +129,8 @@ describe('ordine dei ritrovamenti', () => {
       'const b = 2',
     ].join('\n')
 
-    const righe = report('a.ts', lines(sorgente)).findings.map((f) => f.line)
-    expect(righe).toEqual([...righe].sort((x, y) => x - y))
-    expect(righe.length).toBeGreaterThan(1)
+    const lineNumbers = report('a.ts', lines(source)).findings.map((f) => f.line)
+    expect(lineNumbers).toEqual([...lineNumbers].sort((x, y) => x - y))
+    expect(lineNumbers.length).toBeGreaterThan(1)
   })
 })

@@ -9,8 +9,8 @@ describe('isScanned', () => {
     ['src/lib/site.ts', false],
     ['docs/sources/brief.md', false],
     ['docs/stima.pdf', false],
-  ])('%s → %s', (path, atteso) => {
-    expect(isScanned(path)).toBe(atteso)
+  ])('%s → %s', (path, expected) => {
+    expect(isScanned(path)).toBe(expected)
   })
 })
 

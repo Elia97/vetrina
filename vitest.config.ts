@@ -26,6 +26,7 @@ export default getViteConfig({
     },
   },
   test: {
+    setupFiles: ['./test/setup.ts'],
     // I render della Container API vogliono questo default: la nota sta in test/container.ts.
     environment: 'node',
     // [HARD] Astro instrada ogni file in `src/pages/**`, quindi un test lì si costruisce come
