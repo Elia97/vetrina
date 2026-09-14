@@ -25,13 +25,16 @@ export function roles(file: string, palette: Record<string, Oklch>): Record<stri
   return found
 }
 
-export function role(theme: Record<string, Oklch>, name: string): Oklch {
+export function role(theme: Record<string, Oklch>, name: string, file: string): Oklch {
   const value = theme[name]
-  if (!value) throw new Error(`--${name} non è definito in questo tema`)
+  if (!value)
+    throw new Error(
+      `--${name} non si risolve: manca in src/styles/${file}, o la primitiva che nomina non è un oklch() di src/styles/tokens.css`,
+    )
   return value
 }
 
-// oklch → Oklab → LMS → sRGB lineare, secondo la specifica CSS Color 4.
+// Le costanti sono quelle di oklab_to_linear_srgb in https://bottosson.github.io/posts/oklab/.
 function linearRgb([l, c, hDeg]: Oklch): readonly [number, number, number] {
   const h = (hDeg * Math.PI) / 180
   const a = c * Math.cos(h)

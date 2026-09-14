@@ -9,9 +9,10 @@ const dark = { ...light, ...roles('dark.css', palette) }
 
 describe('SITE.themeColor', () => {
   it.each([
-    ['light', light],
-    ['dark', dark],
-  ] as const)('è il --background del tema %s', (name, tokens) => {
-    expect(hex(role(tokens, 'background'))).toBe(SITE.themeColor[name])
+    ['light', light, 'light.css'],
+    ['dark', dark, 'dark.css'],
+  ] as const)('è il --background del tema %s', (name, tokens, file) => {
+    const expected = hex(role(tokens, 'background', file))
+    expect(SITE.themeColor[name], `SITE.themeColor.${name} in src/lib/site.ts: scrivici ${expected}`).toBe(expected)
   })
 })
