@@ -2,12 +2,12 @@
 
 > Elenco del codice da scrivere. Modello: **una milestone = una GitHub Milestone = N issue = N PR**
 > (una issue = una PR = un commit squash). Ogni sezione `## Milestone N` è **bespoke**; le issue si
-> implementano con `/pr <issue-number>`, mai inline da questo file.
+> implementano con `/metodo:pr <issue-number>`, mai inline da questo file.
 >
 > Due modi per aggiungere una milestone. Il **percorso bespoke**: si scrive una sezione
-> `## Milestone N` qui sotto, poi `/milestone <N>` la semina — è la strada per tutto ciò che è
-> pianificato in anticipo. Il **percorso rapido**: `/milestone <nome-template>` istanzia un
-> blueprint di `docs/milestone-templates/*.md` e lo **accoda** come milestone successiva, per i
+> `## Milestone N` qui sotto, poi `/metodo:milestone <N>` la semina — è la strada per tutto ciò che è
+> pianificato in anticipo. Il **percorso rapido**: `/metodo:milestone <nome-template>` istanzia un
+> blueprint del plugin `metodo` e lo **accoda** come milestone successiva, per i
 > blueprint a cui si arriva a metà progetto e mai contro una sezione già scritta qui, dove creerebbe
 > un doppione un numero più avanti.
 >
@@ -15,8 +15,8 @@
 > conta **mezza giornata per pagina**. In entrambi i casi è lo **sforzo minimo** — le giornate
 > effettivamente maturate si consolidano a fine periodo. Si stima per milestone, mai per sotto-task:
 > sommare le stime dei sotto-task compra precisione apparente e costa accuratezza vera.
-> `docs/ESTIMATE.md` (non tracciato) è derivato dalla colonna `gg` qui sotto e non si scrive mai
-> prima.
+> La stima, che è un'offerta nel sistema e non un file di questo repo, è derivata dalla colonna
+> `gg` qui sotto e non si scrive mai prima.
 
 ## Status
 

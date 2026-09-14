@@ -16,7 +16,7 @@ Closes #<!-- N -->
 - [ ] **[HARD]** `pnpm run build` verde
 - [ ] **[HARD]** Preview Vercel verde
 - [ ] **[HARD]** Nessun segreto committato (diff verificato)
-- [ ] Documentazione aggiornata dove serviva (mai `PROJECT.md`)
+- [ ] Documentazione aggiornata dove serviva (mai il brief del cliente)
 - [ ] Test per la logica nuova (se applicabile)
 - [ ] Lighthouse mobile ≥ 95 (se tocca pagine pubbliche)
 

@@ -72,15 +72,10 @@ test/          # infrastruttura di test, mai inclusa nel bundle          machine
   helpers/     # fixture e mock condivisi (handler delle azioni)
   container.ts # helper della Container API per rendere i componenti .astro
 public/        # asset statici serviti così come sono (favicon, og-default.png segnaposto)
-docs/          # documenti di pianificazione del progetto costruito da questo template:
-               #   PROJECT (la voce del cliente) · DECISIONS · ROADMAP (porta le giornate)
-               #   qui stanno anche ESTIMATE.md e MEETING-*.md, non tracciati per scelta
-  TASK-CONTEXT.md # cosa leggere per quale compito, e cosa saltare
-  sources/     # il materiale del cliente — brief, allegati, trascrizioni. Tracciato: è la fonte
-               #   da cui si legge PROJECT.md, e l'unica difesa dal doverlo rileggere
+docs/          # i documenti tecnici del progetto: ROADMAP (milestone, sotto-task, giornate) e
+               #   questo file. Brief, decisioni, stima e verbali stanno nel sistema di lavoro,
+               #   fuori dal repo; i blueprint delle milestone li porta il plugin `metodo`
   guides/      # riferimenti di pattern per dominio, consultati dagli agenti verticali (sotto)
-  milestone-templates/ # impalcature riutilizzabili (vedi docs/milestone-templates/README.md)
-  proposal-templates/  # impalcature dei due documenti non tracciati che precedono l'approvazione
 scripts/       # strumenti operativi — mai importati da src/
   lib/         # logica pura estratta da uno script, così vitest la copre
   gen/         # generatori plop (page, component, collection, section) e iniezione ts-morph
@@ -88,7 +83,7 @@ scripts/       # strumenti operativi — mai importati da src/
 plopfile.mjs   # aggancio da riga di comando: `pnpm gen` / `pnpm gen:<nome>`
 .claude/
   agents/      # definizioni dei sottoagenti verticali
-  commands/    # /decisions (i bivi) · /milestone (l'insieme) · /pr (una issue)
+  commands/    # /metodo:decisions (i bivi) · /metodo:milestone (l'insieme) · /metodo:pr (una issue)
   hooks/       # guardrail dell'agente: cosa non può eseguire e cosa non può scrivere
     lib/       #   parser shell, regole e verdetti — con i loro test
 ```
@@ -97,8 +92,8 @@ plopfile.mjs   # aggancio da riga di comando: `pnpm gen` / `pnpm gen:<nome>`
 
 Percorsi, agente e guida coincidono per costruzione, ed è il percorso a dire chi possiede un file.
 
-**[HARD] Questa tabella esiste qui e in nessun altro posto.** La leggono `/milestone` per suggerire
-un agente per issue, `/pr` per sceglierlo, e `docs/TASK-CONTEXT.md` per dire quale guida serve:
+**[HARD] Questa tabella esiste qui e in nessun altro posto.** La leggono `/metodo:milestone` per suggerire
+un agente per issue, `/metodo:pr` per sceglierlo, e `metodo.md` del plugin per dire quale guida serve:
 tutti e tre ci rimandano invece di ricopiarla, perché tre copie da tenere allineate a mano sono tre
 copie che divergono.
 
@@ -170,6 +165,6 @@ già noti, incontrati in produzione e da non riscoprire:
 
 ## Pianificazione e agenti verticali
 
-Le milestone si seminano come issue GitHub (`/milestone`) e si implementano una issue alla volta
-(`/pr <numero-issue>`) grazie agli agenti verticali in `.claude/agents/` — vedi `CLAUDE.md` §
-Pianificazione e agenti verticali.
+Le milestone si seminano come issue GitHub (`/metodo:milestone`) e si implementano una issue alla volta
+(`/metodo:pr <numero-issue>`) grazie agli agenti verticali del plugin `metodo` — vedi la sezione «Pianificazione e
+agenti verticali» di `metodo.md`, nel plugin.

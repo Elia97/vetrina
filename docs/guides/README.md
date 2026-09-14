@@ -1,7 +1,7 @@
 # Guide
 
-Riferimenti di pattern per dominio di questo progetto, consultati dagli agenti verticali in
-`.claude/agents/`.
+Riferimenti di pattern per dominio di questo progetto, consultati dagli agenti verticali del
+plugin `metodo`.
 
 Una guida si scrive solo quando un pattern ha dimostrato di reggere nel lavoro vero, mai in
 anticipo.

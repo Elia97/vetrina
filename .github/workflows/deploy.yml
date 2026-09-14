@@ -39,7 +39,7 @@ jobs:
             echo "configured=true" >> "$GITHUB_OUTPUT"
           else
             echo "configured=false" >> "$GITHUB_OUTPUT"
-            echo "::notice::Vercel secrets not set yet — skipping production deploy. See HOW_TO_USE.md for the setup checklist."
+            echo "::notice::Vercel secrets not set yet — skipping production deploy. See README.md for the setup checklist."
           fi
 
   deploy:

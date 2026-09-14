@@ -10,26 +10,15 @@ const SCANNED = /\.md$/
 const IGNORED = [
   // Scritti a runtime dai comandi, gitignored per costruzione.
   /^\.claude\/plans\//,
-  // Materia commerciale: non tracciata per scelta, quindi assente su un clone pulito.
-  /^docs\/ESTIMATE\.md$/,
-  /^docs\/MEETING-/,
-  /^docs\/SBLOCCO-/,
+  // Un PDF in docs/ è generato dai .md accanto, mai tracciato.
   /\.pdf$/,
-  // Il materiale del cliente cambia nome a ogni progetto.
+  // Il materiale del cliente cambia nome a ogni progetto; oggi vive nel sistema, fuori dal repo.
   /^docs\/sources\//,
 ]
 
 const PERCORSO = /`((?:docs|src|scripts|test|public|\.claude|\.github)\/[A-Za-z0-9._/-]+\.[a-z]+)`/g
 // `file.md` § Titolo — la virgola non delimita, perché i titoli la contengono.
 const SEZIONE = /`([A-Za-z0-9._/-]+\.md)`\s*§\s*([^.·|)§]{1,80})/g
-
-// Un comando si cita `/<nome>` e vive in .claude/commands/<nome>.md, a volte con la sua fase.
-const COMANDO = /`\/([a-z][a-z-]{2,})`(?:\*{0,2}\s*Fase\s*(\d+))?/g
-// Il nome si verifica solo dove il vocabolario è chiuso: le guide citano le rotte del sito
-// (`/contatti`, `/privacy`), che hanno la stessa forma e non sono comandi.
-const VOCABOLARIO_CHIUSO = /^(?:\.claude\/commands\/|docs\/TASK-CONTEXT\.md$|CLAUDE\.md$)/
-// Builtin di Claude Code, non di questo repo.
-const BUILTIN = new Set(['clear'])
 
 const isIgnored = (path: string) => IGNORED.some((re) => re.test(path))
 
@@ -73,41 +62,6 @@ export function resolveTarget(from: string, cited: string): string {
   return existsSync(sibling) ? sibling : cited
 }
 
-/** Le fasi dichiarate da un comando: `## Fase 3 — Verifica contro il codice`. */
-export function phases(source: string): number[] {
-  return source
-    .split('\n')
-    .map((line) => /^## Fase (\d+)/.exec(line)?.[1])
-    .filter((n) => n !== undefined)
-    .map(Number)
-}
-
-/**
- * Un comando rinominato o una fase rinumerata lasciano rimandi che puntano nel vuoto, e nessuno se
- * ne accorge finché non li segue.
- */
-function commandFindings(path: string, flat: string, lineOf: (i: number) => number): Hit[] {
-  const findings: Hit[] = []
-  const closed = VOCABOLARIO_CHIUSO.test(path)
-
-  for (const match of flat.matchAll(COMANDO)) {
-    const [, name, phase] = match
-    /* v8 ignore next -- il primo gruppo è obbligatorio nella regex, ma noUncheckedIndexedAccess pretende la guardia */
-    if (!name || BUILTIN.has(name)) continue
-    if (!closed && phase === undefined) continue
-
-    const file = `.claude/commands/${name}.md`
-    if (!existsSync(file)) {
-      findings.push({ line: lineOf(match.index), message: `comando che non esiste: /${name}` })
-      continue
-    }
-    if (phase !== undefined && !phases(readFileSync(file, 'utf8')).includes(Number(phase)))
-      findings.push({ line: lineOf(match.index), message: `fase che non esiste: /${name} Fase ${phase}` })
-  }
-
-  return findings
-}
-
 export function findingsFor(path: string, source: string): Hit[] {
   const findings: Hit[] = []
   // Un titolo va a capo come qualunque prosa: si cerca su testo continuo. La sostituzione è uno a
@@ -138,8 +92,6 @@ export function findingsFor(path: string, source: string): Hit[] {
     if (!resolves(headings(readFileSync(target, 'utf8')), cited))
       findings.push({ line, message: `sezione che non esiste: ${target} § ${cited}` })
   }
-
-  findings.push(...commandFindings(path, flat, lineOf))
 
   return findings.sort((a, b) => a.line - b.line)
 }

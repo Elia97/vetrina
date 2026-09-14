@@ -4,9 +4,6 @@ pre-commit:
       glob: "*.{js,jsx,ts,tsx,astro,json,jsonc,css}"
       run: pnpm -s biome:fix {staged_files}
       stage_fixed: true
-    guard-tests:
-      glob: ".claude/hooks/**/*.ts"
-      run: pnpm exec vitest run .claude/hooks
 
 commit-msg:
   commands:

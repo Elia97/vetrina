@@ -93,8 +93,8 @@ righe, e la tabella Status contro la testata di ogni sezione, che dicono lo stes
 posti.
 
 ⚠️ **Restano due derivati senza gate, e per la stessa ragione.** La roadmap contro le issue di
-GitHub vuole la rete, quindi vive dentro `/milestone` in rilettura e non nel gate. La stima e i PDF
-non sono tracciati, quindi su un clone pulito non esistono: un gate che li guardasse passerebbe in
+GitHub vuole la rete, quindi vive dentro `/metodo:milestone` in rilettura e non nel gate. La stima sta nel
+sistema, fuori dal repo, quindi su un clone pulito non esiste: un gate che la guardasse passerebbe in
 CI per assenza, che è il modo peggiore di passare.
 
 - **`pnpm run ci` sul tag non è ridondante.** `vercel build` è `astro build`: non verifica nessun
@@ -380,7 +380,7 @@ spedire qualcosa che la strada della release avrebbe preso.
   vero: `BOTID_ENFORCE=false` arriva in sola osservazione perché un falso positivo costa un contatto
   in silenzio (il percorso di promozione sta in `forms-email.md` § Protezione dagli abusi).
 - Secret del repo per la pipeline di release: `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID`,
-  più `RELEASE_PLEASE_TOKEN` — ambiti e ragioni in `HOW_TO_USE.md` § Secret di release. L'elenco
+  più `RELEASE_PLEASE_TOKEN` — ambiti e ragioni in il README del template, sezione «Secret di release». L'elenco
   completo lo stampa `scripts/bootstrap-github.sh` quando finisce.
 
 ## Flusso di release

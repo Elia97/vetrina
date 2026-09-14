@@ -30,7 +30,7 @@ export default getViteConfig({
     environment: 'node',
     // [HARD] Astro instrada ogni file in `src/pages/**`, quindi un test lì si costruisce come
     // pagina e fa esplodere il prerender su `vi.mock`: quelli stanno in `test/pages/`.
-    include: ['src/**/*.test.ts', 'scripts/**/*.test.ts', 'test/**/*.test.ts', '.claude/hooks/**/*.test.ts'],
+    include: ['src/**/*.test.ts', 'scripts/**/*.test.ts', 'test/**/*.test.ts'],
     exclude: ['src/pages/**/*.test.ts', 'node_modules/**'],
     // Il gate CRAP di fallow legge coverage/coverage-final.json, che scrive il reporter `json`;
     // senza quel rapporto assume una copertura dello 0%.
