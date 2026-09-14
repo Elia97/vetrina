@@ -35,16 +35,56 @@ ordinare, non a fatturare.
 Non c'è una seconda milestone: le dipendenze che contano sono fra le issue.
 
 ```text
-#27 (identità legale)  →  #29 (noscript del form usa COMPANY)
-                       →  #44 (vatID/sameAs/logo leggono gli stessi dati)
-#30 (pipeline immagini) →  #45 (gen:icons ha bisogno di sharp)
-#33 (fixture en)        →  #32 (il selettore di lingua senza secondo locale non è verificabile)
-                        →  #37 (la seconda lingua fa emergere il copy hardcoded)
-#25 (guard placeholder) ←  #26 (company.ts nella checklist: stessa causa, due rimedi)
+#26 (company.ts nella lista del rebranding)  →  #25 (il messaggio del guard rimanda a quella lista)
+#25 (guard dei segnaposto)                   →  #44 (nessun segnaposto nel JSON-LD)
+#27 (identità legale)                        →  #29 (contatti e noscript sulla stessa pagina)
+                                             →  #40 (il giro della CMP finisce sul controllo del footer)
+                                             →  #44 (vatID, sameAs e logo leggono gli stessi dati)
+#29 (contratto del form)                     →  #56 (lo scenario del form si scrive su quel contratto)
+#30 (pipeline immagini)                      →  #45 (gen:icons importa sharp dalla radice)
+#52 (DEFAULT_LOCALE)                         →  #33 (stessi file: configurazione, stub, test di deriva)
+                                             →  #55 (i sei v8 ignore sui ripieghi 'it')
+#33 (seconda lingua)                         →  #32 (il selettore non si verifica con una lingua sola)
+                                             →  #55 (i tre v8 ignore di route-segments.ts)
+#54 (fonte delle rotte)                      ⇢  #56 (solo se lo scenario della home copre ogni rotta)
 ```
 
-`#39` e `#40` sono le uniche due il cui perimetro non è ancora certo: vanno
-verificate su un preview con la CMP attiva **prima** di scrivere codice.
+Da non aprire insieme, perché toccano gli stessi file: #28 e #47 (la head), #30 e #31
+(l'iniettore di `gen:section`), #32 e #48 (header e nav mobile), #34 e #57
+(`cta-banner.astro`), #36 e #37 (`reportContactResults()`), #40 e #41 (`directives.ts` e
+la tabella degli host), #25 e #42 (`deploy.yml`); #27, #29 e #50 (`contatti.astro`); #34,
+#48 e #52 (`src/i18n/`).
+
+Verifiche su un preview: #40 con la CMP attiva, dopo #27; #38 dopo aver tolto l'Ignored
+Build Step dalla dashboard del progetto Vercel; #39, se la riscrittura la tiene, con la
+toolbar attiva.
+
+### Rilettura del 2026-09-14
+
+Contro `main` dopo la #62, voce per voce nel blocco `## Aggiornamento 2026-09-14` in coda
+alle issue:
+
+- **fatte a metà**: #43 (resta il testo che descrive il gate) e #53 (restano un test della
+  conversione e il messaggio di fallimento);
+- **da ripensare**, fuori dall'ordine finché non si riscrivono: #33 (con `en` nella
+  configurazione gli hreflang inglesi finiscono su ogni pagina italiana), #35 (dove vive la
+  ricetta), #39 (il template ha scelto di non aprire la toolbar, e metà del rimedio sta
+  nelle intestazioni), #42 (Dependabot ignora le major), #46 (quali pagine ricevono
+  `lastmod`), #51 (il README è diventato il documento unico), #57 (`banner.astro` lo usa
+  `cta-banner.astro`), #58 (il commento proposto non rientra nei casi ammessi);
+- **#32** aspetta #33, e il nodo della seconda lingua si scioglie con `/metodo:decisions`
+  prima di riscriverle;
+- le voci sul blueprint `foundations` e sulle skill del plugin `metodo` stanno in
+  Elia97/metodo-astro#1.
+
+L'ordine, un'onda dopo l'altra e dentro l'onda nell'ordine scritto:
+
+1. **Chiusure e piccole**: #43, #53, #26, #24, #49, #59, #48, #28, #47
+2. **Identità legale e form**: #27, #29, #25, #44, #36, #37
+3. **i18n e primitive**: #52, #34, #50
+4. **Contenuti**: #30, #45, #31
+5. **Ops e CSP**: #38, #41, #40
+6. **Test e copertura**: #54, #55, #56
 
 ## Milestone 1 — Difetti verificati e fondamenta mancanti
 
@@ -56,13 +96,15 @@ confronto con i sei progetti che discendono dal template
 Alla fine di questa milestone il template non spedisce più segnaposto in
 produzione, rende l'identità legale che il mercato italiano richiede, ha un
 percorso per le immagini e per la seconda lingua invece di due pagine di guida,
-e ha un punto d'ingresso che non è un documento di processo da 14 KB.
+e ha un punto d'ingresso che dice subito cos'è il template e come si avvia.
 
 Tre raccomandazioni dell'analisi sono state **scartate** perché il confronto con i
 fork le smentisce: rimuovere `heroOverlay`/`overlayChrome` (usati su ogni pagina di
-due progetti), rimuovere l'«inventario non usato» (solo `banner.astro` è davvero
-inutilizzato — vedi #57), separare i tre prodotti (tutti e sei i fork li hanno
-tenuti interi; quello che resta è il quickstart, #51).
+due progetti), rimuovere l'«inventario non usato» (i fork usano quasi tutto, e anche
+`banner.astro` ha un consumatore, `cta-banner.astro` — vedi #57), separare i tre
+prodotti (tutti e sei i fork li hanno tenuti interi; la #62 ha poi portato agenti,
+comandi e documenti di metodo nel plugin `metodo`, e quello che resta è il punto
+d'ingresso, #51).
 
 ### Difetti verificati sul codice
 
