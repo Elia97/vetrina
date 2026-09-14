@@ -272,6 +272,13 @@ tailwind-merge): la forma dell'API di shadcn senza il runtime React o Radix.
   (`input.astro`, `textarea.astro`, `select.astro`). `FieldError` è l'unica parte con un
   comportamento attaccato: il suo contratto e il test che lo presidia stanno in `forms-email.md` §
   La superficie di validazione.
+- `Alert` non porta nessun `role` di suo. `role="alert"` è una live region assertiva: interrompe
+  quello che lo screen reader sta dicendo, e su un avviso presente al caricamento alcuni lo
+  annunciano prima del titolo della pagina. Si passa `role="alert"` per un errore che compare in
+  risposta a un'azione, `role="status"` per un esito che non deve interrompere, e nessuno dei due
+  per il contenuto statico. Il ruolo va su un elemento che è già nella pagina quando il messaggio
+  cambia, come i paragrafi di esito del form (`forms-email.md` § Convenzioni dell'interfaccia dei
+  form).
 - `Select` è la primitiva di riferimento per il miglioramento progressivo: il `<select>` nativo si
   rende per primo e resta la fonte di verità verso il form; lo strato di script
   (`select-behavior.ts`) inserisce un trigger e una listbox stilati (focus rotante,
