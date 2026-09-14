@@ -130,7 +130,7 @@ describe('check:routes', () => {
   it('segnala un rimando a una sezione che non esiste', () => {
     const { exitCode, lines } = withBrokenFile(
       '__test-routes.md',
-      'vedi `docs/ARCHITECTURE.md` § Sezione Che Non Esiste\n',
+      'see `docs/ARCHITECTURE.md` § Section That Does Not Exist\n',
       () => captureOutput(() => checkRoutes(['--diff'])),
     )
 
