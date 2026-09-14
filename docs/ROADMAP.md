@@ -47,43 +47,48 @@ Non c'è una seconda milestone: le dipendenze che contano sono fra le issue.
 #33 (seconda lingua)                         →  #32 (il selettore non si verifica con una lingua sola)
                                              →  #55 (i tre v8 ignore di route-segments.ts)
 #54 (fonte delle rotte)                      ⇢  #56 (solo se lo scenario della home copre ogni rotta)
+#39 (host della toolbar sui preview)         ⇢  #41 (l'Anteprima di GTM può usare lo stesso ramo)
 ```
 
 Da non aprire insieme, perché toccano gli stessi file: #28 e #47 (la head), #30 e #31
-(l'iniettore di `gen:section`), #32 e #48 (header e nav mobile), #34 e #57
-(`cta-banner.astro`), #36 e #37 (`reportContactResults()`), #40 e #41 (`directives.ts` e
-la tabella degli host), #25 e #42 (`deploy.yml`); #27, #29 e #50 (`contatti.astro`); #34,
-#48 e #52 (`src/i18n/`).
+(l'iniettore di `gen:section`), #31 e #35 (`src/lib/content/`), #32 e #48 (header e nav
+mobile), #34 e #57 (`cta-banner.astro`), #36 e #37 (`reportContactResults()`), #46 e #52
+(`astro.config.mjs`), #25 e #42 (`deploy.yml`); #39, #40 e #41 (`directives.ts`); #27, #29
+e #50 (`contatti.astro`); #34, #48 e #52 (`src/i18n/`).
 
 Verifiche su un preview: #40 con la CMP attiva, dopo #27; #38 dopo aver tolto l'Ignored
-Build Step dalla dashboard del progetto Vercel; #39, se la riscrittura la tiene, con la
-toolbar attiva.
+Build Step dalla dashboard del progetto Vercel; #39 con la toolbar attiva.
 
 ### Rilettura del 2026-09-14
 
-Contro `main` dopo la #62, voce per voce nel blocco `## Aggiornamento 2026-09-14` in coda
-alle issue:
+Contro `main` dopo la #62, voce per voce nei blocchi `## Aggiornamento 2026-09-14` e
+`## Decisioni 2026-09-14` in coda alle issue:
 
 - **fatte a metà**: #43 (resta il testo che descrive il gate) e #53 (restano un test della
   conversione e il messaggio di fallimento);
-- **da ripensare**, fuori dall'ordine finché non si riscrivono: #33 (con `en` nella
-  configurazione gli hreflang inglesi finiscono su ogni pagina italiana), #35 (dove vive la
-  ricetta), #39 (il template ha scelto di non aprire la toolbar, e metà del rimedio sta
-  nelle intestazioni), #42 (Dependabot ignora le major), #46 (quali pagine ricevono
-  `lastmod`), #51 (il README è diventato il documento unico), #57 (`banner.astro` lo usa
-  `cta-banner.astro`), #58 (il commento proposto non rientra nei casi ammessi);
-- **#32** aspetta #33, e il nodo della seconda lingua si scioglie con `/metodo:decisions`
-  prima di riscriverle;
-- le voci sul blueprint `foundations` e sulle skill del plugin `metodo` stanno in
-  Elia97/metodo-astro#1.
+- **decise il 2026-09-14** con `/metodo:decisions`, e rientrate nell'ordine: #33 (la seconda
+  lingua solo nei test), #32 (le lingue di una pagina le dichiara la pagina), #35
+  (Breadcrumb e caricatore qui, la ricetta nel plugin), #39 (la toolbar sui soli preview),
+  #42 (resta `pnpm dlx`, con un controllo sulla major), #46 (`lastmod` sulle pagine del
+  template), #51 (solo l'apertura del README), #57 (`banner.astro` fuso in
+  `cta-banner.astro`, primitive non usate segnate), #58 (il costo nella guida, senza
+  commento);
+- le voci sul blueprint `foundations`, sulla ricetta di `content-section` e sulle skill del
+  plugin `metodo` stanno in Elia97/metodo-astro#1.
+
+**Deroga al metodo**, decisa il 2026-09-14: la milestone si consegna con una PR per onda
+invece che con una PR per issue. Dentro la PR c'è un commit per issue; il merge resta
+squash, quindi su `main` arriva un commit per onda, con il titolo della PR come messaggio e
+il tipo rilasciabile più alto dell'onda. Ogni PR chiude le issue della sua onda, con un
+`Closes #N` ciascuna.
 
 L'ordine, un'onda dopo l'altra e dentro l'onda nell'ordine scritto:
 
-1. **Chiusure e piccole**: #43, #53, #26, #24, #49, #59, #48, #28, #47
+1. **Chiusure e piccole**: #43, #53, #26, #24, #49, #59, #58, #48, #28, #47, #51
 2. **Identità legale e form**: #27, #29, #25, #44, #36, #37
-3. **i18n e primitive**: #52, #34, #50
-4. **Contenuti**: #30, #45, #31
-5. **Ops e CSP**: #38, #41, #40
+3. **i18n e primitive**: #52, #33, #32, #34, #57, #50
+4. **Contenuti**: #30, #45, #31, #35, #46
+5. **Ops e CSP**: #38, #42, #39, #41, #40
 6. **Test e copertura**: #54, #55, #56
 
 ## Milestone 1 — Difetti verificati e fondamenta mancanti
@@ -126,9 +131,9 @@ d'ingresso, #51).
 | La pipeline immagini che serve alla prima sezione | #30 |
 | Una seconda pagina a sezioni senza clonare la homepage | #31 |
 | Il selettore di lingua che ogni secondo locale richiede | #32 |
-| Una fixture `en` che eserciti il secondo locale | #33 |
+| La seconda lingua esercitata nei test, non nel build | #33 |
 | Localizzare i link che saltano `localizedHref` | #34 |
-| Lista → dettaglio, la rotta che sei progetti su sette hanno scritto | #35 |
+| Breadcrumb e caricatore di entry localizzate per lista → dettaglio | #35 |
 
 ### Ops, CSP, deploy
 
@@ -157,12 +162,12 @@ d'ingresso, #51).
 | Marcare la pagina corrente in entrambe le navigazioni | #48 |
 | `Alert` smette di annunciare contenuto statico | #49 |
 | Le pagine del template usano il primitivo `Heading` | #50 |
-| Un quickstart in cima al README | #51 |
+| L'apertura del README: specifico per Vercel e come si avvia | #51 |
 | Un solo `DEFAULT_LOCALE` invece di otto letterali | #52 |
 | Drift test fra `themeColor` e `--background` | #53 |
 | Derivare gli elenchi di rotte da una fonte sola | #54 |
 | Soglie di copertura per zona | #55 |
 | Smoke Playwright sul sito costruito | #56 |
-| Cancellare `banner.astro` ed etichettare i primitivi dimostrati | #57 |
-| Dire quanto costa `ClientRouter` dove viene importato | #58 |
+| Fondere `banner.astro` in `cta-banner.astro` e segnare le primitive non usate | #57 |
+| Il costo di `ClientRouter` nella guida di rendering | #58 |
 | Togliere i commenti dagli script `is:inline` | #59 |
