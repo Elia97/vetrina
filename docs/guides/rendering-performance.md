@@ -55,8 +55,9 @@ come «questa pagina è leggera»:
 
 - **gli script `is:inline`.** Lo script del tema è inline in ogni pagina e Astro lo passa
   **tale e quale**: non impacchettato, non minificato, commenti compresi. Costa byte a ogni risposta
-  HTML e non compare in nessuno dei numeri. Tienilo corto, e tieni i suoi commenti privi di markup,
-  perché atterrano nel documento come testo letterale;
+  HTML e non compare in nessuno dei numeri. Tienilo corto, e nel corpo di uno script `is:inline` non
+  scrivere commenti: un fatto che serve va nel frontmatter o in un `{/* … */}` sopra lo script, che
+  non arrivano nell'HTML;
 - **il CSS.** Il budget riguarda solo il JavaScript lato client;
 - **immagini e font.** Lì il peso lo governano `astro:assets` e l'API dei font, non questo.
 

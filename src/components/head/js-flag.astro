@@ -1,15 +1,13 @@
 ---
 ---
 
+{/* data-reveal-active lo imposta src/lib/motion/reveal.ts; reveal-failsafe lo legge src/styles/globals.css. */}
 <script is:inline>
   function markJs() {
     document.documentElement.classList.add('js')
   }
   markJs()
-  // Le view transition non rieseguono gli script inline sulla pagina in arrivo.
   document.addEventListener('astro:after-swap', markJs)
-  // lib/motion/reveal.ts imposta `data-reveal-active` appena gira; se quel chunk non arriva
-  // mai, il contenuto resta invisibile senza nessun errore.
   setTimeout(function () {
     if (!document.documentElement.hasAttribute('data-reveal-active')) {
       document.documentElement.classList.add('reveal-failsafe')

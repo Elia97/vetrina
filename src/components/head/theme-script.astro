@@ -23,7 +23,6 @@
     syncThemeColor(dark)
   }
 
-  // Un meta theme-color vale solo mentre il suo `media` fa match: `not all` lo spegne.
   function syncThemeColor(dark) {
     const metas = document.querySelectorAll('meta[name="theme-color"][data-scheme]')
     for (const meta of metas) {
