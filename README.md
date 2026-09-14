@@ -163,13 +163,12 @@ non carica nessun tag e non scrive nessun cookie non essenziale. Per accenderlo:
 2. Imposta `PUBLIC_GTM_ID`, `PUBLIC_IUBENDA_SITE_ID` e `PUBLIC_IUBENDA_COOKIE_POLICY_ID` — su Vercel
    come variabili **Plain**, mai Sensitive (una variabile Sensitive arriva alla build come la
    stringa letterale `[SENSITIVE]`). Sono id pubblici che finiscono nel bundle, non segreti.
-3. **Allarga la CSP in `vercel.json`** e con essa le asserzioni in `src/vercel-headers.test.ts`. Gli
-   elenchi esatti delle sorgenti stanno nel commento in testa a
-   `src/components/head/tracking.astro`. Saltare questo passo è l'errore che vale la pena conoscere:
-   `astro dev` non legge mai `vercel.json`, quindi in locale sembra tutto a posto e in produzione il
-   banner non compare affatto.
-4. Verifica su una preview, accettando e rifiutando, con GA4 Realtime aperto: prima del consenso a
-   Google non deve arrivare niente.
+3. **La CSP non si tocca**: gli host di GTM e iubenda stanno già in `src/lib/csp/directives.ts`, da
+   cui la policy si genera in fase di build, e `vercel.json` porta solo `frame-ancestors`. Un
+   fornitore in più va in `directives.ts`, mai in `vercel.json`: `docs/guides/deploy-ops.md` §
+   Tracciamento e Consent Mode v2.
+4. Verifica su una preview, accettando e rifiutando, con GA4 Realtime e la console aperti: prima del
+   consenso a Google non deve arrivare niente, e nessuna richiesta deve essere bloccata dalla CSP.
 
 Lo stesso id di policy fa passare anche `/privacy` e `/cookie-policy` dalle loro bozze segnaposto ai
 documenti iubenda ospitati. Vengono scaricati in fase di build, quindi una policy modificata su

@@ -141,7 +141,7 @@ l'unico segnale disponibile prima del deploy:
 
 | Test | Presidia |
 |---|---|
-| `src/vercel-headers.test.ts` | le sei intestazioni di sicurezza incondizionate, e che `frame-ancestors` sia l'*unica* direttiva CSP qui dentro |
+| `src/vercel-headers.test.ts` | le sei intestazioni di sicurezza incondizionate, `frame-ancestors 'none'`, e che nessuna fra `default-src`, `script-src`, `style-src`, `connect-src` e `img-src` stia qui dentro |
 | `src/vercel-robots.test.ts` | la regola di noindex su `*.vercel.app`, e che non corrisponda mai al dominio personalizzato |
 | `src/vercel-botid.test.ts` | i rewrite del proxy BotID e la posizione della sovrascrittura di `X-Frame-Options` |
 | `src/lib/csp/csp.test.ts` | ogni altra direttiva CSP — vedi § Content-Security-Policy |

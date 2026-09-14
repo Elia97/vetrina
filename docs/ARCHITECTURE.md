@@ -9,7 +9,7 @@
 - **Gate di qualità**: quattro, e ognuno copre un momento che gli altri non coprono; niente arriva in produzione senza passarli tutti. Vedi `docs/guides/deploy-ops.md` § La catena dei gate.
 - **Protezione dagli abusi**: tre livelli sull'azione pubblica, dal più economico — honeypot applicativo, rate limit in memoria e Vercel BotID Basic (in sola osservazione finché `BOTID_ENFORCE=true`). Vedi `docs/guides/forms-email.md` § Protezione dagli abusi.
 - **Politica di scansione**: `src/lib/seo/crawl-policy.ts` è la fonte unica di verità su cosa resta fuori dalla ricerca, letta dal filtro della sitemap, da `robots.txt` e dal middleware. Vedi `docs/guides/seo.md` § Sitemap e robots.
-- **Consenso e analytics**: spenti se non configurati — senza **entrambi** un id di container GTM e un id di sito iubenda il layout non rende nessun CMP, nessun tag e nessun cookie. Accenderli richiede di allargare la CSP in `vercel.json`. Vedi `docs/guides/deploy-ops.md` § Tracciamento e Consent Mode v2.
+- **Consenso e analytics**: spenti se non configurati — senza **entrambi** un id di container GTM e un id di sito iubenda il layout non rende nessun CMP, nessun tag e nessun cookie. Accenderli non richiede nessuna modifica alla CSP: gli host stanno già in `src/lib/csp/directives.ts`. Vedi `docs/guides/deploy-ops.md` § Tracciamento e Consent Mode v2.
 - **Regione delle funzioni**: `fra1` (`vercel.json`). Lasciata vuota, Vercel usa `iad1` e ogni rotta SSR e ogni azione attraversano l'Atlantico due volte.
 
 ## Struttura del repository
