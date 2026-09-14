@@ -46,7 +46,7 @@ export function main(args?: string[]): number {
   } else {
     console.log(
       '\n  Il default è non commentare: solo i casi particolari, al presente, sul codice\n' +
-        "  com'è adesso. Casi e forma in CLAUDE.md.\n",
+        "  com'è adesso. Casi e forma in metodo.md, nel plugin metodo.\n",
     )
   }
 

@@ -92,6 +92,13 @@ una rotta del sito ha la stessa forma di un comando.
 righe, e la tabella Status contro la testata di ogni sezione, che dicono lo stesso numero in due
 posti.
 
+**`check:comments`** legge la forma dei commenti, non la loro utilità. Fa fallire `pnpm run ci` su
+un blocco con più di due righe di prosa e su un commento che racconta la modifica invece del codice
+com'è («prima era», «non più», un `#NN`); con `--strict`, che `package.json` gli passa, anche su un
+file di almeno 40 righe in cui i commenti superano il 15%. Un commento corto, inutile e al presente
+passa pulito: quali commenti meritano il posto lo dice `metodo.md`, e resta un giudizio di chi scrive
+e di chi rivede.
+
 ⚠️ **Restano due derivati senza gate, e per la stessa ragione.** La roadmap contro le issue di
 GitHub vuole la rete, quindi vive dentro `/metodo:milestone` in rilettura e non nel gate. La stima sta nel
 sistema, fuori dal repo, quindi su un clone pulito non esiste: un gate che la guardasse passerebbe in

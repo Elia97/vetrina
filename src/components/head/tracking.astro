@@ -20,8 +20,7 @@ const lang = Astro.currentLocale ?? i18n?.defaultLocale ?? 'it'
       <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
 
       {/* [HARD] I default del Consent Mode devono essere la PRIMA cosa che tocca dataLayer:
-          un tag che si accoda prima di loro gira senza restrizioni. Da cui is:inline e questa
-          posizione. */}
+          un tag che si accoda prima di loro gira senza restrizioni. */}
       <script is:inline>
         window.dataLayer = window.dataLayer || []
         function gtag() {
@@ -39,8 +38,6 @@ const lang = Astro.currentLocale ?? i18n?.defaultLocale ?? 'it'
         gtag('set', 'url_passthrough', true)
       </script>
 
-      {/* L'unica cucitura in cui l'ambiente risolto lato server arriva agli avvii
-          impacchettati qui sotto: dati semplici, nessuna logica. */}
       <script
         is:inline
         define:vars={{

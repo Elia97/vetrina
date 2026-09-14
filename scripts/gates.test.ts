@@ -37,14 +37,14 @@ const captureOutput = <T>(fn: () => T): { exitCode: T; lines: string[] } => {
 }
 
 describe('check:comments', () => {
-  it('passa sul repository e dice quante righe sono commento', () => {
-    const { exitCode, lines } = captureOutput(() => checkComments([]))
+  it('passa sul repository con --strict e dice quante righe sono commento', () => {
+    const { exitCode, lines } = captureOutput(() => checkComments(['--strict']))
     expect(exitCode).toBe(0)
     expect(lines.join('\n')).toMatch(/righe sono commento/)
   })
 
   it('con --diff guarda solo ciò che il branch ha toccato', () => {
-    const { exitCode, lines } = captureOutput(() => checkComments(['--diff']))
+    const { exitCode, lines } = captureOutput(() => checkComments(['--diff', '--strict']))
     expect(exitCode).toBe(0)
     expect(lines.join('\n')).toContain('solo file toccati dal branch')
   })
@@ -99,23 +99,19 @@ describe('i gate trovano i problemi, non solo li cercano', () => {
     expect(lines.join('\n')).toContain('__test-language.ts')
   })
 
-  it('check:comments segnala un file in cui i commenti prendono il sopravvento', () => {
-    const { exitCode, lines } = withBrokenFile(
-      '__test-density.ts',
-      [
-        '// Nota breve.',
-        'export const a = 1',
-        '// Altra nota.',
-        'export const b = 2',
-        '// Terza nota.',
-        'export const c = 3',
-        '',
-      ].join('\n'),
-      () => captureOutput(() => checkComments(['--diff'])),
-    )
+  it('check:comments con --strict respinge un file in cui i commenti prendono il sopravvento', () => {
+    const denseSource = Array.from({ length: 8 }, (_, i) => [
+      `// Nota ${i + 1}.`,
+      ...['a', 'b', 'c', 'd'].map((name) => `export const ${name}${i} = ${i}`),
+    ]).flat()
+    const { lenient, strict } = withBrokenFile('__test-density.ts', [...denseSource, ''].join('\n'), () => ({
+      lenient: captureOutput(() => checkComments(['--diff'])),
+      strict: captureOutput(() => checkComments(['--diff', '--strict'])),
+    }))
 
-    expect(exitCode).toBe(0)
-    expect(lines.join('\n')).toMatch(/righe sono commento/)
+    expect(lenient.exitCode).toBe(0)
+    expect(strict.exitCode).toBe(1)
+    expect(strict.lines.join('\n')).toContain('__test-density.ts: 8/40 righe sono commento')
   })
 })
 

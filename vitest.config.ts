@@ -2,7 +2,6 @@
 import { fileURLToPath } from 'node:url'
 import { getViteConfig } from 'astro/config'
 
-// `getViteConfig`, non il `defineConfig` di vitest: carica i plugin Vite che compilano gli `.astro`.
 const astroEnvServerStub = fileURLToPath(new URL('./test/stubs/astro-env-server.ts', import.meta.url))
 const astroEnvClientStub = fileURLToPath(new URL('./test/stubs/astro-env-client.ts', import.meta.url))
 const astroConfigClientStub = fileURLToPath(new URL('./test/stubs/astro-config-client.ts', import.meta.url))
@@ -38,8 +37,6 @@ export default getViteConfig({
     coverage: {
       provider: 'v8',
       reporter: ['text-summary', 'json'],
-      // Gli hook di Claude Code hanno i loro test ma restano fuori di qui: la soglia al 100%
-      // presidia il codice che finisce in produzione, non i guardrail dell'agente.
       include: [
         'src/**/*.ts',
         'scripts/lib/**/*.ts',
