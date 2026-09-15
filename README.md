@@ -58,9 +58,10 @@ commerciale: brief, decisioni, stima e verbali stanno nel sistema; qui si scrive
    obbligatoria, `ci` come check richiesto, branch aggiornato prima del merge, nessun push diretto).
    Si può rilanciare quando si vuole: ogni passo è idempotente. Non ricorrere ad `ADMIN_BYPASS=1`:
    su un progetto cliente rimette `ci` al rango di suggerimento.
-9. Collega il repo a un progetto Vercel, poi imposta **Settings → Build & Deployment → Ignored Build
-   Step** su `bash scripts/vercel-ignore-build.sh`: la produzione esce solo da un tag di release,
-   non a ogni push.
+9. Collega il repo a un progetto Vercel. L'*Ignored Build Step* non si imposta a mano: lo dichiara
+   `ignoreCommand` in `vercel.json`, ed è quello che tiene la produzione legata a un tag di release
+   invece che a ogni push. Se il progetto Vercel ce l'ha già impostato dalla dashboard, svuotalo:
+   `vercel.json` lo sovrascrive, e due fonti per la stessa regola divergono alla prima modifica.
 10. Imposta i secret di release (§ Secret di release, sotto): senza `RELEASE_PLEASE_TOKEN` la
     release PR non riceve mai il check `ci` e non si può mergiare. Poi riaccendi ciò che avevi
     spento: `gh workflow enable release-please.yml`. Dependabot no: lo riattiva la milestone

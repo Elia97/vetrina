@@ -12,15 +12,22 @@ di niente, in questo file.
 
 La produzione esce **solo da un tag di release**, mai da un push su `main`:
 
-- `scripts/vercel-ignore-build.sh` è collegato all'*Ignored Build Step* di Vercel (Settings → Build
-  & Deployment → «Run my Bash script»). Esce 0 (salta) su `main` e su `release-please--*`, esce 1
-  (procedi) su tutto il resto, quindi l'integrazione git produce solo deploy di **preview**. I branch
-  di dependabot vengono tagliati ancora prima, da `git.deploymentEnabled` in `vercel.json`. Un salto
-  compare nel pannello come **deployment annullato di 1s**, non come un deployment mancante: vale la
-  pena saperlo prima di mettersi a cercare un deploy che non è mai avvenuto.
-- **Prima del primo tag di release non esiste nessun deployment**, né di preview né di produzione. Le
-  prime milestone si verificano solo con `pnpm dev` e `pnpm run build`: vale la pena saperlo prima di
-  promettere un link a un cliente.
+- `scripts/vercel-ignore-build.sh` arriva a Vercel da `ignoreCommand` in `vercel.json`, che
+  sovrascrive l'*Ignored Build Step* delle impostazioni di progetto (documentazione Vercel,
+  `project-configuration/vercel-json`). Il contratto è invertito: esce 0 (salta) su `main` e su
+  `release-please--*`, esce 1 (procedi) su tutto il resto, quindi l'integrazione git produce solo
+  deploy di **preview**. I branch di dependabot vengono tagliati ancora prima, da
+  `git.deploymentEnabled`, sempre in `vercel.json`. Un salto compare nel pannello come **deployment
+  annullato di 1s**, non come un deployment mancante: vale la pena saperlo prima di mettersi a
+  cercare un deploy che non è mai avvenuto.
+- **Il job di deploy non ci passa.** Il comando gira quando un deployment entra nello stato
+  `BUILDING` su Vercel (documentazione Vercel, `project-configuration/project-settings`), mentre
+  `deploy.yml` costruisce fuori da Vercel con `vercel build --prod` e carica l'artefatto già pronto
+  con `vercel deploy --prebuilt` (documentazione Vercel, `cli/build`): la strada del tag non incontra
+  mai questa regola.
+- **I preview esistono dal primo push, la produzione no.** Ogni branch pushato ne riceve uno, ma
+  prima del primo tag di release non esiste nessun deployment di produzione: vale la pena saperlo
+  prima di promettere un link a un cliente.
 - Il deploy di produzione è `.github/workflows/deploy.yml`: fa il checkout del **tag** rilasciato
   (non di quello che `main` punta in quel momento), poi `pnpm run check:placeholders` →
   `pnpm run ci` → `vercel pull --prod` → `pnpm run check:placeholders --env` → `vercel build --prod`
@@ -146,7 +153,8 @@ l'unica eccezione, e va nella direzione opposta: tutto tranne `frame-ancestors` 
 fase di build — vedi § Content-Security-Policy.
 
 Anche `git.deploymentEnabled` vive qui, con `dependabot/**` a `false`: i branch di dependabot non
-ricevono nessun deploy di preview.
+ricevono nessun deploy di preview. E `ignoreCommand`, che è il comando dell'Ignored Build Step —
+vedi § Modello di deploy.
 
 Poiché niente di tutto questo gira in locale, ogni regola è fissata da un test dichiarativo, che è
 l'unico segnale disponibile prima del deploy:
@@ -156,6 +164,7 @@ l'unico segnale disponibile prima del deploy:
 | `src/vercel-headers.test.ts` | le sei intestazioni di sicurezza incondizionate, `frame-ancestors 'none'`, e che nessuna fra `default-src`, `script-src`, `style-src`, `connect-src` e `img-src` stia qui dentro |
 | `src/vercel-robots.test.ts` | la regola di noindex su `*.vercel.app`, e che non corrisponda mai al dominio personalizzato |
 | `src/vercel-botid.test.ts` | i rewrite del proxy BotID e la posizione della sovrascrittura di `X-Frame-Options` |
+| `src/vercel-git.test.ts` | `ignoreCommand` e il suo script, più i branch che non ricevono deploy |
 | `src/lib/csp/csp.test.ts` | ogni altra direttiva CSP — vedi § Content-Security-Policy |
 
 L'ordine delle regole conta e i test lo codificano: **vince l'ultima regola di intestazione che
@@ -439,7 +448,8 @@ spedire qualcosa che la strada della release avrebbe preso.
    deploy si ferma su ogni segnaposto rimasto in `site.ts`, `company.ts` e nei dizionari.
 2. Dominio aggiunto in Vercel, DNS puntato, HTTPS emesso. Si decide l'host canonico (apice o `www`) e
    si dichiara il redirect in `vercel.json`.
-3. Ignored Build Step impostato su `bash scripts/vercel-ignore-build.sh`.
+3. Ignored Build Step vuoto nella dashboard: il comando lo dichiara `ignoreCommand` in `vercel.json`,
+   e un progetto più vecchio che lo porta anche lì ha due fonti per la stessa regola.
 4. `bash scripts/bootstrap-github.sh` lanciato sul repo (è idempotente).
 5. Secret del repo impostati; la prima PR di release-please mergiata.
 6. DKIM, SPF e DMARC del dominio mittente verificati in Brevo, `CONTACT_*` e `BREVO_API_KEY`
