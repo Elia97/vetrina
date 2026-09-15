@@ -1,4 +1,7 @@
-import { describe, expect, it } from 'vitest'
+import { existsSync } from 'node:fs'
+import { join } from 'node:path'
+import process from 'node:process'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { COMPANY } from '@/lib/company'
 import {
@@ -6,6 +9,7 @@ import {
   buildBreadcrumbList,
   buildFaqPage,
   buildItemList,
+  buildLocalBusiness,
   buildOrganization,
   buildWebSite,
 } from '@/lib/seo/json-ld'
@@ -15,6 +19,25 @@ const TRAIL = [
   { name: 'Home', url: '/' },
   { name: 'Privacy', url: '/privacy' },
 ]
+
+async function importWith(social: readonly { label: string; href: string }[], logo: string | null) {
+  vi.resetModules()
+  vi.doMock('@/lib/site', async (importOriginal) => {
+    const actual = await importOriginal<typeof import('@/lib/site')>()
+    return { ...actual, SITE: { ...actual.SITE, social } }
+  })
+  vi.doMock('@/lib/company', async (importOriginal) => {
+    const actual = await importOriginal<typeof import('@/lib/company')>()
+    return { COMPANY: { ...actual.COMPANY, logo } }
+  })
+  return import('@/lib/seo/json-ld')
+}
+
+afterEach(() => {
+  vi.doUnmock('@/lib/site')
+  vi.doUnmock('@/lib/company')
+  vi.resetModules()
+})
 
 describe('buildBreadcrumbList', () => {
   it('numbers positions from 1 and absolutizes URLs', () => {
@@ -47,6 +70,54 @@ describe('buildOrganization', () => {
       url: SITE.url,
       address: { '@type': 'PostalAddress' },
     })
+  })
+})
+
+describe('i campi aziendali di Organization e LocalBusiness', () => {
+  const profile = { label: 'LinkedIn', href: 'https://www.linkedin.com/company/acme' }
+
+  it('portano la partita IVA come vatID, i profili come sameAs e il logo come URL assoluto', async () => {
+    const jsonLd = await importWith([profile], '/logo.png')
+    const expected = { vatID: COMPANY.vatNumber, sameAs: [profile.href], logo: new URL('/logo.png', SITE.url).href }
+
+    expect(jsonLd.buildOrganization()).toMatchObject(expected)
+    expect(jsonLd.buildLocalBusiness()).toMatchObject(expected)
+  })
+
+  it('omettono sameAs e logo quando il progetto non li configura', async () => {
+    const organization = (await importWith([], null)).buildOrganization()
+
+    expect(organization).not.toHaveProperty('sameAs')
+    expect(organization).not.toHaveProperty('logo')
+  })
+
+  it('un logo dichiarato in COMPANY esiste in public/', () => {
+    const missing = COMPANY.logo !== null && !existsSync(join(process.cwd(), 'public', COMPANY.logo))
+
+    expect(missing, `COMPANY.logo punta a public${COMPANY.logo}, che non esiste`).toBe(false)
+  })
+})
+
+describe('buildLocalBusiness', () => {
+  it('porta orari e coordinate quando il progetto li fornisce', () => {
+    const schema = buildLocalBusiness({
+      openingHours: ['Mo-Fr 09:00-18:00'],
+      geo: { latitude: 45.4642, longitude: 9.19 },
+    })
+
+    expect(schema).toMatchObject({
+      '@type': 'LocalBusiness',
+      name: COMPANY.legalName,
+      openingHours: ['Mo-Fr 09:00-18:00'],
+      geo: { '@type': 'GeoCoordinates', latitude: 45.4642, longitude: 9.19 },
+    })
+  })
+
+  it('omette orari e coordinate che il progetto non fornisce', () => {
+    const schema = buildLocalBusiness()
+
+    expect(schema).not.toHaveProperty('openingHours')
+    expect(schema).not.toHaveProperty('geo')
   })
 })
 

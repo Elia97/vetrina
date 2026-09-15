@@ -12,4 +12,5 @@ export const COMPANY = {
     addressCountry: 'IT',
   },
   vatNumber: '<VAT_NUMBER>',
+  logo: null as string | null,
 } as const
