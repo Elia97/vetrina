@@ -10,13 +10,14 @@ const PAGE = 'src/pages/index.astro'
 const page = (frontmatter = '') => `---\n${frontmatter}\n// @gen:home-imports\n---\n{/* @gen:home-sections */}\n`
 
 const assertOn =
-  (overrides: Record<string, string | null> = {}, name = 'features') =>
+  (overrides: Record<string, string | null> = {}, name = 'features', image = false) =>
   () =>
     assertSectionInjectable({
       root: makeRoot(overrides),
       camel: name,
       kebab: name,
       pascal: `${name[0]?.toUpperCase()}${name.slice(1)}`,
+      image,
     })
 
 afterEach(cleanupRoots)
@@ -39,6 +40,22 @@ describe('hook points in the schema barrel', () => {
   it('refuses when the union members are not an array literal', () => {
     const src = "export function homepageCollectionSchema() { return z.discriminatedUnion('section', members) }"
     expect(assertOn({ [BARREL]: src })).toThrow(/not an array literal/)
+  })
+})
+
+describe("una sezione con l'immagine", () => {
+  it('accetta il barrel vero, che dà un nome al contesto', () => {
+    expect(assertOn({}, 'gallery', true)).not.toThrow()
+  })
+
+  it('accetta un barrel senza parametro, che il generatore completa', () => {
+    const src = "export function homepageCollectionSchema() { return z.discriminatedUnion('section', []) }"
+    expect(assertOn({ [BARREL]: src }, 'gallery', true)).not.toThrow()
+  })
+
+  it('rifiuta un barrel che destruttura il contesto, perché non ha un nome da passare alla sezione', () => {
+    const src = "export function homepageCollectionSchema({ image }) { return z.discriminatedUnion('section', []) }"
+    expect(assertOn({ [BARREL]: src }, 'gallery', true)).toThrow(/destructures its parameter/)
   })
 })
 
@@ -66,6 +83,12 @@ describe('markers in index.astro', () => {
 describe('collisions', () => {
   it('refuses a section already in the union', () => {
     expect(assertOn({}, 'hero')).toThrow(/already in the union/)
+  })
+
+  it("riconosce una sezione già nell'unione qualunque argomento riceva", () => {
+    const src =
+      "export function homepageCollectionSchema(context) { return z.discriminatedUnion('section', [featuresSectionSchema(context)]) }"
+    expect(assertOn({ [BARREL]: src })).toThrow(/already in the union/)
   })
 
   it('refuses when the schema identifier is already bound in the barrel', () => {

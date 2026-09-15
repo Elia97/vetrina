@@ -5,7 +5,7 @@
 - **Framework**: [Astro](https://astro.build) 7, `output: "static"` (prerenderizzato di default) con `@astrojs/vercel` come adapter di deploy — è lui a fornire il server, quindi l'azione di contatto e ogni rotta `prerender = false` sono on-demand a prescindere dalla modalità di output. La toolchain e le regole che la governano — pnpm e corepack, Node, Biome, `astro/tsconfigs/strictest`, la deroga `prerender = false` — stanno in `CLAUDE.md` § Stack e convenzioni.
 - **`@types/node` è una devDependency diretta di proposito**, anche se nessuno lo importa a mano. Il tipo `UserConfig` di Vite lo tiene come peer: lasciato alla risoluzione transitiva, pnpm installa una copia di Vite per astro e un'altra per vitest, e la chiave `test` che `vitest/config` aggiunge a `UserConfig` non arriva mai al tipo che `getViteConfig()` accetta — a quel punto `vitest.config.ts` non passa il typecheck con «'test' does not exist in type 'UserConfig'». Dichiararlo fissa un peer solo per entrambi. Non toglierlo come inutilizzato.
 - **Deploy**: Vercel. La produzione esce solo da un tag di release, mai da un push su `main`: `scripts/vercel-ignore-build.sh` è collegato all'Ignored Build Step di Vercel, quindi l'integrazione git produce soltanto preview. Vedi `docs/guides/deploy-ops.md` § Modello di deploy.
-- **Immagini**: gli asset locali vanno sotto `src/assets/**`, una cartella che il template non porta perché non ha immagini proprie; si crea con la prima, e allora si aggiunge `sharp`. `biome.json` esclude già `src/assets/**/*.svg` dalla formattazione. Vedi `docs/guides/rendering-performance.md` § Immagini.
+- **Immagini**: gli asset locali vanno sotto `src/assets/**` e passano da `astro:assets`, con `sharp` in `dependencies`. La cartella porta solo `src/assets/placeholder.jpg`, il segnaposto del contenuto che `pnpm gen:section` scrive con l'opzione immagine. `biome.json` esclude già `src/assets/**/*.svg` dalla formattazione. Vedi `docs/guides/rendering-performance.md` § Immagini.
 - **Gate di qualità**: cinque, e ognuno copre un momento che gli altri non coprono; niente arriva in produzione senza passarli tutti. Vedi `docs/guides/deploy-ops.md` § La catena dei gate.
 - **Protezione dagli abusi**: tre livelli sull'azione pubblica, dal più economico — honeypot applicativo, rate limit in memoria e Vercel BotID Basic (in sola osservazione finché `BOTID_ENFORCE=true`). Vedi `docs/guides/forms-email.md` § Protezione dagli abusi.
 - **Politica di scansione**: `src/lib/seo/crawl-policy.ts` è la fonte unica di verità su cosa resta fuori dalla ricerca, letta dal filtro della sitemap, da `robots.txt` e dal middleware. Vedi `docs/guides/seo.md` § Sitemap e robots.
@@ -66,6 +66,7 @@ src/
   actions/     # l'azione di contatto; gli handler sono esportati per
                #   nome, così l'orchestrazione è testabile               seed
   content/     # dati delle collection                                   example
+  assets/      # immagini locali; placeholder.jpg per gen:section        seed
   styles/      # tokens.css — la superficie del rebranding               config
                #   light, dark, globals                                  machinery
   middleware.ts # X-Robots-Tag per le risposte SSR non HTML              machinery

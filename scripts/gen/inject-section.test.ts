@@ -8,6 +8,15 @@ const DATA = 'src/lib/homepage.ts'
 const PAGE = 'src/pages/index.astro'
 
 const FEATURES = { camel: 'features', kebab: 'features', pascal: 'Features' }
+const GALLERY = { camel: 'gallery', kebab: 'gallery', pascal: 'Gallery' }
+
+const BARREL_WITHOUT_CONTEXT = [
+  "import { z } from 'astro/zod'",
+  "import { heroSectionSchema } from './hero'",
+  'export function homepageCollectionSchema() {',
+  "  return z.discriminatedUnion('section', [heroSectionSchema()])",
+  '}',
+].join('\n')
 
 const inject = (root: string) => injectSection({ root, ...FEATURES })
 
@@ -38,6 +47,36 @@ describe('injectSection', () => {
 
     expect(read(root, PAGE)).toContain("import Features from '@/components/home/features.astro'")
     expect(read(root, PAGE)).toContain('<Features {...content.features} />')
+  })
+})
+
+describe("una sezione con l'immagine", () => {
+  it('riceve il contesto che la funzione del barrel già dichiara', () => {
+    const root = makeRoot()
+
+    injectSection({ root, ...GALLERY, image: true })
+
+    expect(read(root, BARREL)).toContain('gallerySectionSchema(context)')
+  })
+
+  it('aggiunge al barrel il parametro e il suo tipo quando mancano, una volta sola', () => {
+    const root = makeRoot({ [BARREL]: BARREL_WITHOUT_CONTEXT })
+
+    injectSection({ root, ...GALLERY, image: true })
+    injectSection({ root, ...FEATURES, image: true })
+
+    const barrel = read(root, BARREL)
+    expect(barrel.match(/context: SchemaContext/g)).toHaveLength(1)
+    expect(barrel.match(/import type \{ SchemaContext \} from ["']astro:content["']/g)).toHaveLength(1)
+    expect(barrel).toContain('featuresSectionSchema(context)')
+  })
+
+  it('non importa di nuovo il tipo che il barrel importa già', () => {
+    const root = makeRoot({ [BARREL]: `import type { SchemaContext } from 'astro:content'\n${BARREL_WITHOUT_CONTEXT}` })
+
+    injectSection({ root, ...GALLERY, image: true })
+
+    expect(read(root, BARREL).match(/\{ SchemaContext \}/g)).toHaveLength(1)
   })
 })
 

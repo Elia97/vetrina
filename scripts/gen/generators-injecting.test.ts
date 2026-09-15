@@ -100,6 +100,22 @@ describe('gen:section wiring', () => {
     expect(promptNamed(config, 'name').validate?.('...')).toBe('Section name is required')
     expect(promptNamed(config, 'name').validate?.('features')).toBe(true)
   })
+
+  it("chiede se la sezione porta un'immagine, e di default no", () => {
+    const { config } = registerWith(sectionGenerator, 'section')
+
+    expect(promptNamed(config, 'image')).toMatchObject({ type: 'confirm', default: false })
+  })
+
+  it("porta la risposta sull'immagine al pre-volo e all'iniezione", () => {
+    const { plop, config } = registerWith(sectionGenerator, 'section')
+    const answers = { name: 'gallery', image: true }
+    const { preflight, inject } = steps(actionsFor(config, answers))
+
+    expect(run(preflight, answers, plop)).toMatch(/contract checks passed/)
+    run(inject, answers, plop)
+    expect(read(process.cwd(), 'src/lib/schemas/homepage/index.ts')).toContain('gallerySectionSchema(context)')
+  })
 })
 
 describe('gen:page wiring', () => {

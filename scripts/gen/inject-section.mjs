@@ -1,7 +1,7 @@
 // L'inserimento va SOPRA ogni marcatore: sotto, l'organizeImports di Biome adotta il marcatore come
 // trivia iniziale del nuovo import e lo sposta nel blocco ordinato. (.astro non è leggibile da ts-morph.)
 import { existsSync, readFileSync, writeFileSync } from 'node:fs'
-import { Project, SyntaxKind } from 'ts-morph'
+import { Node, Project, SyntaxKind } from 'ts-morph'
 
 import { isNameTaken } from './ts-morph-utils.mjs'
 
@@ -33,8 +33,11 @@ function locateUnionArray(project, root) {
   if (!union) {
     fail(SCHEMA_BARREL, 'the second argument of z.discriminatedUnion is not an array literal')
   }
-  return { barrel, union }
+  return { barrel, fn, union }
 }
+
+const inUnion = (union, camel) =>
+  union.getElements().some((element) => element.getText().startsWith(`${camel}SectionSchema(`))
 
 function locateReturnObject(project, root) {
   const home = project.addSourceFileAtPath(`${root}/${DATA_LAYER}`)
@@ -64,12 +67,23 @@ function readIndexPage(root) {
   return src
 }
 
-export function assertSectionInjectable({ root, camel, kebab, pascal }) {
+function assertContextForwardable(fn) {
+  const [first] = fn.getParameters()
+  if (first && !Node.isIdentifier(first.getNameNode())) {
+    fail(
+      SCHEMA_BARREL,
+      'homepageCollectionSchema destructures its parameter — name it `context: SchemaContext`, so an image section can receive it',
+    )
+  }
+}
+
+export function assertSectionInjectable({ root, camel, kebab, pascal, image = false }) {
   const project = new Project()
-  const { barrel, union } = locateUnionArray(project, root)
-  if (union.getElements().some((e) => e.getText() === `${camel}SectionSchema()`)) {
+  const { barrel, fn, union } = locateUnionArray(project, root)
+  if (inUnion(union, camel)) {
     fail(SCHEMA_BARREL, `section "${camel}" is already in the union — pick another name`)
   }
+  if (image) assertContextForwardable(fn)
   if (isNameTaken(barrel, `${camel}SectionSchema`)) {
     fail(
       SCHEMA_BARREL,
@@ -99,19 +113,28 @@ export function assertSectionInjectable({ root, camel, kebab, pascal }) {
   }
 }
 
-export function injectSection({ root, camel, kebab, pascal }) {
+function contextArgument(barrel, fn) {
+  const [first] = fn.getParameters()
+  if (first) return first.getName()
+  fn.addParameter({ name: 'context', type: 'SchemaContext' })
+  if (!isNameTaken(barrel, 'SchemaContext')) {
+    barrel.addImportDeclaration({ moduleSpecifier: 'astro:content', namedImports: ['SchemaContext'], isTypeOnly: true })
+  }
+  return 'context'
+}
+
+export function injectSection({ root, camel, kebab, pascal, image = false }) {
   const project = new Project()
 
-  const { barrel, union } = locateUnionArray(project, root)
+  const { barrel, fn, union } = locateUnionArray(project, root)
   if (!barrel.getImportDeclaration((d) => d.getModuleSpecifierValue() === `./${kebab}`)) {
     barrel.addImportDeclaration({
       moduleSpecifier: `./${kebab}`,
       namedImports: [`${camel}SectionSchema`],
     })
   }
-  const call = `${camel}SectionSchema()`
-  if (!union.getElements().some((e) => e.getText() === call)) {
-    union.addElement(call)
+  if (!inUnion(union, camel)) {
+    union.addElement(`${camel}SectionSchema(${image ? contextArgument(barrel, fn) : ''})`)
   }
 
   const obj = locateReturnObject(project, root)

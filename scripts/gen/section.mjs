@@ -9,6 +9,15 @@ const ROLLBACK_HINT =
   'schema/yml/component files. A re-run without rollback fails pre-flight with ' +
   '"already in the union".'
 
+function sectionNames(api, answers) {
+  return {
+    camel: api.getHelper('camelCase')(answers.name),
+    kebab: api.getHelper('dashCase')(answers.name),
+    pascal: api.getHelper('pascalCase')(answers.name),
+    image: answers.image === true,
+  }
+}
+
 export default function sectionGenerator(plop) {
   const root = process.cwd()
   const tpl = 'scripts/templates/section'
@@ -28,15 +37,16 @@ export default function sectionGenerator(plop) {
           return true
         },
       },
+      {
+        type: 'confirm',
+        name: 'image',
+        message: 'Does the section carry an image? (its content starts on src/assets/placeholder.jpg)',
+        default: false,
+      },
     ],
     actions: [
       (a, _config, api) => {
-        assertSectionInjectable({
-          root,
-          camel: api.getHelper('camelCase')(a.name),
-          kebab: api.getHelper('dashCase')(a.name),
-          pascal: api.getHelper('pascalCase')(a.name),
-        })
+        assertSectionInjectable({ root, ...sectionNames(api, a) })
         return 'hook-point contract checks passed'
       },
       {
@@ -55,13 +65,9 @@ export default function sectionGenerator(plop) {
         templateFile: `${tpl}/component.astro.hbs`,
       },
       (a, _config, api) => {
-        injectSection({
-          root,
-          camel: api.getHelper('camelCase')(a.name),
-          kebab: api.getHelper('dashCase')(a.name),
-          pascal: api.getHelper('pascalCase')(a.name),
-        })
-        return `injected union + pick + index.astro: ${api.getHelper('pascalCase')(a.name)}`
+        const names = sectionNames(api, a)
+        injectSection({ root, ...names })
+        return `injected union + pick + index.astro: ${names.pascal}`
       },
       postGenAction(root, ROLLBACK_HINT),
     ],

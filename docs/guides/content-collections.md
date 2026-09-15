@@ -195,9 +195,11 @@ silenzioso nulla di fatto):
      inserendo sotto `@gen:home-imports`, l'`organizeImports` di Biome adotta il marcatore come
      trivia iniziale del nuovo import e lo sposta dentro il blocco ordinato.
 
-  Non c'è ancora un'opzione `image()`, perché non esiste una sezione con immagini vera da cui
-  derivarla: si aggiunge quando ci sarà (la funzione di schema guadagna un parametro
-  `SchemaContext`).
+  **L'opzione immagine.** Se la sezione porta un'immagine, lo schema riceve
+  `{ image }: SchemaContext` e il campo `image: imageSchema(image)`, il contenuto punta a
+  `src/assets/placeholder.jpg` e il componente rende un `<Image>`. Nell'unione la sezione entra come
+  `<nome>SectionSchema(context)`: il contesto Astro lo passa alla funzione di schema della
+  collection, e se la funzione non ha ancora il parametro il generatore glielo aggiunge.
 - `gen:page` scrive le chiavi della pagina in ogni dizionario di `src/i18n/strings/`:
   `page.<nome>.title`, e per una pagina statica anche `page.<nome>.description`, che nasce
   `'<PAGE_DESCRIPTION>'` e che `check:placeholders` ferma al deploy. Le scrive in tutti perché
