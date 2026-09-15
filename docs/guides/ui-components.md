@@ -110,7 +110,10 @@ compositi, il contratto deve vivere in un test unitario che calcola luminanza re
 La struttura di header, footer e skip-link viene da `src/lib/site.ts` (`SITE`): nav, CTA, link
 legali, social. I testi NON stanno lì: le voci portano chiavi di dizionario i18n risolte tramite
 `useTranslations(Astro.currentLocale)` (`src/i18n/strings/<lingua>.ts`). Nessuna etichetta fissa nei
-componenti; i link interni passano da `localizedHref()` così si localizzano insieme al sito.
+componenti; i link interni passano da `localizedHref()` così si localizzano insieme al sito. Anche
+le CTA dei contenuti (l'hero, `cta-banner`, le sezioni di `gen:section`) si localizzano, con
+`ctaHref()`: un percorso che comincia con `/` prende il prefisso della lingua, un'ancora o un URL
+esterno restano come sono.
 
 L'identità legale viene invece da `src/lib/company.ts` (`COMPANY`): la riga in fondo al footer porta
 ragione sociale, sede e partita IVA, e i recapiti di `/contatti` portano telefono, email e sede.

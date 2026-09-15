@@ -258,7 +258,9 @@ puramente additiva.
    per lingua.
 
 I link della chrome passano da `localizedHref(Astro.currentLocale, path)` (vedi header e footer),
-quindi nav e URL legali si localizzano senza toccare i componenti.
+quindi nav e URL legali si localizzano senza toccare i componenti. Le CTA dei contenuti — i bottoni
+dell'hero, di `cta-banner` e delle sezioni di `gen:section` — passano da `ctaHref()`, che localizza
+i percorsi relativi e lascia come sono ancore, URL esterni, `mailto:` e `tel:`.
 
 Il selettore di lingua compare da solo nell'header e nella nav mobile quando una pagina esiste in
 almeno due lingue. Una pagina che non esiste in tutte dichiara le sue con la prop `locales` del

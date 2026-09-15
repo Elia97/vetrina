@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 
-import { localizedHref } from '@/i18n/href'
+import { ctaHref, localizedHref } from '@/i18n/href'
 import { ariaCurrent, localeAgnosticPath, localeSwitchHref } from '@/i18n/path'
 
 vi.mock('@/i18n/segments-by-locale', () => import('@test/helpers/second-locale').then((m) => m.translatedSegments))
@@ -111,5 +111,27 @@ describe('localizedHref', () => {
   // Astro.currentLocale è undefined su una pagina fuori dal routing i18n.
   it('falls back to the default locale when none is given', () => {
     expect(localizedHref(undefined, '/contatti')).toBe('/contatti')
+  })
+})
+
+describe('ctaHref', () => {
+  it.each([
+    ['it', '/contatti', '/contatti'],
+    ['en', '/contatti', '/en/contact'],
+    ['it', '/', '/'],
+    ['en', '/', '/en'],
+  ])('in %s localizza il percorso %s come %s', (locale, url, expected) => {
+    expect(ctaHref(locale, url)).toBe(expected)
+  })
+
+  it.each([
+    '#section',
+    'http://example.org',
+    'https://example.org/page',
+    'mailto:info@example.com',
+    'tel:+390000000000',
+  ])("lascia %s com'è in ogni lingua", (url) => {
+    expect(ctaHref('it', url)).toBe(url)
+    expect(ctaHref('en', url)).toBe(url)
   })
 })

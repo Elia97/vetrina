@@ -5,9 +5,12 @@ import Heading from '@/components/ui/heading.astro'
 import Section from '@/components/ui/section.astro'
 import type { HomepageSections } from '@/lib/homepage'
 
+import { ctaHref } from '@/i18n/href'
+
 type Props = HomepageSections['{{camelCase name}}']
 
 const { title, body, buttons } = Astro.props
+const href = (url: string) => ctaHref(Astro.currentLocale, url)
 ---
 
 <Section class="border-b border-border bg-background">
@@ -18,7 +21,7 @@ const { title, body, buttons } = Astro.props
       buttons.length > 0 && (
         <div class="mt-8 flex flex-wrap gap-4">
           {buttons.map((button, index) => (
-            <Button as="a" href={button.url} variant={index === 0 ? 'default' : 'outline'}>
+            <Button as="a" href={href(button.url)} variant={index === 0 ? 'default' : 'outline'}>
               {button.label}
             </Button>
           ))}

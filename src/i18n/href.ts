@@ -8,3 +8,7 @@ export function localizedHref(locale: string | undefined, path: string): string 
   const target = locale ?? DEFAULT_LOCALE
   return getRelativeLocaleUrl(target, translatePath(path, target))
 }
+
+export function ctaHref(locale: string | undefined, url: string): string {
+  return url.startsWith('/') ? localizedHref(locale, url) : url
+}
