@@ -5,6 +5,7 @@ import { describe, expect, it, vi } from 'vitest'
 
 import { main as checkComments } from './check-comments.ts'
 import { main as checkLanguage } from './check-language.ts'
+import { main as checkPlaceholders } from './check-placeholders.ts'
 import { main as checkRoadmap } from './check-roadmap.ts'
 import { main as checkRoutes } from './check-routes.ts'
 
@@ -141,6 +142,27 @@ describe('check:roadmap', () => {
 
     expect(exitCode).toBe(0)
     expect(lines.join('\n')).toMatch(/giornate/)
+  })
+})
+
+describe('check:placeholders', () => {
+  it('sul template esce 1 e nomina i file che portano segnaposto', () => {
+    const { exitCode, lines } = captureOutput(() => checkPlaceholders([]))
+
+    expect(exitCode).toBe(1)
+    expect(lines.join('\n')).toContain('src/lib/company.ts')
+    expect(lines.join('\n')).toContain('src/i18n/strings/it.ts')
+  })
+
+  it("con --env nomina la chiave che manca nell'ambiente scaricato", () => {
+    const { exitCode, lines } = withBrokenFile(
+      '__test-env.local',
+      'CONTACT_FROM_EMAIL="hello@acme.test"\nCONTACT_FROM_NAME="Acme"\n',
+      () => captureOutput(() => checkPlaceholders(['--env', 'scripts/__test-env.local'])),
+    )
+
+    expect(exitCode).toBe(1)
+    expect(lines.join('\n')).toContain('CONTACT_TO_EMAIL')
   })
 })
 

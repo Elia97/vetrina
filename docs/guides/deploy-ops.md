@@ -22,8 +22,9 @@ La produzione esce **solo da un tag di release**, mai da un push su `main`:
   prime milestone si verificano solo con `pnpm dev` e `pnpm run build`: vale la pena saperlo prima di
   promettere un link a un cliente.
 - Il deploy di produzione è `.github/workflows/deploy.yml`: fa il checkout del **tag** rilasciato
-  (non di quello che `main` punta in quel momento), poi `pnpm run ci` → `vercel pull --prod` →
-  `vercel build --prod` → `vercel deploy --prebuilt --prod` → `pnpm smoke:prod`.
+  (non di quello che `main` punta in quel momento), poi `pnpm run check:placeholders` →
+  `pnpm run ci` → `vercel pull --prod` → `pnpm run check:placeholders --env` → `vercel build --prod`
+  → `vercel deploy --prebuilt --prod` → `pnpm smoke:prod`.
 - **Ha due punti d'ingresso e una strada sola.** `release-please.yml` lo chiama su un tag nuovo;
   Actions → Deploy → *Run workflow* lo lancia a mano, e un input vuoto significa il tag più recente.
   Il bottone si usa quando la produzione va ricostruita senza una modifica al codice: un segreto
@@ -68,12 +69,13 @@ regione della funzione.
 
 ## La catena dei gate
 
-Quattro gate, e ognuno copre un momento che gli altri non coprono:
+Cinque gate, e ognuno copre un momento che gli altri non coprono:
 
 | Gate | Dove | Copre |
 |---|---|---|
 | il check obbligatorio `ci` | ruleset di `main`, da `scripts/bootstrap-github.sh` | tutto ciò che atterra su `main` |
 | `pnpm run ci` | job `deploy`, sul tag | ciò che parte dal tag |
+| `pnpm run check:placeholders` | job `deploy`, prima di `pnpm run ci` e dopo `vercel pull` | i segnaposto del template nei sorgenti e nell'ambiente di produzione |
 | `pnpm perf:bundle` | `ci.yml`, dopo la build | il JavaScript client per rotta |
 | `pnpm smoke:prod` | job `deploy`, dopo il deploy | ciò che il bordo serve davvero |
 
@@ -98,6 +100,15 @@ com'è («prima era», «non più», un `#NN`); con `--strict`, che `package.jso
 file di almeno 40 righe in cui i commenti superano il 15%. Un commento corto, inutile e al presente
 passa pulito: quali commenti meritano il posto lo dice `metodo.md`, e resta un giudizio di chi scrive
 e di chi rivede.
+
+**`check:placeholders`** sta fuori da `pnpm run ci` di proposito: `ci.yml` gira anche sul template,
+che dei segnaposto è fatto, e fallirebbe sempre. Nel job `deploy` gira due volte. Subito dopo
+l'installazione legge `src/lib/site.ts`, `src/lib/company.ts` e i dizionari di `src/i18n/strings/`,
+e ferma il deploy in pochi secondi su ogni segnaposto, con file e riga. Dopo `vercel pull` legge
+l'ambiente di produzione e si ferma se `CONTACT_FROM_EMAIL`, `CONTACT_FROM_NAME` o
+`CONTACT_TO_EMAIL` mancano o portano un segnaposto, perché allora varrebbero i default di
+`astro.config.mjs`. Il redirect di `vercel.json` non lo guarda: lo lega già a `SITE.url`
+`src/vercel-redirects.test.ts`, dentro `pnpm run ci`.
 
 ⚠️ **Restano due derivati senza gate, e per la stessa ragione.** La roadmap contro le issue di
 GitHub vuole la rete, quindi vive dentro `/metodo:milestone` in rilettura e non nel gate. La stima sta nel
@@ -423,14 +434,16 @@ spedire qualcosa che la strada della release avrebbe preso.
 ## Checklist per il go-live
 
 1. `SITE.url` è il dominio vero (alimenta ogni canonical, OG e hreflang, e `pnpm smoke:prod` si
-   rifiuta di girare finché è il segnaposto).
+   rifiuta di girare finché è il segnaposto), e `pnpm run check:placeholders` esce 0: il job di
+   deploy si ferma su ogni segnaposto rimasto in `site.ts`, `company.ts` e nei dizionari.
 2. Dominio aggiunto in Vercel, DNS puntato, HTTPS emesso. Si decide l'host canonico (apice o `www`) e
    si dichiara il redirect in `vercel.json`.
 3. Ignored Build Step impostato su `bash scripts/vercel-ignore-build.sh`.
 4. `bash scripts/bootstrap-github.sh` lanciato sul repo (è idempotente).
 5. Secret del repo impostati; la prima PR di release-please mergiata.
 6. DKIM, SPF e DMARC del dominio mittente verificati in Brevo, `CONTACT_*` e `BREVO_API_KEY`
-   impostati nel progetto Vercel.
+   impostati nel progetto Vercel. Senza le tre `CONTACT_*` il job di deploy si ferma dopo
+   `vercel pull`.
 7. Un invio vero del form di contatto da un browser visto arrivare; poi si valuta
    `BOTID_ENFORCE=true`.
 8. `pnpm smoke:prod` verde contro l'apice.

@@ -105,6 +105,10 @@ La superficie completa, in un posto solo — la milestone `foundations` la distr
   canonico scelto (`docs/guides/deploy-ops.md` § Checklist per il go-live);
 - `src/content/homepage/hero.yml`: il copy vero della homepage.
 
+Quello che resta lo trova il deploy: `pnpm run check:placeholders` elenca, con file e riga, i
+segnaposto rimasti in `src/lib/site.ts`, `src/lib/company.ts` e nei dizionari, e il deploy di
+produzione si ferma finché ce n'è uno.
+
 ## Cosa ti dà lo scaffold
 
 - **Token di design su tre livelli** (`src/styles/`): `tokens.css` (la superficie del rebranding) →
