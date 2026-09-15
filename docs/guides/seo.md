@@ -40,6 +40,11 @@ Convenzioni stabilite dalla head centralizzata (`src/components/head/head.astro`
   emette nessun link per quella lingua.
 - Sotto `exactOptionalPropertyTypes` questo significa **omettere la chiave**, non metterla a
   `undefined`: `...(twin ? { en: twin } : {})`.
+- **Una pagina dichiara le sue lingue** con la prop `locales` del layout,
+  `<MainLayout locales={['it']}>`; senza la prop valgono tutte quelle di `astro.config.mjs`. La lista
+  la risolve `pageLocales()` in `src/i18n/locales.ts`, e la leggono sia gli alternate di
+  `resolveHeadSeoMeta()` sia il selettore di lingua: una lingua che la configurazione non instrada
+  ferma il build, e `x-default` esce solo se la pagina esiste nella lingua di default.
 - Gli alternate `xhtml:link` di una sitemap si accoppiano **per percorso identico dopo il prefisso
   di lingua**, quindi con slug localizzati non si accoppiano mai. Con il routing localizzato
   l'hreflang che conta è quello nella `<head>`: la sitemap non rimedia.

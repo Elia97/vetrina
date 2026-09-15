@@ -1,6 +1,7 @@
 ---
 import { Menu } from '@lucide/astro'
 
+import LanguageSwitcher from '@/components/layout/language-switcher.astro'
 import MobileNav from '@/components/layout/mobile-nav.astro'
 import Button from '@/components/ui/button.astro'
 import Container from '@/components/ui/container.astro'
@@ -16,9 +17,10 @@ import { useTranslations } from '@/i18n/translate'
 interface Props {
   heroOverlay?: boolean
   overlayChrome?: 'auto' | 'light'
+  locales?: readonly string[] | undefined
 }
 
-const { heroOverlay = false, overlayChrome = 'auto' } = Astro.props
+const { heroOverlay = false, overlayChrome = 'auto', locales } = Astro.props
 const lightChrome = heroOverlay && overlayChrome === 'light'
 
 const t = useTranslations(Astro.currentLocale)
@@ -62,6 +64,7 @@ const controlClass = lightChrome ? 'text-white hover:text-white/80' : 'text-mute
     </nav>
 
     <div class="flex items-center gap-2">
+      <LanguageSwitcher {locales} class="hidden md:flex" itemClass={navLinkClass} />
       <ThemeToggle class={cn('hidden md:inline-flex', controlClass)} />
       <Button as="a" href={href(SITE.cta.href)} size="sm" class="hidden md:inline-flex">{t(SITE.cta.key)}</Button>
       <Button
@@ -81,4 +84,4 @@ const controlClass = lightChrome ? 'text-white hover:text-white/80' : 'text-mute
   </Container>
 </header>
 
-<MobileNav />
+<MobileNav {locales} />

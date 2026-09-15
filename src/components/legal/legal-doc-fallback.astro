@@ -1,5 +1,7 @@
 ---
 // Mai prosa legale segnaposto: un testo di bozza su una /privacy viva si legge come una policy vera.
+import Heading from '@/components/ui/heading.astro'
+
 import { iubendaHostedUrl, type LegalDocKind } from '@/lib/legal/documents'
 
 import { useTranslations } from '@/i18n/translate'
@@ -15,7 +17,7 @@ const hostedUrl = iubendaHostedUrl(kind)
 ---
 
 <div>
-  <h1 class="font-bold text-4xl text-foreground tracking-tight">{title}</h1>
+  <Heading as="h1" size="h1">{title}</Heading>
   <p class="mt-6 font-medium text-foreground">{t('legal.unavailable')}</p>
   {
     hostedUrl && (

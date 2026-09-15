@@ -1,7 +1,7 @@
 import { i18n as stubbedI18n } from '@test/stubs/astro-config-client'
 import { describe, expect, it } from 'vitest'
 
-import { SITE } from '@/lib/site'
+import { DEFAULT_LOCALE, SITE } from '@/lib/site'
 
 import astroConfig from '../../astro.config.mjs'
 
@@ -12,8 +12,7 @@ type LocaleEntry = string | { path: string; codes: string[] }
 
 const i18n = (astroConfig as { i18n?: { defaultLocale: string; locales: LocaleEntry[] } }).i18n
 
-// Le API di Astro parlano di codici; per una voce oggetto è codes[0], con la stessa
-// normalizzazione di src/components/head/seo.ts.
+// Stessa normalizzazione di src/i18n/locales.ts.
 function codesOf(locales: readonly LocaleEntry[]): string[] {
   return locales.map((locale) => (typeof locale === 'string' ? locale : (locale.codes[0] ?? locale.path)))
 }
@@ -39,6 +38,11 @@ describe('locale configuration stays in one shape', () => {
 
   it('routes its own default locale', () => {
     expect(codesOf(i18n?.locales ?? [])).toContain(i18n?.defaultLocale)
+  })
+
+  it('prende la lingua di default da DEFAULT_LOCALE, nella configurazione e nello stub', () => {
+    expect(i18n?.defaultLocale).toBe(DEFAULT_LOCALE)
+    expect(stubbedI18n.defaultLocale).toBe(DEFAULT_LOCALE)
   })
 
   it('keeps the unit-test stub mirroring the real config', () => {

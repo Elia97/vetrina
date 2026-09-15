@@ -39,8 +39,8 @@ collection: non montarne una per lui.
   `hero`). Le lingue in più vanno in una sottocartella, `src/content/homepage/<lingua>/hero.yml`
   (per l'inglese l'id diventa `en/hero`). Aggiungere una lingua è puramente additivo: i file della lingua di default non si
   spostano mai.
-- `getHomepageSections()` ricade su `i18n.defaultLocale` da `astro:config/client`; dalle pagine si
-  passa `Astro.currentLocale`.
+- `getHomepageSections()` ricade su `DEFAULT_LOCALE` di `src/lib/site.ts`; dalle pagine si passa
+  `Astro.currentLocale`.
 
 ## Il contratto del fallire rumorosamente
 

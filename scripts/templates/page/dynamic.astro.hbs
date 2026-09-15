@@ -1,5 +1,6 @@
 ---
 import Container from '@/components/ui/container.astro'
+import Heading from '@/components/ui/heading.astro'
 import Section from '@/components/ui/section.astro'
 import MainLayout from '@/layouts/main.astro'
 
@@ -17,7 +18,7 @@ const { slug } = Astro.params
 <MainLayout title={slug ?? t('page.{{pageKey}}.title')}>
   <Section>
     <Container>
-      <h1 class="text-4xl font-bold tracking-tight text-foreground">{slug}</h1>
+      <Heading as="h1" size="h1">{slug}</Heading>
     </Container>
   </Section>
 </MainLayout>

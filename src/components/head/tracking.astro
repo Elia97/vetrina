@@ -1,12 +1,11 @@
 ---
 // Le origini che questi script richiedono arrivano da src/lib/csp/directives.ts: un
 // fornitore nuovo va lì e in src/lib/csp/csp.test.ts, mai in vercel.json.
-import { i18n } from 'astro:config/client'
-
 import { getTrackingConfig } from '@/lib/analytics/tracking'
+import { DEFAULT_LOCALE } from '@/lib/site'
 
 const config = getTrackingConfig()
-const lang = Astro.currentLocale ?? i18n?.defaultLocale ?? 'it'
+const lang = Astro.currentLocale ?? DEFAULT_LOCALE
 ---
 
 {

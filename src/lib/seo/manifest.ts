@@ -1,6 +1,4 @@
-import { i18n } from 'astro:config/client'
-
-import { localeTag, SITE } from '@/lib/site'
+import { DEFAULT_LOCALE, localeTag, SITE } from '@/lib/site'
 
 // Il prompt di installazione di Chrome vuole un'icona raster di almeno 192px (e una maskable
 // da 512 col contenuto dentro la zona sicura centrale dell'80%); il template porta solo l'SVG.
@@ -16,8 +14,7 @@ export function buildWebManifest() {
     name: SITE.name,
     short_name: SITE.name,
     description: SITE.description,
-    /* v8 ignore next -- astro:config/client lo inietta Astro a ogni render; il ripiego protegge un modulo che non può mancare */
-    lang: localeTag(i18n?.defaultLocale ?? 'it'),
+    lang: localeTag(DEFAULT_LOCALE),
     dir: 'ltr',
     display: 'standalone',
     // La specifica del manifest non ha media query: un colore solo, quello del tema chiaro.

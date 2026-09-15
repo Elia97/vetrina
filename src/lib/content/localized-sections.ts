@@ -1,10 +1,8 @@
-import { i18n } from 'astro:config/client'
 import { type CollectionEntry, getCollection } from 'astro:content'
 
-type Sectioned = 'homepage'
+import { DEFAULT_LOCALE } from '@/lib/site'
 
-/* v8 ignore next -- astro:config/client lo inietta Astro a ogni render; il ripiego protegge un modulo che non può mancare */
-const DEFAULT_LOCALE = i18n?.defaultLocale ?? 'it'
+type Sectioned = 'homepage'
 
 export async function loadLocalizedSections<C extends Sectioned>(
   collection: C,

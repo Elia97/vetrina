@@ -100,8 +100,11 @@ La superficie completa, in un posto solo — la milestone `foundations` la distr
   theme-color ha cosa aggiungere per il prompt di installazione;
 - `SITE.themeColor`: i colori della chrome del browser, da tenere uguali a `--background` in
   `light.css` e `dark.css`;
-- `astro.config.mjs` → `i18n.defaultLocale` e `locales` se il progetto non parte dall'italiano (§
-  Aggiungere una lingua, sotto, ha l'elenco completo);
+- `src/lib/site.ts` → `DEFAULT_LOCALE`, se il progetto non parte dall'italiano: la leggono
+  `astro.config.mjs` (lingua di default, lingue instradate e sitemap), i moduli che ripiegano sulla
+  lingua di default e lo stub dei test. Non copre la chiave di `SITE.localeTags` né il dizionario
+  `src/i18n/strings/it.ts`, che si rinomina insieme alla costante che esporta: `src/i18n/ui.ts` ne
+  deriva `UIKey` e il tipo di ogni dizionario;
 - `vercel.json`: il redirect da `www.example.com` a `example.com`, sul dominio vero e verso l'host
   canonico scelto (`docs/guides/deploy-ops.md` § Checklist per il go-live);
 - `src/content/homepage/hero.yml`: il copy vero della homepage.
@@ -246,8 +249,8 @@ puramente additiva.
 4. `src/i18n/strings/<lingua>.ts` — esporta un `Record<UIKey, string>`; il compilatore costringe a
    coprire ogni chiave.
 5. `src/i18n/ui.ts` — registra il dizionario nuovo in `dictionaries`.
-6. `src/i18n/route-segments.ts` — mappa i segmenti di URL di primo livello che cambiano (`contatti`
-   → `contact`); quelli non mappati passano così come sono.
+6. `src/i18n/segments-by-locale.ts` — mappa i segmenti di URL di primo livello che cambiano
+   (`contatti` → `contact`); quelli non mappati passano così come sono.
 7. Contenuti: aggiungi i file `src/content/<collection>/<lingua>/…` (il contenuto nella lingua di
    default resta piatto, e i loader lo impongono).
 8. Pagine: rispecchia l'albero di default sotto `src/pages/<lingua>/…`;
@@ -255,7 +258,14 @@ puramente additiva.
    per lingua.
 
 I link della chrome passano da `localizedHref(Astro.currentLocale, path)` (vedi header e footer),
-quindi nav e URL legali si localizzano senza toccare i componenti.
+quindi nav e URL legali si localizzano senza toccare i componenti. Le CTA dei contenuti — i bottoni
+dell'hero, di `cta-banner` e delle sezioni di `gen:section` — passano da `ctaHref()`, che localizza
+i percorsi relativi e lascia come sono ancore, URL esterni, `mailto:` e `tel:`.
+
+Il selettore di lingua compare da solo nell'header e nella nav mobile quando una pagina esiste in
+almeno due lingue. Una pagina che non esiste in tutte dichiara le sue con la prop `locales` del
+layout, `<MainLayout locales={['it']}>`: alternate hreflang e selettore leggono la stessa lista, come
+spiega la politica degli URL in `docs/guides/seo.md`.
 
 ## Secret di release
 

@@ -1,5 +1,6 @@
 ---
 import CompanyAddress from '@/components/layout/company-address.astro'
+import Heading from '@/components/ui/heading.astro'
 
 import { COMPANY } from '@/lib/company'
 
@@ -10,7 +11,7 @@ const linkClass = 'font-medium text-foreground underline underline-offset-4'
 ---
 
 <div>
-  <h2 class="font-display font-semibold text-foreground text-xl tracking-tight">{t('contact.detailsTitle')}</h2>
+  <Heading as="h2" size="h3">{t('contact.detailsTitle')}</Heading>
   <dl class="mt-4 flex flex-col gap-3 text-sm">
     <div>
       <dt class="text-muted-foreground">{t('contact.phone')}</dt>

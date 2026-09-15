@@ -1,13 +1,16 @@
 ---
 import Button from '@/components/ui/button.astro'
 import Container from '@/components/ui/container.astro'
+import Heading from '@/components/ui/heading.astro'
 import Section from '@/components/ui/section.astro'
 
 import MainLayout from '@/layouts/main.astro'
 
+import { localizedHref } from '@/i18n/href'
 import { useTranslations } from '@/i18n/translate'
 
 const t = useTranslations(Astro.currentLocale)
+const home = localizedHref(Astro.currentLocale, '/')
 ---
 
 <MainLayout title={`404 — ${t('error.404title')}`} description={t('error.404description')}>
@@ -15,9 +18,9 @@ const t = useTranslations(Astro.currentLocale)
     <Container>
       <div class="mx-auto flex min-h-status max-w-2xl flex-col items-center justify-center gap-6 text-center">
         <p class="font-display font-semibold text-7xl text-foreground">404</p>
-        <h1 class="text-foreground text-lg">{t('error.404title')}</h1>
+        <Heading as="h1" size="h4">{t('error.404title')}</Heading>
         <p class="text-muted-foreground text-sm leading-relaxed">{t('error.404description')}</p>
-        <Button as="a" href="/" variant="outline" size="lg">{t('error.backHome')}</Button>
+        <Button as="a" href={home} variant="outline" size="lg">{t('error.backHome')}</Button>
       </div>
     </Container>
   </Section>

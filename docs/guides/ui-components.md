@@ -110,7 +110,10 @@ compositi, il contratto deve vivere in un test unitario che calcola luminanza re
 La struttura di header, footer e skip-link viene da `src/lib/site.ts` (`SITE`): nav, CTA, link
 legali, social. I testi NON stanno lì: le voci portano chiavi di dizionario i18n risolte tramite
 `useTranslations(Astro.currentLocale)` (`src/i18n/strings/<lingua>.ts`). Nessuna etichetta fissa nei
-componenti; i link interni passano da `localizedHref()` così si localizzano insieme al sito.
+componenti; i link interni passano da `localizedHref()` così si localizzano insieme al sito. Anche
+le CTA dei contenuti (l'hero, `cta-banner`, le sezioni di `gen:section`) si localizzano, con
+`ctaHref()`: un percorso che comincia con `/` prende il prefisso della lingua, un'ancora o un URL
+esterno restano come sono.
 
 L'identità legale viene invece da `src/lib/company.ts` (`COMPANY`): la riga in fondo al footer porta
 ragione sociale, sede e partita IVA, e i recapiti di `/contatti` portano telefono, email e sede.
@@ -161,6 +164,10 @@ apre il pannello della CMP, non porta a una pagina.
   `true`, e dà sottolineatura e colore pieno del testo. Sulle altre voci `ariaCurrent()` restituisce
   `undefined`, che omette l'attributo: Astro rende un `false` come `aria-current="false"`, e il
   selettore prende anche quello.
+- **Il selettore di lingua** (`src/components/layout/language-switcher.astro`) sta nell'header e
+  nella nav mobile, e compare solo quando la pagina esiste in almeno due lingue. La lingua corrente
+  è testo con `aria-current="true"`, le altre sono link con `lang` e `hreflang`, e ogni nome è
+  scritto nella lingua che nomina (`localeName()` in `src/i18n/locales.ts`).
 - I glifi delle icone sono `aria-hidden` con l'etichetta sul controllo; il selettore di variazione
   testuale (`&#xFE0E;`) va sui codepoint che WebKit renderebbe come emoji.
 - Mattoni per gli overlay (per menu e dialog che un progetto aggiunge):
@@ -280,6 +287,13 @@ tailwind-merge): la forma dell'API di shadcn senza il runtime React o Radix.
   `<Section><Container>…</Container></Section>`, e i template dei generatori devono emettere quella
   forma. Entrambe le primitive documentano nelle proprie intestazioni la ragione di larghezze e
   ritmo, e la via d'uscita del raro blocco più stretto con un `max-w-*` annidato.
+- I titoli di pagina e di sezione sono `<Heading as size>`, mai un `<h1>`…`<h6>` con classi
+  tipografiche scritte a mano, e i template dei generatori emettono quella forma: `as` dà il livello
+  nel documento, `size` la taglia nella scala. Il colore non sta nelle varianti e si eredita, e una
+  taglia che manca diventa una variante di `headingVariants`. I documenti iubenda arrivano da
+  `set:html` e non possono usare il componente: `src/components/legal/legal-doc.astro` dà ai loro
+  `h1` e `h2` le classi delle taglie `h1` e `h3`, e `src/components/legal/legal-doc.test.ts`
+  fallisce se le due divergono.
 - Le dimensioni dei bottoni sono una sola scala a taglie, `sm/md/lg/xl` più i gemelli quadrati
   `icon-*` (`md` è il default, e non esiste una chiave `default` per la dimensione; i nomi delle
   varianti invece il `default` di shadcn lo mantengono). Oltre l'insieme shadcn: `variant="soft"` è
@@ -324,6 +338,25 @@ l'inverso della nota sul «raro blocco più stretto» fra le primitive: lì si a
 `max-w-*` per stringere, qui si toglie Container per allargare. La fascia possiede la larghezza del
 proprio contenuto dall'interno (padding interno o un `container mx-auto` annidato); una card
 `rounded-* overflow-hidden` ritaglia il suo gradiente o la sua immagine di sfondo sul raggio.
+
+### L'header sopra l'hero — `heroOverlay` e `overlayChrome`
+
+Due props di `src/layouts/main.astro` mettono l'header sopra un hero a tutta altezza, su un'immagine
+o un video:
+
+- `heroOverlay` rende l'header `absolute` invece di `sticky`, senza bordo, fondo né sfocatura, e la
+  prima sezione comincia dal bordo alto della pagina, sotto di lui;
+- `overlayChrome="light"`, che ha effetto solo insieme a `heroOverlay`, rende bianchi marchio, link
+  e controlli per un fondo scuro; con `auto`, il default, restano i colori del tema.
+
+Si accendono dalla pagina, `<MainLayout heroOverlay overlayChrome="light">`, e portano tre fatti:
+
+- `scroll-pt-20` su `<html>` in `main.astro` è tarato sull'header appiccicato: con `heroOverlay`
+  l'header non segue lo scorrimento, ma gli ancoraggi atterrano comunque 80px sotto il bordo;
+- `transition:name="site-header"` in `header.astro` lega l'header delle pagine con e senza overlay:
+  la view transition li tratta come lo stesso elemento e anima il passaggio dall'uno all'altro;
+- `src/pages/index.astro` non lo accende, benché l'hero di `src/components/home/hero.astro` sia
+  `min-h-svh`.
 
 ### Gusci condivisi con un'opinione, contro le primitive di `ui/`
 

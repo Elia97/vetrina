@@ -1,7 +1,9 @@
 ---
-import Banner from '@/components/ui/banner.astro'
 import Button from '@/components/ui/button.astro'
 import Heading from '@/components/ui/heading.astro'
+import Section from '@/components/ui/section.astro'
+
+import { ctaHref } from '@/i18n/href'
 
 interface Action {
   label: string
@@ -17,23 +19,26 @@ interface Props {
 
 const { title, subtitle, action, secondaryAction } = Astro.props
 
+const href = (url: string) => ctaHref(Astro.currentLocale, url)
 const buttonWidth = secondaryAction ? 'w-full sm:w-auto' : undefined
 ---
 
-<Banner>
-  <slot name="background" slot="background" />
-  <div class="relative z-raised flex flex-col items-center">
-    <Heading as="h2" size="h1">{title}</Heading>
-    {subtitle && <p class="mt-6 text-foreground/70 2xl:text-lg">{subtitle}</p>}
-    <div class="mt-12 flex w-full flex-col items-center justify-center gap-4 sm:w-auto sm:flex-row">
-      <Button as="a" href={action.url} size="lg" class={buttonWidth}>{action.label}</Button>
-      {
-        secondaryAction && (
-          <Button as="a" href={secondaryAction.url} variant="soft" size="lg" class={buttonWidth}>
-            {secondaryAction.label}
-          </Button>
-        )
-      }
+<Section spacing="none" class="px-3 sm:px-4">
+  <div class="dark relative flex min-h-banner flex-col items-center justify-center overflow-hidden rounded-3xl bg-background px-6 py-16 text-center text-foreground sm:py-24">
+    <slot name="background" />
+    <div class="relative z-raised flex flex-col items-center">
+      <Heading as="h2" size="h1">{title}</Heading>
+      {subtitle && <p class="mt-6 text-foreground/70 2xl:text-lg">{subtitle}</p>}
+      <div class="mt-12 flex w-full flex-col items-center justify-center gap-4 sm:w-auto sm:flex-row">
+        <Button as="a" href={href(action.url)} size="lg" class={buttonWidth}>{action.label}</Button>
+        {
+          secondaryAction && (
+            <Button as="a" href={href(secondaryAction.url)} variant="soft" size="lg" class={buttonWidth}>
+              {secondaryAction.label}
+            </Button>
+          )
+        }
+      </div>
     </div>
   </div>
-</Banner>
+</Section>

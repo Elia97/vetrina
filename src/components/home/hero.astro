@@ -7,9 +7,12 @@ import SectionLabel from '@/components/ui/section-label.astro'
 
 import type { HomepageSections } from '@/lib/homepage'
 
+import { ctaHref } from '@/i18n/href'
+
 type Props = HomepageSections['hero']
 
 const { eyebrow, title, subtitle, buttons } = Astro.props
+const href = (url: string) => ctaHref(Astro.currentLocale, url)
 ---
 
 <Section
@@ -18,7 +21,7 @@ const { eyebrow, title, subtitle, buttons } = Astro.props
 >
   <Container class="text-center">
     <SectionLabel label={eyebrow} class="mb-4 justify-center" />
-    <Heading as="h1" size="display" class="tracking-tight text-foreground">
+    <Heading as="h1" size="display" class="tracking-tight">
       {title}
     </Heading>
     {
@@ -30,7 +33,7 @@ const { eyebrow, title, subtitle, buttons } = Astro.props
       buttons.length > 0 && (
         <div class="mt-10 flex flex-wrap justify-center gap-4">
           {buttons.map((button, index) => (
-            <Button as="a" href={button.url} variant={index === 0 ? 'default' : 'outline'}>
+            <Button as="a" href={href(button.url)} variant={index === 0 ? 'default' : 'outline'}>
               {button.label}
             </Button>
           ))}
