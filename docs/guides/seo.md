@@ -153,6 +153,17 @@ del browser — e viene reso una volta sola da `head.astro`.
 
 - `@astrojs/sitemap` (in `astro.config.mjs`) emette `sitemap-index.xml` in fase di build: in
   sviluppo non viene mai servito. La sua mappa delle lingue rispecchia `SITE.localeTags`.
+- **`lastmod` viene dalla storia git.** La `serialize` del sitemap,
+  `withLastmod(createLastmodResolver())`, data ogni URL con l'ultimo commit fra i file che lo
+  producono, e `lastmodSources()` in `src/lib/seo/sitemap-lastmod.ts` dice quali sono: `/` è
+  `src/pages/index.astro` più `src/content/homepage`, `/contatti` e `/termini` sono il loro `.astro`.
+  Un progetto ci aggiunge le sue rotte con i file che le producono: una pagina di dettaglio porta il
+  suo `[slug].astro` e il file della voce, e le rotte di un'altra lingua portano i loro file.
+- **Non tutte le pagine hanno `lastmod`, e non sempre.** `/privacy` e `/cookie-policy` ne restano
+  senza: il testo arriva da iubenda durante il build, e git non ne conosce la data. In un clone
+  shallow `git log` attribuisce ogni file al commit di confine, quindi lì `lastmod` si omette, con un
+  avviso nel log del build. La data giusta vuole `fetch-depth: 0`, che `deploy.yml` ha, mentre
+  `lighthouse.yml` e i preview dell'integrazione git di Vercel costruiscono senza la storia completa.
 - **Una sitemap di media vuole un endpoint suo.** L'hook `serialize` dell'integrazione non può
   emettere un namespace `<video:…>` o `<image:…>`: il suo tipo `SitemapItem` è un `Pick` di
   `url|lastmod|changefreq|priority|links` e nient'altro. Quella sitemap si emette da una rotta

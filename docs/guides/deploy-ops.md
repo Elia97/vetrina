@@ -49,7 +49,8 @@ comunque: solo che la release PR si merge senza essere stata verificata.
 Ogni riga di `deploy.yml` si guadagna il suo posto:
 
 - **`fetch-depth: 0`** sul checkout. Alla profondità di default `actions/checkout` non scarica nessun
-  tag, e la risoluzione del tag qui sotto ne ha bisogno.
+  tag, e la risoluzione del tag qui sotto ne ha bisogno. La storia completa serve anche al sitemap:
+  `lastmod` viene da `git log`, e in un clone shallow il build lo omette (`seo.md` § Sitemap e robots).
 - **Il riferimento arriva alla shell tramite `env:`, mai con `${{ }}` dentro `run:`**: quella
   sostituzione è un'iniezione di script, e su un `workflow_dispatch` l'input lo controlla chi
   attacca.
