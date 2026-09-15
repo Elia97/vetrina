@@ -3,6 +3,15 @@
 Template Astro per siti vetrina, uso personale e freelance: per ogni progetto nuovo si riparte da qui
 invece di lavorare dentro `vetrina` stesso. È il primo dei tre template del sistema, con `ecommerce` e `monorepo`.
 
+**È specifico per Vercel.** `vercel.json` porta intestazioni, redirect, rewrite e regione delle
+funzioni, l'adapter è `@astrojs/vercel`, il form di contatto passa da Vercel BotID, e la
+produzione esce solo da un tag di release (`docs/guides/deploy-ops.md` § Modello di deploy): portarlo
+su un altro host non è una riga di configurazione.
+
+**Per avviarlo in locale**, con il Node di `.nvmrc`: `corepack enable && pnpm install`, poi
+`pnpm dev`. Gli script stanno in `package.json`; quali girano come gate, e in che ordine, lo dice
+`docs/guides/deploy-ops.md` § La catena dei gate.
+
 Il metodo di lavoro — commit e PR, commenti, lingua, pianificazione, agenti verticali — non sta in
 questo repository: è il plugin `metodo` e `metodo.md` del repository `metodo-astro`, che il sistema
 di lavoro importa in ogni progetto. Questo file copre quello che succede *dentro* il repo.
