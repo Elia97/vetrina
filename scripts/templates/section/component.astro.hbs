@@ -15,7 +15,7 @@ const href = (url: string) => ctaHref(Astro.currentLocale, url)
 
 <Section class="border-b border-border bg-background">
   <Container>
-    <Heading as="h2" class="text-foreground">{title}</Heading>
+    <Heading as="h2">{title}</Heading>
     {body && <p class="mt-4 max-w-2xl text-pretty text-muted-foreground">{body}</p>}
     {
       buttons.length > 0 && (

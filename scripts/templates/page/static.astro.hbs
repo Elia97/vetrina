@@ -1,5 +1,6 @@
 ---
 import Container from '@/components/ui/container.astro'
+import Heading from '@/components/ui/heading.astro'
 import Section from '@/components/ui/section.astro'
 import MainLayout from '@/layouts/main.astro'
 
@@ -13,7 +14,7 @@ const description = t('page.{{pageKey}}.description')
 <MainLayout {title} {description}>
   <Section>
     <Container>
-      <h1 class="text-4xl font-bold tracking-tight text-foreground">{title}</h1>
+      <Heading as="h1" size="h1">{title}</Heading>
     </Container>
   </Section>
 </MainLayout>

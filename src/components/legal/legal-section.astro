@@ -1,4 +1,6 @@
 ---
+import Heading from '@/components/ui/heading.astro'
+
 interface Props {
   heading: string
 }
@@ -7,7 +9,7 @@ const { heading } = Astro.props
 ---
 
 <section>
-  <h2 class="font-semibold text-2xl tracking-tight">{heading}</h2>
+  <Heading as="h2" size="h3">{heading}</Heading>
   <p class="mt-3 text-muted-foreground leading-relaxed">
     <slot />
   </p>

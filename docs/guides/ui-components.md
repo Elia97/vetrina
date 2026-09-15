@@ -287,6 +287,13 @@ tailwind-merge): la forma dell'API di shadcn senza il runtime React o Radix.
   `<Section><Container>…</Container></Section>`, e i template dei generatori devono emettere quella
   forma. Entrambe le primitive documentano nelle proprie intestazioni la ragione di larghezze e
   ritmo, e la via d'uscita del raro blocco più stretto con un `max-w-*` annidato.
+- I titoli di pagina e di sezione sono `<Heading as size>`, mai un `<h1>`…`<h6>` con classi
+  tipografiche scritte a mano, e i template dei generatori emettono quella forma: `as` dà il livello
+  nel documento, `size` la taglia nella scala. Il colore non sta nelle varianti e si eredita, e una
+  taglia che manca diventa una variante di `headingVariants`. I documenti iubenda arrivano da
+  `set:html` e non possono usare il componente: `src/components/legal/legal-doc.astro` dà ai loro
+  `h1` e `h2` le classi delle taglie `h1` e `h3`, e `src/components/legal/legal-doc.test.ts`
+  fallisce se le due divergono.
 - Le dimensioni dei bottoni sono una sola scala a taglie, `sm/md/lg/xl` più i gemelli quadrati
   `icon-*` (`md` è il default, e non esiste una chiave `default` per la dimensione; i nomi delle
   varianti invece il `default` di shadcn lo mantengono). Oltre l'insieme shadcn: `variant="soft"` è
