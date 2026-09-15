@@ -1,10 +1,13 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import { resolveHeadSeoMeta } from '@/components/head/seo'
 
 import { SITE } from '@/lib/site'
 
 import { useTranslations } from '@/i18n/translate'
+
+vi.mock('astro:config/client', () => import('@test/helpers/second-locale').then((m) => m.twoLocaleConfig))
+vi.mock('@/i18n/segments-by-locale', () => import('@test/helpers/second-locale').then((m) => m.translatedSegments))
 
 const params = {
   title: 'Page title',
@@ -33,7 +36,10 @@ describe('resolveHeadSeoMeta', () => {
 
   it('emits one alternate per configured locale, agreeing with the canonical', () => {
     const meta = resolveHeadSeoMeta({ ...params, canonicalPath: '/privacy' })
-    expect(meta.localeAlternates).toEqual([{ tag: 'it-IT', href: 'https://example.com/privacy' }])
+    expect(meta.localeAlternates).toEqual([
+      { tag: 'it-IT', href: 'https://example.com/privacy' },
+      { tag: 'en', href: 'https://example.com/en/privacy' },
+    ])
     expect(meta.defaultHref).toBe('https://example.com/privacy')
   })
 
@@ -43,6 +49,29 @@ describe('resolveHeadSeoMeta', () => {
 
     const custom = resolveHeadSeoMeta({ ...params, ogImage: '/covers/home.png' })
     expect(custom.socialImage.url).toBe('https://example.com/covers/home.png')
+  })
+})
+
+describe("resolveHeadSeoMeta() da una pagina nell'altra lingua", () => {
+  it('fa concordare canonical, alternate e x-default sul segmento tradotto', () => {
+    const meta = resolveHeadSeoMeta({ ...params, currentLocale: 'en', canonicalPath: '/en/contact' })
+    expect(meta.canonical).toBe('https://example.com/en/contact')
+    expect(meta.currentTag).toBe('en')
+    expect(meta.localeAlternates).toEqual([
+      { tag: 'it-IT', href: 'https://example.com/contatti' },
+      { tag: 'en', href: 'https://example.com/en/contact' },
+    ])
+    expect(meta.defaultHref).toBe('https://example.com/contatti')
+  })
+
+  it('dà alla home il prefisso come canonical e la radice come x-default', () => {
+    const meta = resolveHeadSeoMeta({ ...params, currentLocale: 'en', canonicalPath: '/en' })
+    expect(meta.canonical).toBe('https://example.com/en')
+    expect(meta.localeAlternates).toEqual([
+      { tag: 'it-IT', href: 'https://example.com' },
+      { tag: 'en', href: 'https://example.com/en' },
+    ])
+    expect(meta.defaultHref).toBe('https://example.com')
   })
 })
 

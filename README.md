@@ -249,8 +249,8 @@ puramente additiva.
 4. `src/i18n/strings/<lingua>.ts` — esporta un `Record<UIKey, string>`; il compilatore costringe a
    coprire ogni chiave.
 5. `src/i18n/ui.ts` — registra il dizionario nuovo in `dictionaries`.
-6. `src/i18n/route-segments.ts` — mappa i segmenti di URL di primo livello che cambiano (`contatti`
-   → `contact`); quelli non mappati passano così come sono.
+6. `src/i18n/segments-by-locale.ts` — mappa i segmenti di URL di primo livello che cambiano
+   (`contatti` → `contact`); quelli non mappati passano così come sono.
 7. Contenuti: aggiungi i file `src/content/<collection>/<lingua>/…` (il contenuto nella lingua di
    default resta piatto, e i loader lo impongono).
 8. Pagine: rispecchia l'albero di default sotto `src/pages/<lingua>/…`;

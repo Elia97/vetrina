@@ -1,7 +1,9 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import { localizedHref } from '@/i18n/href'
 import { ariaCurrent, localeAgnosticPath } from '@/i18n/path'
+
+vi.mock('@/i18n/segments-by-locale', () => import('@test/helpers/second-locale').then((m) => m.translatedSegments))
 
 // Un canonical che non concorda con la pagina su cui sta viene ignorato dai motori di ricerca.
 describe('localeAgnosticPath', () => {
@@ -10,7 +12,11 @@ describe('localeAgnosticPath', () => {
   })
 
   it('strips the prefix of a secondary locale', () => {
-    expect(localeAgnosticPath('/en/contatti', 'en')).toBe('/contatti')
+    expect(localeAgnosticPath('/en/about', 'en')).toBe('/about')
+  })
+
+  it('riporta alla lingua di default il segmento tradotto', () => {
+    expect(localeAgnosticPath('/en/contact', 'en')).toBe('/contatti')
   })
 
   it('reduces a bare locale prefix to the root', () => {
@@ -56,6 +62,10 @@ describe('ariaCurrent', () => {
     expect(ariaCurrent('/contatti', '/contatti', 'it')).toBe('page')
   })
 
+  it("marca la stessa voce sulla pagina tradotta dell'altra lingua", () => {
+    expect(ariaCurrent('/contatti', '/en/contact', 'en')).toBe('page')
+  })
+
   it('marca la stessa voce anche con lo slash finale', () => {
     expect(ariaCurrent('/contatti', '/contatti/', 'it')).toBe('page')
   })
@@ -82,8 +92,9 @@ describe('localizedHref', () => {
     expect(localizedHref('it', '/contatti')).toBe('/contatti')
   })
 
-  it('prefixes a secondary locale', () => {
-    expect(localizedHref('en', '/contatti')).toBe('/en/contatti')
+  it('prefissa la lingua secondaria e ne traduce il segmento', () => {
+    expect(localizedHref('en', '/contatti')).toBe('/en/contact')
+    expect(localizedHref('en', '/about')).toBe('/en/about')
   })
 
   // Astro.currentLocale è undefined su una pagina fuori dal routing i18n.

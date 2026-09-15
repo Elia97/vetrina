@@ -60,7 +60,7 @@ src/
     contact.ts, homepage.ts # i moduli di dominio dell'esempio svolto    seed
   types/       # dichiarazioni ambient di Window per i global del browser machinery
   i18n/        # href, path, route-segments, translate, ui               machinery
-               #   strings/<lingua>.ts                                   config
+               #   strings/<lingua>.ts, segments-by-locale.ts            config
   actions/     # l'azione di contatto; gli handler sono esportati per
                #   nome, così l'orchestrazione è testabile               seed
   content/     # dati delle collection                                   example
