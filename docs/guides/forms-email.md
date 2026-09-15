@@ -78,8 +78,11 @@ La politica si sceglie dalla **forma** dell'azione:
   recapito dell'invio è il fornitore, quindi il guasto che fa scattare l'`ActionError` è esattamente
   quello che lo distrugge. L'handler registra `[contact] lead-recovery` con l'input già validato
   prima di sollevare l'errore; tieni quella riga in ogni azione che aggiungi, e cercala nei log di
-  runtime dopo un disservizio. Porta dati personali di proposito: un progetto con una politica di
-  conservazione più stretta oscura il campo di testo libero invece di togliere la riga.
+  runtime dopo un disservizio. Porta quello che serve a ricontattare chi ha scritto, cioè nome,
+  cognome ed email, e del messaggio solo la lunghezza, che basta a distinguere un contatto vero da
+  uno vuoto: il testo libero è la parte che fa della riga un problema di GDPR. La proiezione è
+  `leadRecoveryRecord()` in `src/lib/contact.ts`; un progetto che vuole il payload intero registra
+  `input` e lo dichiara nella sua informativa.
 - Rate limiting: `rateLimit('contact:' + clientAddress)`, una finestra scorrevole in memoria (5 ogni
   60 secondi), per istanza. Ogni form ha il **suo prefisso di ambito** (`'<nome>:' + clientAddress`)
   così le finestre restano indipendenti. Si azzera agli avvii a freddo e non è condivisa fra le

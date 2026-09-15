@@ -69,7 +69,7 @@ describe('contact handler', () => {
 })
 
 describe('lead recovery', () => {
-  it('writes the submission to the log when the notification fails', async () => {
+  it('quando la notifica fallisce registra chi ha scritto e la lunghezza del messaggio, mai il testo', async () => {
     const consoleError = spyOnConsoleError()
     brevoAnswers({ notify: KO })
     const { handleContact } = await importActions()
@@ -78,10 +78,14 @@ describe('lead recovery', () => {
 
     const recovery = consoleError.mock.calls.find((call) => call[0] === '[contact] lead-recovery')
     expect(recovery).toBeDefined()
-    expect(JSON.parse(String(recovery?.[1]))).toMatchObject({
+    const record = JSON.parse(String(recovery?.[1]))
+    expect(record).toEqual({
+      firstName: CONTACT_INPUT.firstName,
+      lastName: CONTACT_INPUT.lastName,
       email: CONTACT_INPUT.email,
-      message: CONTACT_INPUT.message,
+      messageLength: CONTACT_INPUT.message.length,
     })
+    expect(record).not.toHaveProperty('message')
   })
 })
 

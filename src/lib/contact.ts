@@ -35,3 +35,12 @@ export function contactAttributes(request: ContactRequest): Record<string, strin
     LASTNAME: request.lastName,
   }
 }
+
+export function leadRecoveryRecord(request: ContactRequest) {
+  return {
+    firstName: request.firstName,
+    lastName: request.lastName,
+    email: request.email,
+    messageLength: request.message.length,
+  }
+}
