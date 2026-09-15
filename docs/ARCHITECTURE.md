@@ -14,7 +14,7 @@
 
 ## Struttura del repository
 
-Ogni percorso porta uno di quattro ruoli. Le etichette esistono per quello che permettono di
+Ogni percorso porta uno di cinque ruoli. Le etichette esistono per quello che permettono di
 **saltare**: la machinery è circa due terzi dell'albero, e un progetto nuovo non la tocca.
 
 - `machinery` — il template che funziona. Si apre quando qualcosa si rompe, non prima.
@@ -37,6 +37,8 @@ src/
   components/
     head/      # metadati, icone, manifest, script pre-paint             machinery
     ui/        # design system (cva + cn), zero JS lato client           machinery
+               #   non usate dal template, pronte per i progetti:
+               #   badge, cta-banner, reveal, select                     machinery
     forms/     # binder di invio, errori di campo, honeypot, BotID       machinery
     layout/    # header, footer, nav mobile, skip-link                   chrome
     contact/   # riferimento svolto: un form dietro un'azione            example

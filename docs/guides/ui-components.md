@@ -332,6 +332,25 @@ l'inverso della nota sul «raro blocco più stretto» fra le primitive: lì si a
 proprio contenuto dall'interno (padding interno o un `container mx-auto` annidato); una card
 `rounded-* overflow-hidden` ritaglia il suo gradiente o la sua immagine di sfondo sul raggio.
 
+### L'header sopra l'hero — `heroOverlay` e `overlayChrome`
+
+Due props di `src/layouts/main.astro` mettono l'header sopra un hero a tutta altezza, su un'immagine
+o un video:
+
+- `heroOverlay` rende l'header `absolute` invece di `sticky`, senza bordo, fondo né sfocatura, e la
+  prima sezione comincia dal bordo alto della pagina, sotto di lui;
+- `overlayChrome="light"`, che ha effetto solo insieme a `heroOverlay`, rende bianchi marchio, link
+  e controlli per un fondo scuro; con `auto`, il default, restano i colori del tema.
+
+Si accendono dalla pagina, `<MainLayout heroOverlay overlayChrome="light">`, e portano tre fatti:
+
+- `scroll-pt-20` su `<html>` in `main.astro` è tarato sull'header appiccicato: con `heroOverlay`
+  l'header non segue lo scorrimento, ma gli ancoraggi atterrano comunque 80px sotto il bordo;
+- `transition:name="site-header"` in `header.astro` lega l'header delle pagine con e senza overlay:
+  la view transition li tratta come lo stesso elemento e anima il passaggio dall'uno all'altro;
+- `src/pages/index.astro` non lo accende, benché l'hero di `src/components/home/hero.astro` sia
+  `min-h-svh`.
+
 ### Gusci condivisi con un'opinione, contro le primitive di `ui/`
 
 Quando lo stesso layout con uno sfondo decorativo si ripete su più pagine, si estrae un guscio di
