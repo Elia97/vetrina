@@ -12,6 +12,7 @@ interface LocaleAlternate {
 }
 
 interface HeadSeoMeta {
+  documentTitle: string
   canonical: string
   ogImageUrl: string
   currentTag: string
@@ -20,6 +21,8 @@ interface HeadSeoMeta {
 }
 
 interface HeadSeoParams {
+  title: string
+  absoluteTitle: boolean
   currentLocale: string | undefined
   canonicalPath: string
   ogImage: string | undefined
@@ -41,13 +44,20 @@ function resolveLocaleAlternates(canonicalPath: string): LocaleAlternate[] {
   }))
 }
 
-export function resolveHeadSeoMeta({ currentLocale, canonicalPath, ogImage }: HeadSeoParams): HeadSeoMeta {
+export function resolveHeadSeoMeta({
+  title,
+  absoluteTitle,
+  currentLocale,
+  canonicalPath,
+  ogImage,
+}: HeadSeoParams): HeadSeoMeta {
   /* v8 ignore next -- astro:config/client lo inietta Astro a ogni render; il ripiego protegge un modulo che non può mancare */
   const defaultLocale = i18n?.defaultLocale ?? 'it'
   const locale = currentLocale ?? defaultLocale
   const canonical = localeAgnosticPath(canonicalPath, locale)
 
   return {
+    documentTitle: absoluteTitle || title === SITE.name ? title : `${title} | ${SITE.name}`,
     canonical: getAbsoluteLocaleUrl(locale, translatePath(canonical, locale)),
     // OG image ALWAYS absolute: social crawlers don't resolve relative paths.
     ogImageUrl: new URL(ogImage ?? SITE.defaultOgImage, SITE.url).href,

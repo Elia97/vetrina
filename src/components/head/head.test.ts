@@ -1,6 +1,8 @@
 import { renderToFragment } from '@test/container'
 import { describe, expect, it } from 'vitest'
 
+import { SITE } from '@/lib/site'
+
 import Head from './head.astro'
 
 const props = { title: 'Page title', description: 'Page description' }
@@ -18,7 +20,18 @@ describe('head.astro', () => {
 
   it('keeps title and canonical alongside the robots meta', async () => {
     const document = await renderToFragment(Head, { props: { ...props, noindex: true } })
-    expect(document.querySelector('title')?.textContent).toBe('Page title')
+    expect(document.querySelector('title')?.textContent).toBe(`Page title | ${SITE.name}`)
     expect(document.querySelector('link[rel="canonical"]')?.getAttribute('href')).toBeTruthy()
+  })
+
+  it('lascia il titolo nudo a og:title e twitter:title', async () => {
+    const document = await renderToFragment(Head, { props })
+    expect(document.querySelector('meta[property="og:title"]')?.getAttribute('content')).toBe('Page title')
+    expect(document.querySelector('meta[name="twitter:title"]')?.getAttribute('content')).toBe('Page title')
+  })
+
+  it('lascia nudo il titolo del documento con absoluteTitle', async () => {
+    const document = await renderToFragment(Head, { props: { ...props, absoluteTitle: true } })
+    expect(document.querySelector('title')?.textContent).toBe('Page title')
   })
 })

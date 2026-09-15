@@ -11,6 +11,12 @@ Convenzioni stabilite dalla head centralizzata (`src/components/head/head.astro`
   → `resolveHeadSeoMeta`, coperta da `head/seo.test.ts`), e il rendering è diviso per competenza
   (`head/{alternates,og,twitter,json-ld}.astro`). Si estende aggiungendo meta al sottocomponente
   giusto, non facendo crescere l'orchestratore.
+- **Il `<title>` si compone in `resolveHeadSeoMeta`, mai nelle pagine.** La pagina passa al layout
+  il suo titolo nudo, che spesso usa anche come `<h1>` o nel `BreadcrumbList`, e la head lo emette
+  come «Contatti | Nome del sito»: il separatore è `|` anche quando il titolo contiene già un `—`,
+  come quelli di 404 e 500. Il titolo resta nudo quando è già `SITE.name`, come sulla home, e
+  quando la pagina passa `absoluteTitle` al layout.
+- **`og:title` e `twitter:title` restano nudi**: il nome del sito lo porta già `og:site_name`.
 - `<meta charset>` e `<meta viewport>` stanno nel **layout**, prima dello script inline del tema: la
   dichiarazione di codifica deve stare entro i primi 1024 byte del documento. Non spostarli dentro
   `head.astro`.

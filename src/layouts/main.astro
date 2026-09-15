@@ -14,6 +14,7 @@ import '@/styles/globals.css'
 
 interface Props {
   title: string
+  absoluteTitle?: boolean
   description?: string
   canonicalPath?: string
   ogImage?: string
@@ -27,6 +28,7 @@ interface Props {
 
 const {
   title,
+  absoluteTitle,
   description,
   canonicalPath,
   ogImage,
@@ -48,7 +50,7 @@ const lang = Astro.currentLocale ?? i18n?.defaultLocale ?? 'it'
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <JsFlag />
     <ThemeScript />
-    <Head {title} {description} {canonicalPath} {ogImage} {jsonLd} {noindex} />
+    <Head {title} {absoluteTitle} {description} {canonicalPath} {ogImage} {jsonLd} {noindex} />
     <Tracking />
     <ClientRouter />
   </head>
