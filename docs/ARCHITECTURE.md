@@ -74,7 +74,7 @@ test/          # infrastruttura di test, mai inclusa nel bundle          machine
   stubs/       # i moduli virtuali astro:*, risolti dagli alias di vitest
   helpers/     # fixture e mock condivisi (handler delle azioni)
   container.ts # helper della Container API per rendere i componenti .astro
-public/        # asset statici serviti così come sono (favicon, og-default.png segnaposto)
+public/        # asset statici serviti così come sono (favicon, icone del manifest, og-default.png segnaposto)
 docs/          # i documenti tecnici del progetto: ROADMAP (milestone, sotto-task, giornate) e
                #   questo file. Brief, decisioni, stima e verbali stanno nel sistema di lavoro,
                #   fuori dal repo; i blueprint delle milestone li porta il plugin `metodo`

@@ -1,8 +1,11 @@
 import { DEFAULT_LOCALE, localeTag, SITE } from '@/lib/site'
 
-// Il prompt di installazione di Chrome vuole un'icona raster di almeno 192px (e una maskable
-// da 512 col contenuto dentro la zona sicura centrale dell'80%); il template porta solo l'SVG.
-const ICONS = [{ src: '/favicon.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'any' }] as const
+const ICONS = [
+  { src: '/favicon.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'any' },
+  { src: '/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
+  { src: '/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
+  { src: '/icon-maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+] as const
 
 export function buildWebManifest() {
   return {

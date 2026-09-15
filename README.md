@@ -95,9 +95,9 @@ La superficie completa, in un posto solo — la milestone `foundations` la distr
   i nomi semantici in `light.css` e `dark.css` restano);
 - `public/og-default.png`: si sostituisce il segnaposto (1200×630), e con lui le misure in
   `SITE.defaultOgImageSize` e l'alt `seo.defaultOgImageAlt` in `src/i18n/strings/it.ts`;
-- `public/favicon.svg` e `public/favicon.ico`: si sostituiscono entrambi. L'SVG è l'unica icona del
-  manifest così com'è: valida, ma **non installabile** — `docs/guides/seo.md` § Icone, manifest e
-  theme-color ha cosa aggiungere per il prompt di installazione;
+- `public/favicon.svg` e `public/favicon.ico`: si sostituiscono entrambi, poi `pnpm gen:icons`
+  rigenera dall'SVG le tre icone PNG del manifest — `docs/guides/seo.md` § Icone, manifest e
+  theme-color dice come sono fatte;
 - `SITE.themeColor`: i colori della chrome del browser, da tenere uguali a `--background` in
   `light.css` e `dark.css`;
 - `src/lib/site.ts` → `DEFAULT_LOCALE`, se il progetto non parte dall'italiano: la leggono

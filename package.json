@@ -38,6 +38,7 @@
     "gen:page": "plop page",
     "gen:component": "plop component",
     "gen:collection": "plop collection",
+    "gen:icons": "node scripts/gen-icons.ts",
     "prepare": "lefthook install --reset-hooks-path || true"
   },
   "dependencies": {

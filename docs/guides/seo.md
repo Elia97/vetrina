@@ -133,10 +133,13 @@ del browser — e viene reso una volta sola da `head.astro`.
 - **`manifest.test.ts` verifica che ogni icona dichiarata esista davvero.** Un'icona elencata ma non
   consegnata è un 404 che il browser segnala solo al momento dell'installazione, dove non guarda
   nessuno — ed è il motivo per cui l'elenco è corto invece che velleitario.
-- **Così com'è, il manifest è valido ma non installabile.** Dichiara solo la favicon SVG, mentre il
-  prompt di installazione di Chrome vuole un raster di almeno 192px. Un progetto aggiunge
-  `/icon-192.png`, `/icon-512.png` e una 512 maskable (contenuto dentro la zona sicura centrale
-  dell'80%, opaca — la maschera adattiva di Android taglia il resto) e le elenca in `ICONS`.
+- **Le icone raster le genera `pnpm gen:icons` dal favicon.** Da `public/favicon.svg` scrive
+  `public/icon-192.png`, `public/icon-512.png` e `public/icon-maskable-512.png`, opache sul colore
+  `SITE.themeColor.light` del manifest: il prompt di installazione di Chrome vuole un raster di almeno
+  192px. La maskable tiene il glifo nel quadrato inscritto nella zona sicura, il cerchio centrale di
+  diametro pari all'80% del lato che la maschera adattiva di Android non taglia. Le icone si
+  committano e si rigenerano dopo aver sostituito il favicon; `scripts/lib/icons.test.ts` lega le
+  loro specifiche alle voci di `ICONS`.
 - **`SITE.themeColor` deve essere uguale a `--background`** in `light.css` e `dark.css`, altrimenti
   la chrome del browser e la pagina non concordano sulla giuntura — lo verifica
   `src/styles/theme-color.test.ts`, che risolve i token e converte oklch in esadecimale. È in
