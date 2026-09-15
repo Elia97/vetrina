@@ -3,6 +3,10 @@
 import type { ContactRequest } from '@/lib/contact'
 import { SITE } from '@/lib/site'
 
+import { useTranslations } from '@/i18n/translate'
+
+const t = useTranslations()
+
 function escapeHtml(value: string): string {
   const map: Record<string, string> = {
     '&': '&amp;',
@@ -16,7 +20,7 @@ function escapeHtml(value: string): string {
 }
 
 function layout(heading: string, body: string): string {
-  return `<!doctype html><html lang="it"><body style="margin:0;padding:24px;background:#f4f4f5;font-family:Arial,Helvetica,sans-serif;color:#18181b">
+  return `<!doctype html><html lang="${t('email.lang')}"><body style="margin:0;padding:24px;background:#f4f4f5;font-family:Arial,Helvetica,sans-serif;color:#18181b">
   <table role="presentation" style="max-width:560px;margin:0 auto;background:#ffffff;border:1px solid #e4e4e7;border-collapse:collapse">
     <tr><td style="padding:26px 30px">
       <h1 style="margin:0 0 18px;font-size:18px;font-weight:600;letter-spacing:.02em">${escapeHtml(heading)}</h1>
@@ -40,25 +44,26 @@ export function renderContactNotification(request: ContactRequest): {
 } {
   const who = fullName(request) || request.email
   const rows = [
-    detailRow('Nome', fullName(request)),
-    detailRow('Email', request.email),
-    detailRow('Messaggio', request.message),
+    detailRow(t('email.nameLabel'), fullName(request)),
+    detailRow(t('email.emailLabel'), request.email),
+    detailRow(t('email.messageLabel'), request.message),
   ].join('')
   const html = layout(
-    'Nuova richiesta dal sito',
+    t('email.notificationHeading'),
     `<table role="presentation" style="width:100%;border-collapse:collapse">${rows}</table>`,
   )
-  return { subject: `[${SITE.name}] Nuova richiesta — ${who}`, html }
+  return { subject: `[${SITE.name}] ${t('email.notificationSubject')} — ${who}`, html }
 }
 
 export function renderContactAutoreply(contactEmail: string): {
   subject: string
   html: string
 } {
+  const body = escapeHtml(t('email.autoreplyBody')).replace('{email}', () => escapeHtml(contactEmail))
   const html = layout(
-    'Grazie, ti abbiamo letto.',
-    `<p style="margin:0;font-size:14px;line-height:1.6;color:#3f3f46">Abbiamo ricevuto la tua richiesta e ti ricontatteremo al più presto. Per qualsiasi urgenza puoi scriverci a ${escapeHtml(contactEmail)}.</p>
+    t('email.autoreplyHeading'),
+    `<p style="margin:0;font-size:14px;line-height:1.6;color:#3f3f46">${body}</p>
      <p style="margin:22px 0 0;font-size:13px;color:#71717a;letter-spacing:.08em;text-transform:uppercase">${escapeHtml(SITE.name)}</p>`,
   )
-  return { subject: `Abbiamo ricevuto la tua richiesta — ${SITE.name}`, html }
+  return { subject: `${t('email.autoreplySubject')} — ${SITE.name}`, html }
 }

@@ -213,7 +213,8 @@ già a quegli agganci.
 - `pnpm gen:section` — sezione di homepage: schema Zod, YAML piatto e componente, iniettati
   nell'unione, nello strato dati e nei marcatori `@gen` di `index.astro`.
 - `pnpm gen:page` — pagina statica, o dinamica `[slug]` con `getStaticPaths`; i percorsi annidati
-  sono supportati (`legal/privacy`).
+  sono supportati (`legal/privacy`). Titolo e descrizione nascono come chiavi di dizionario,
+  iniettate in ogni lingua di `src/i18n/strings/`.
 - `pnpm gen:component` — componente `.astro` nativo secondo la ricetta cva più `cn()`.
 - `pnpm gen:collection` — content collection: schema e contenuto di esempio, registrata in
   `content.config.ts`.
@@ -225,11 +226,11 @@ Contratti che vale la pena conoscere (il dettaglio è in `docs/guides/content-co
   file**, e il gate post-generazione (`astro sync` più `pnpm run check`) fa fallire il giro a ogni
   errore;
 - se il gate post-generazione fallisce, i file generati restano su disco per essere ispezionati: il
-  messaggio d'errore dice come tornare indietro (`gen:section` modifica anche tre file esistenti, da
-  riportare con `git checkout`);
+  messaggio d'errore dice come tornare indietro (`gen:section` modifica anche tre file esistenti e
+  `gen:page` i dizionari, da riportare con `git checkout`);
 - non rinominare gli ancoraggi dell'iniezione (`export const collections`,
-  `homepageCollectionSchema`, `getHomepageSections`, i marcatori `@gen:home-*`): i generatori li
-  verificano e si fermano con l'errore di contratto.
+  `homepageCollectionSchema`, `getHomepageSections`, i marcatori `@gen:home-*`, la costante
+  esportata di ogni dizionario): i generatori li verificano e si fermano con l'errore di contratto.
 
 ## Aggiungere una lingua
 

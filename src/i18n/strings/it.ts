@@ -14,6 +14,17 @@ export const it = {
   'legal.cookies': 'Cookie Policy',
   'legal.terms': 'Termini e Condizioni',
   'legal.cookiePreferences': 'Preferenze cookie',
+  'legal.privacyDescription':
+    'Informativa sul trattamento dei dati personali ai sensi del Regolamento UE 2016/679 (GDPR).',
+  'legal.cookiesDescription': 'Informativa sull’uso di cookie e tecnologie di memorizzazione locale su questo sito.',
+  'legal.termsDescription': 'Termini e condizioni di utilizzo di questo sito.',
+  'legal.termsDraftNotice':
+    'Questo documento è una bozza segnaposto: va adattato al progetto e sottoposto a revisione legale prima della pubblicazione definitiva del sito.',
+  'legal.privacyPolicyTitle': 'Privacy Policy',
+  'legal.cookiePolicyTitle': 'Cookie Policy',
+  'legal.unavailable': 'Il documento non è al momento disponibile.',
+  'legal.hostedVersion': 'Puoi consultare la versione ufficiale, sempre aggiornata, alla pagina seguente.',
+  'legal.openOnIubenda': 'Apri il documento su iubenda',
 
   'error.404title': 'Pagina non trovata',
   'error.404description': 'La pagina che cerchi non esiste o è stata spostata.',
@@ -51,6 +62,21 @@ export const it = {
   'forms.error.emailTooLong': 'L’indirizzo email è troppo lungo (massimo 254 caratteri).',
   'forms.error.messageTooLong': 'Il messaggio è troppo lungo (massimo 2000 caratteri).',
   'forms.error.consentRequired': 'Devi acconsentire al trattamento dei dati per inviare la richiesta.',
+
+  'forms.action.tooManyRequests': 'Troppe richieste, riprova tra poco.',
+  'forms.action.securityCheckFailed': 'Verifica di sicurezza non superata, riprova.',
+  'forms.action.sendFailed': 'Invio non riuscito, riprova.',
+
+  'email.lang': 'it',
+  'email.notificationHeading': 'Nuova richiesta dal sito',
+  'email.notificationSubject': 'Nuova richiesta',
+  'email.nameLabel': 'Nome',
+  'email.emailLabel': 'Email',
+  'email.messageLabel': 'Messaggio',
+  'email.autoreplyHeading': 'Grazie, ti abbiamo letto.',
+  'email.autoreplySubject': 'Abbiamo ricevuto la tua richiesta',
+  'email.autoreplyBody':
+    'Abbiamo ricevuto la tua richiesta e ti ricontatteremo al più presto. Per qualsiasi urgenza puoi scriverci a {email}.',
 
   'seo.defaultOgImageAlt': '<OG_IMAGE_ALT>',
 

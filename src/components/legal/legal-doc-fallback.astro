@@ -2,31 +2,32 @@
 // Mai prosa legale segnaposto: un testo di bozza su una /privacy viva si legge come una policy vera.
 import { iubendaHostedUrl, type LegalDocKind } from '@/lib/legal/documents'
 
+import { useTranslations } from '@/i18n/translate'
+
 interface Props {
   kind: LegalDocKind
 }
 
 const { kind } = Astro.props
-const title = kind === 'privacy' ? 'Privacy Policy' : 'Cookie Policy'
+const t = useTranslations(Astro.currentLocale)
+const title = kind === 'privacy' ? t('legal.privacyPolicyTitle') : t('legal.cookiePolicyTitle')
 const hostedUrl = iubendaHostedUrl(kind)
 ---
 
 <div>
   <h1 class="font-bold text-4xl text-foreground tracking-tight">{title}</h1>
-  <p class="mt-6 font-medium text-foreground">Il documento non è al momento disponibile.</p>
+  <p class="mt-6 font-medium text-foreground">{t('legal.unavailable')}</p>
   {
     hostedUrl && (
       <>
-        <p class="mt-2 text-muted-foreground">
-          Puoi consultare la versione ufficiale, sempre aggiornata, alla pagina seguente.
-        </p>
+        <p class="mt-2 text-muted-foreground">{t('legal.hostedVersion')}</p>
         <a
           href={hostedUrl}
           target="_blank"
           rel="noopener noreferrer"
           class="mt-6 inline-block font-medium text-foreground underline underline-offset-4"
         >
-          Apri il documento su iubenda
+          {t('legal.openOnIubenda')}
         </a>
       </>
     )

@@ -198,3 +198,9 @@ silenzioso nulla di fatto):
   Non c'è ancora un'opzione `image()`, perché non esiste una sezione con immagini vera da cui
   derivarla: si aggiunge quando ci sarà (la funzione di schema guadagna un parametro
   `SchemaContext`).
+- `gen:page` scrive le chiavi della pagina in ogni dizionario di `src/i18n/strings/`:
+  `page.<nome>.title`, e per una pagina statica anche `page.<nome>.description`, che nasce
+  `'<PAGE_DESCRIPTION>'` e che `check:placeholders` ferma al deploy. Le scrive in tutti perché
+  `src/i18n/ui.ts` li tipizza sulle chiavi di `it.ts`, e una lingua a cui ne manca una fa fallire il
+  type-check. Il pre-volo verifica che la pagina non esista, che ogni dizionario esporti
+  `const <lingua> = { … } as const` e che nessuno abbia già le chiavi.

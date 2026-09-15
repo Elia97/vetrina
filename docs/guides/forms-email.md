@@ -49,11 +49,16 @@ arrivano all'utente tali e quali: `applyFieldErrors()` li stampa dritti negli sl
 campi si costruiscono da `src/lib/forms/form-fields.ts` (`requiredText`, `emailField`,
 `consentField`), che portano messaggi `error:` risolti tramite `useTranslations()`;
 `form-fields.test.ts` verifica ciascuno contro il dizionario, così un campo non può ricadere in
-silenzio sul messaggio di default.
+silenzio sul messaggio di default. Lo stesso vale per i messaggi delle `ActionError` di
+`src/actions/index.ts` (chiavi `forms.action.*`), che `messageOf()` mostra all'utente, e per le
+email di `src/emails/contact.ts` (chiavi `email.*`): `guards.test.ts`, `contact.test.ts` ed
+`emails/contact.test.ts` li confrontano con il dizionario.
 
-Lo schema sta a livello di modulo, fuori da ogni richiesta, quindi i messaggi si risolvono nella
-**lingua di default**. Una seconda lingua significa costruire lo schema dentro l'handler
-dell'azione, dove `Astro.currentLocale` è noto.
+Schema, errori delle azioni ed email risolvono le stringhe a livello di modulo, nella **lingua di
+default**, e non ce n'è una migliore da usare: il form chiama l'azione via RPC (`accept: 'json'`),
+la richiesta arriva su `/_actions/contact`, e lì `Astro.currentLocale` vale sempre la lingua di
+default, qualunque sia la pagina da cui parte l'invio. Un progetto con due lingue passa la lingua
+della pagina nel payload, e costruisce su quella messaggi ed email.
 
 **[HARD] `required` nel markup significa obbligatorio nello schema.** Il form è `novalidate`, perché
 altrimenti i fumetti del browser segnalerebbero il primo campo non valido con parole e stile propri,
@@ -181,7 +186,10 @@ Regole che vale la pena tenere in un progetto:
 - `escapeHtml` sostituisce attraverso una **funzione**, mai una stringa di sostituzione: in una
   stringa, `$&` e `$1` sono pattern di sostituzione, quindi un valore utente che ne contenesse uno
   verrebbe riespanso dopo l'escaping.
-- I testi sono nella lingua di default del sito, e l'oggetto porta `SITE.name`.
+- Titoli, oggetti, etichette, corpo della risposta automatica e `lang` vengono dal dizionario
+  (`email.*`), nella lingua di default (§ Validazione). La cornice degli oggetti con `SITE.name`
+  resta nel codice, e l'indirizzo entra nel corpo della risposta automatica al posto di `{email}`
+  attraverso una funzione, come in `escapeHtml`.
 
 ## Convenzioni dell'interfaccia dei form
 

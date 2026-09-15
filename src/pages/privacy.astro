@@ -5,10 +5,13 @@ import MainLayout from '@/layouts/main.astro'
 
 import { getLegalDoc } from '@/lib/legal/documents'
 
+import { useTranslations } from '@/i18n/translate'
+
+const t = useTranslations(Astro.currentLocale)
 const html = await getLegalDoc('privacy')
 
-const title = 'Privacy'
-const description = 'Informativa sul trattamento dei dati personali ai sensi del Regolamento UE 2016/679 (GDPR).'
+const title = t('legal.privacy')
+const description = t('legal.privacyDescription')
 ---
 
 <MainLayout {title} {description}>

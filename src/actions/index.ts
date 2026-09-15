@@ -7,8 +7,11 @@ import { isHoneypotFilled } from '@/lib/forms/honeypot'
 import { rateLimit } from '@/lib/forms/rate-limit'
 import { type BrevoResult, sendTransactionalEmail, upsertContact } from '@/lib/vendor/brevo'
 
+import { useTranslations } from '@/i18n/translate'
+
 import { renderContactAutoreply, renderContactNotification } from '@/emails/contact'
 
+const t = useTranslations()
 const sender = { email: CONTACT_FROM_EMAIL, name: CONTACT_FROM_NAME }
 
 function droppedByHoneypot(input: Parameters<typeof isHoneypotFilled>[0]): boolean {
@@ -21,7 +24,7 @@ function assertNotRateLimited(clientAddress: string): void {
   if (rateLimit(`contact:${clientAddress}`)) return
   throw new ActionError({
     code: 'TOO_MANY_REQUESTS',
-    message: 'Troppe richieste, riprova tra poco.',
+    message: t('forms.action.tooManyRequests'),
   })
 }
 
@@ -47,7 +50,7 @@ async function assertNotBot(): Promise<void> {
   console.warn('[contact] bot detected — submission rejected')
   throw new ActionError({
     code: 'FORBIDDEN',
-    message: 'Verifica di sicurezza non superata, riprova.',
+    message: t('forms.action.securityCheckFailed'),
   })
 }
 
@@ -89,7 +92,7 @@ function reportContactResults(
     console.error('[contact] lead-recovery', JSON.stringify(leadRecoveryRecord(input)))
     throw new ActionError({
       code: 'INTERNAL_SERVER_ERROR',
-      message: 'Invio non riuscito, riprova.',
+      message: t('forms.action.sendFailed'),
     })
   }
   if (!autoreplied.ok) {

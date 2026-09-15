@@ -13,6 +13,8 @@ import {
 } from '@test/helpers/actions'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { it as dictionary } from '@/i18n/strings/it'
+
 vi.mock('@/lib/vendor/brevo', () => brevoMock)
 vi.mock('botid/server', () => ({ checkBotId: vi.fn() }))
 
@@ -46,6 +48,7 @@ describe('contact handler', () => {
     const error = await rejectionOf(handleContact(CONTACT_INPUT, CLIENT))
 
     expect(error.code).toBe('INTERNAL_SERVER_ERROR')
+    expect(error.message).toBe(dictionary['forms.action.sendFailed'])
     expect(consoleError).toHaveBeenCalledWith('[contact] notification failed:', KO_ERROR)
   })
 

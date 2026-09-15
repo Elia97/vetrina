@@ -3,9 +3,10 @@ import { cleanupRoots, makeRoot, read } from '@test/helpers/gen-fixture'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
 import collectionGenerator from './collection.mjs'
+import pageGenerator from './page.mjs'
 import sectionGenerator from './section.mjs'
 
-// collection.mjs e section.mjs catturano `process.cwd()` alla registrazione, quindi il chdir deve precederla.
+// I generatori catturano `process.cwd()` alla registrazione, quindi il chdir deve precederla.
 let original: string
 
 beforeEach(() => {
@@ -98,5 +99,34 @@ describe('gen:section wiring', () => {
     expect(promptNamed(config, 'name').validate?.('2fa')).toMatch(/invalid identifier \(2faSectionSchema\)/)
     expect(promptNamed(config, 'name').validate?.('...')).toBe('Section name is required')
     expect(promptNamed(config, 'name').validate?.('features')).toBe(true)
+  })
+})
+
+describe('gen:page wiring', () => {
+  it('controlla percorso e dizionari prima di scrivere, poi inietta titolo e descrizione', () => {
+    const { plop, config } = registerWith(pageGenerator, 'page')
+    const answers = { name: 'about-us', dynamic: false }
+    const { preflight, inject } = steps(actionsFor(config, answers))
+
+    expect(run(preflight, answers, plop)).toMatch(/contract checks passed/)
+    expect(run(inject, answers, plop)).toBe('injected page.aboutUs.title, page.aboutUs.description')
+    expect(read(process.cwd(), 'src/i18n/strings/it.ts')).toContain("'page.aboutUs.description': '<PAGE_DESCRIPTION>'")
+  })
+
+  it('a una pagina dinamica inietta solo il titolo', () => {
+    const { plop, config } = registerWith(pageGenerator, 'page')
+    const answers = { name: 'blog', dynamic: true }
+    const { inject } = steps(actionsFor(config, answers))
+
+    expect(run(inject, answers, plop)).toBe('injected page.blog.title')
+  })
+
+  it('si ferma prima di scrivere se la pagina esiste già', () => {
+    process.chdir(makeRoot({ 'src/pages/about-us.astro': '---\n---\n' }))
+    const { plop, config } = registerWith(pageGenerator, 'page')
+    const answers = { name: 'about-us', dynamic: false }
+    const { preflight } = steps(actionsFor(config, answers))
+
+    expect(() => run(preflight, answers, plop)).toThrow(/already exists/)
   })
 })
