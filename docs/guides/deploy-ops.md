@@ -43,8 +43,12 @@ La produzione esce **solo da un tag di release**, mai da un push su `main`:
   locale sotto `.vercel/` (gitignored): da `project.json` dopo un `vercel link` normale, o da
   `repo.json` dopo `vercel link --repo`, dove gli stessi valori sono `projects[].orgId` e
   `projects[].id`.
-- La CLI di Vercel è **fissata a una versione** (`pnpm dlx vercel@58`) nel job `deploy`: Dependabot
-  non guarda dentro `pnpm dlx`, quindi si alza di proposito.
+- La CLI di Vercel è **fissata a una major** (`pnpm dlx vercel@59`) nel job `deploy`, e di quella
+  major `pnpm dlx` prende già da sé l'ultima minor: il buco è il salto di major, che Dependabot non
+  vede perché non guarda dentro `pnpm dlx`. Lo segnala `.github/workflows/vercel-cli.yml`,
+  settimanale e lanciabile a mano, che confronta il pin con la versione pubblicata su npm e fallisce
+  quando quella è più alta; `pnpm run check:vercel-cli` è lo stesso controllo in locale. La CLI
+  installata sulle macchine di lavoro segue la stessa major del pin.
 
 **Perché `RELEASE_PLEASE_TOKEN` è un secret a parte.** Una PR aperta con il `GITHUB_TOKEN` di default
 non fa scattare i workflow — è la protezione anti-ricorsione di GitHub — quindi senza il PAT la

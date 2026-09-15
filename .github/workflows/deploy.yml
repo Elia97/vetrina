@@ -100,17 +100,17 @@ jobs:
       # Il `vercel build` qui sotto esegue solo `astro build`: niente Biome, niente astro check, niente vitest.
       - run: pnpm run ci
 
-      # `pnpm dlx` risolve l'ultima versione a runtime e Dependabot non la guarda: si alza a mano.
-      - run: pnpm dlx vercel@58 pull --yes --environment=production
+      # Dependabot non guarda dentro `pnpm dlx`: la major la segnala .github/workflows/vercel-cli.yml.
+      - run: pnpm dlx vercel@59 pull --yes --environment=production
 
       - run: pnpm run check:placeholders --env .vercel/.env.production.local
 
-      - run: pnpm dlx vercel@58 build --prod
+      - run: pnpm dlx vercel@59 build --prod
 
       - name: Deploy to Vercel production
         id: deploy
         run: |
-          url=$(pnpm dlx vercel@58 deploy --prebuilt --prod)
+          url=$(pnpm dlx vercel@59 deploy --prebuilt --prod)
           echo "url=$url" >> "$GITHUB_OUTPUT"
           echo "Deployed to: $url"
 
