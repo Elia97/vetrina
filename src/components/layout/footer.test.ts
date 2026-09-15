@@ -6,14 +6,14 @@ const CMP_ENV = { PUBLIC_GTM_ID: 'GTM-TEST', PUBLIC_IUBENDA_SITE_ID: '1234567' }
 
 // vi.resetModules() dà un registro nuovo: il container va importato da lì e non da quello
 // esterno, altrimenti rende un componente compilato da un'altra istanza.
-async function renderFooter(env: Record<string, string> = {}) {
+async function renderFooter(env: Record<string, string> = {}, pathname = '/') {
   vi.resetModules()
   for (const [key, value] of Object.entries(env)) vi.stubEnv(key, value)
   const [{ renderToFragment }, { default: Footer }] = await Promise.all([
     import('@test/container'),
     import('@/components/layout/footer.astro'),
   ])
-  return renderToFragment(Footer)
+  return renderToFragment(Footer, { request: new Request(`https://example.com${pathname}`) })
 }
 
 const cmpLink = (document: Awaited<ReturnType<typeof renderFooter>>) =>
@@ -37,6 +37,16 @@ describe('footer.astro', () => {
 
     const hrefs = [...document.querySelectorAll('ul a')].map((link) => link.getAttribute('href'))
     expect(hrefs).toEqual(SITE.social.map(({ href }) => href))
+  })
+
+  it('marca come pagina corrente solo il documento legale aperto', async () => {
+    const document = await renderFooter({}, '/privacy')
+
+    const marked = [...document.querySelectorAll('nav a[aria-current]')].map((link) => [
+      link.getAttribute('href'),
+      link.getAttribute('aria-current'),
+    ])
+    expect(marked).toEqual([['/privacy', 'page']])
   })
 })
 

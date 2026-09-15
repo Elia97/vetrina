@@ -142,6 +142,16 @@ componenti; i link interni passano da `localizedHref()` così si localizzano ins
   `<main id="main-content" tabindex="-1">` (è il tabindex a far muovere davvero il focus). Nascosto
   con `sr-only` e ripristinato con utility prefissate `focus:` — ricorda che `not-sr-only` azzera il
   padding, quindi anche il padding va prefissato con `focus:`.
+- **La voce della pagina corrente porta `aria-current`** nelle tre `<nav>` dell'arredo (header,
+  nav mobile, link legali del footer): `page` sulla voce della pagina aperta, `true` su quella
+  della sezione quando si è in una sua sottopagina, e `/` non è mai una sezione. È lo schema del
+  Service navigation di GOV.UK. Il valore lo calcola `ariaCurrent()` in `src/i18n/path.ts`,
+  confrontando l'`href` della voce con il percorso corrente riportato alla lingua di default.
+- **Lo stile della voce corrente sta sull'attributo**, non su una classe calcolata nel markup: la
+  variante `aria-[current]:` di Tailwind v4 genera il selettore `[aria-current]`, che copre `page` e
+  `true`, e dà sottolineatura e colore pieno del testo. Sulle altre voci `ariaCurrent()` restituisce
+  `undefined`, che omette l'attributo: Astro rende un `false` come `aria-current="false"`, e il
+  selettore prende anche quello.
 - I glifi delle icone sono `aria-hidden` con l'etichetta sul controllo; il selettore di variazione
   testuale (`&#xFE0E;`) va sui codepoint che WebKit renderebbe come emoji.
 - Mattoni per gli overlay (per menu e dialog che un progetto aggiunge):

@@ -5,10 +5,12 @@ import { getTrackingConfig } from '@/lib/analytics/tracking'
 import { SITE } from '@/lib/site'
 
 import { localizedHref } from '@/i18n/href'
+import { ariaCurrent } from '@/i18n/path'
 import { useTranslations } from '@/i18n/translate'
 
 const t = useTranslations(Astro.currentLocale)
 const href = (path: string) => localizedHref(Astro.currentLocale, path)
+const current = (path: string) => ariaCurrent(path, Astro.url.pathname, Astro.currentLocale)
 const year = new Date().getFullYear()
 
 // [HARD] Il consenso resta revocabile da questo link: il badge fluttuante della CMP
@@ -28,7 +30,11 @@ const hasCmp = getTrackingConfig() !== null
         <p class="font-medium text-foreground text-sm">{t('footer.legalHeading')}</p>
         {
           SITE.legal.map((link) => (
-            <a href={href(link.href)} class="text-muted-foreground text-sm transition-colors hover:text-foreground">
+            <a
+              href={href(link.href)}
+              aria-current={current(link.href)}
+              class="text-muted-foreground text-sm underline-offset-4 transition-colors hover:text-foreground aria-[current]:text-foreground aria-[current]:underline"
+            >
               {t(link.key)}
             </a>
           ))
