@@ -43,7 +43,7 @@ export default getViteConfig({
         'scripts/gen/**/*.mjs',
         'test/stubs/**/*.ts',
         'src/components/layout/footer.astro',
-        'src/components/home/hero.astro',
+        'src/components/homepage/hero.astro',
       ],
       exclude: ['**/*.test.ts', 'src/types/**', 'src/content.config.ts', 'src/lib/company.ts', 'src/i18n/strings/**'],
       thresholds: { statements: 100, branches: 100, functions: 100, lines: 100 },

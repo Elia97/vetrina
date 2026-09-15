@@ -6,6 +6,7 @@ export const it = {
   'a11y.closeMenu': 'Chiudi menu',
   'a11y.legalNav': 'Link legali',
   'a11y.languageNav': 'Lingua',
+  'a11y.breadcrumb': 'Percorso di navigazione',
 
   'nav.home': 'Home',
   'nav.contact': 'Contatti',

@@ -5,7 +5,7 @@
 - **Framework**: [Astro](https://astro.build) 7, `output: "static"` (prerenderizzato di default) con `@astrojs/vercel` come adapter di deploy — è lui a fornire il server, quindi l'azione di contatto e ogni rotta `prerender = false` sono on-demand a prescindere dalla modalità di output. La toolchain e le regole che la governano — pnpm e corepack, Node, Biome, `astro/tsconfigs/strictest`, la deroga `prerender = false` — stanno in `CLAUDE.md` § Stack e convenzioni.
 - **`@types/node` è una devDependency diretta di proposito**, anche se nessuno lo importa a mano. Il tipo `UserConfig` di Vite lo tiene come peer: lasciato alla risoluzione transitiva, pnpm installa una copia di Vite per astro e un'altra per vitest, e la chiave `test` che `vitest/config` aggiunge a `UserConfig` non arriva mai al tipo che `getViteConfig()` accetta — a quel punto `vitest.config.ts` non passa il typecheck con «'test' does not exist in type 'UserConfig'». Dichiararlo fissa un peer solo per entrambi. Non toglierlo come inutilizzato.
 - **Deploy**: Vercel. La produzione esce solo da un tag di release, mai da un push su `main`: `scripts/vercel-ignore-build.sh` è collegato all'Ignored Build Step di Vercel, quindi l'integrazione git produce soltanto preview. Vedi `docs/guides/deploy-ops.md` § Modello di deploy.
-- **Immagini**: gli asset locali vanno sotto `src/assets/**`, una cartella che il template non porta perché non ha immagini proprie; si crea con la prima, e allora si aggiunge `sharp`. `biome.json` esclude già `src/assets/**/*.svg` dalla formattazione. Vedi `docs/guides/rendering-performance.md` § Immagini.
+- **Immagini**: gli asset locali vanno sotto `src/assets/**` e passano da `astro:assets`, con `sharp` in `dependencies`. La cartella porta solo `src/assets/placeholder.jpg`, il segnaposto del contenuto che `pnpm gen:section` scrive con l'opzione immagine. `biome.json` esclude già `src/assets/**/*.svg` dalla formattazione. Vedi `docs/guides/rendering-performance.md` § Immagini.
 - **Gate di qualità**: cinque, e ognuno copre un momento che gli altri non coprono; niente arriva in produzione senza passarli tutti. Vedi `docs/guides/deploy-ops.md` § La catena dei gate.
 - **Protezione dagli abusi**: tre livelli sull'azione pubblica, dal più economico — honeypot applicativo, rate limit in memoria e Vercel BotID Basic (in sola osservazione finché `BOTID_ENFORCE=true`). Vedi `docs/guides/forms-email.md` § Protezione dagli abusi.
 - **Politica di scansione**: `src/lib/seo/crawl-policy.ts` è la fonte unica di verità su cosa resta fuori dalla ricerca, letta dal filtro della sitemap, da `robots.txt` e dal middleware. Vedi `docs/guides/seo.md` § Sitemap e robots.
@@ -38,12 +38,12 @@ src/
     head/      # metadati, icone, manifest, script pre-paint             machinery
     ui/        # design system (cva + cn), zero JS lato client           machinery
                #   non usate dal template, pronte per i progetti:
-               #   badge, cta-banner, reveal, select                     machinery
+               #   badge, breadcrumb, cta-banner, reveal, select         machinery
     forms/     # binder di invio, errori di campo, honeypot, BotID       machinery
     layout/    # header, footer, nav mobile, skip-link                   chrome
     contact/   # riferimento svolto: un form dietro un'azione            example
     legal/     # riferimento svolto: una pagina legale                   example
-    home/      # una sezione di homepage                                 example
+    homepage/  # le sezioni della homepage                               example
   lib/         # logica senza markup — strati foglia (regola sotto)
     seo/       #   json-ld, crawl-policy, manifest                       machinery
     forms/     #   honeypot, honeypot-schema, rate-limit, form-fields    machinery
@@ -53,7 +53,7 @@ src/
     consent/   #   gate del consenso e CMP iubenda                       machinery
     analytics/ #   GTM dietro il gate, ponte verso dataLayer             machinery
     legal/     #   documenti legali ospitati (iubenda)                   machinery
-    content/   #   lettore di collection consapevole della lingua        machinery
+    content/   #   lettori di sezioni e voci consapevoli della lingua    machinery
     vendor/    #   client di terze parti (brevo)                         machinery
     schemas/   #   schemi delle content collection                       seed
     site.ts    #   identità del sito, fonte unica                        config
@@ -66,6 +66,7 @@ src/
   actions/     # l'azione di contatto; gli handler sono esportati per
                #   nome, così l'orchestrazione è testabile               seed
   content/     # dati delle collection                                   example
+  assets/      # immagini locali; placeholder.jpg per gen:section        seed
   styles/      # tokens.css — la superficie del rebranding               config
                #   light, dark, globals                                  machinery
   middleware.ts # X-Robots-Tag per le risposte SSR non HTML              machinery
@@ -73,7 +74,7 @@ test/          # infrastruttura di test, mai inclusa nel bundle          machine
   stubs/       # i moduli virtuali astro:*, risolti dagli alias di vitest
   helpers/     # fixture e mock condivisi (handler delle azioni)
   container.ts # helper della Container API per rendere i componenti .astro
-public/        # asset statici serviti così come sono (favicon, og-default.png segnaposto)
+public/        # asset statici serviti così come sono (favicon, icone del manifest, og-default.png segnaposto)
 docs/          # i documenti tecnici del progetto: ROADMAP (milestone, sotto-task, giornate) e
                #   questo file. Brief, decisioni, stima e verbali stanno nel sistema di lavoro,
                #   fuori dal repo; i blueprint delle milestone li porta il plugin `metodo`
@@ -117,10 +118,11 @@ Cosa resta piatto, e perché non è una svista:
 - `site.ts` e `company.ts` sono le due fonti uniche di configurazione, importate da ovunque: una
   cartella aggiungerebbe un salto ai file più letti del repo;
 - `utils.ts` è `cn()`, importato da quasi ogni componente;
-- `contact.ts`, `homepage.ts` e `schemas/` restano piatti perché sono `seed`, non perché spostarli
-  costerebbe: i generatori plop li raggiungono per percorso fisso, e quei percorsi sono dove
-  atterrano le sezioni di un progetto vero. Metterli sotto qualcosa tipo `example/` farebbe scrivere
-  a `pnpm gen:section` del codice di progetto dentro una cartella che si chiama come una demo.
+- `contact.ts`, gli strati dati delle pagine a sezioni come `homepage.ts` e `schemas/` restano piatti
+  perché sono `seed`, non perché spostarli costerebbe: i generatori plop li raggiungono per percorso,
+  derivato dal nome della collection, e quei percorsi sono dove atterrano le sezioni di un progetto
+  vero. Metterli sotto qualcosa tipo `example/` farebbe scrivere a `pnpm gen:section` del codice di
+  progetto dentro una cartella che si chiama come una demo.
 
 **[HARD]** I ruoli sono un aiuto alla lettura, non un confine di import: il codice `example` importa
 `machinery` liberamente, e a vincolare la direzione sono le regole di stratificazione della sezione

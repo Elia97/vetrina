@@ -52,14 +52,15 @@ export function assertInjectable({ root, camel, kebab }) {
   locateContract(loadConfig(root), { camel, kebab })
 }
 
-export function injectCollection({ root, camel, kebab, document }) {
+export function injectCollection({ root, camel, kebab, document, sections = false }) {
   const cfg = loadConfig(root)
   const { statement, object } = locateContract(cfg, { camel, kebab })
+  const schema = sections ? `${camel}CollectionSchema` : `${camel}Schema`
 
   if (!cfg.getImportDeclaration((d) => d.getModuleSpecifierValue() === `@/lib/schemas/${kebab}`)) {
     cfg.addImportDeclaration({
       moduleSpecifier: `@/lib/schemas/${kebab}`,
-      namedImports: [`${camel}Schema`],
+      namedImports: [schema],
     })
   }
 
@@ -80,7 +81,7 @@ export function injectCollection({ root, camel, kebab, document }) {
       `    base: './src/content/${kebab}',\n` +
       loaderId +
       `  }),\n` +
-      `  schema: ${camel}Schema,\n` +
+      `  schema: ${schema},\n` +
       `})\n`,
   )
 

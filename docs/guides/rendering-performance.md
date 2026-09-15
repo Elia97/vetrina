@@ -243,11 +243,14 @@ non ne emette nessuno. Regole per aggiungerne altri:
 
 Le immagini locali vivono in `src/assets/**` e passano da `astro:assets`
 (`import { Image } from 'astro:assets'`); quelle guidate dai contenuti si riferiscono a un campo di
-schema `image()`. L'ottimizzazione avviene in **fase di build** tramite il servizio Sharp di default
-di Astro: `sharp` si aggiunge come devDependency quando si adotta `astro:assets` (binari
-precompilati per piattaforma, niente da compilare; lo scaffold vuoto non porta nessuna pipeline di
-immagini). Le pagine prerenderizzate emettono varianti responsive già generate in `dist/_astro/`,
-servite come file statici.
+schema `image()`. L'ottimizzazione la fa il servizio Sharp di default di Astro: le pagine
+prerenderizzate emettono in **fase di build** varianti responsive già generate in
+`dist/client/_astro/`, servite come file statici.
+
+- **`sharp` sta in `dependencies`, non in `devDependencies`.** Una pagina `prerender = false` che
+  rende `<Image>` non ha varianti di build: le chiede a `/_image`, che gira nella funzione `_render`
+  e carica `sharp` a runtime. Il pacchetto nativo entra nella funzione solo se il build lo risolve
+  dalla radice del progetto; come semplice dipendenza opzionale di astro resta fuori.
 
 - Di proposito NON si usa `imageService: true` dell'adapter Vercel: le varianti statiche generate in
   build tengono il template portabile su host diversi da Vercel e fuori dalla quota di runtime della
@@ -264,15 +267,24 @@ servite come file statici.
   che le intestazioni sono già partite e la pagina risponde **200 con il corpo vuoto**. Un host
   servito da un `<img>` grezzo non tocca mai il servizio immagini e va invece nell'`img-src` della
   CSP.
+- **Asset locali o CDN remoto è una scelta di progetto, e sposta il lavoro.** Con gli asset locali
+  trasforma `sharp`, in build o in `/_image`. Con un CDN che trasforma le immagini, come Cloudinary,
+  l'URL lo compone un costruttore di URL del progetto e la pagina rende un `<img>` grezzo: `sharp`
+  non lavora, l'host va nell'`img-src` di `src/lib/csp/directives.ts`, e trasformazioni, banda e
+  quota stanno nel piano del CDN.
 - Scrivi `<Image>` con `widths` e `sizes` espliciti (e una `quality` bassa per le foto), così la
-  build emette un srcset della dimensione giusta.
+  build emette un srcset della dimensione giusta. L'immagine che fa da LCP prende `priority`, che in
+  Astro 7 imposta `loading="eager"`, `decoding="sync"` e `fetchpriority="high"`; le altre restano sul
+  caricamento pigro di default.
 - Passa sempre un `alt` che dica qualcosa; la stringa vuota solo per le immagini puramente
-  decorative. Le immagini guidate dai contenuti portano il loro alt come campo fratello nello schema
-  (per esempio `imageAlt`), inoltrato con `alt={imageAlt ?? ''}`.
-- **Un elenco di immagini di contenuto è `array<{ src, alt }>`, mai `array<string>`.** Nel momento in
-  cui l'alt non ha un posto dove stare nello schema, se lo inventa il markup — e un alt scritto in
-  un componente è la stessa frase su ogni voce.
-- Tipizzalo `z.string()` **senza** `.min(1)`: un alt vuoto è la risposta giusta per un'immagine
-  decorativa (che prende anche `aria-hidden`), e il punto è costringere chi scrive a scegliere.
-  Dentro una stessa galleria ogni alt dev'essere **distinto**: sia i lettori di schermo sia Google
-  Immagini li leggono come una lista.
+  decorative. Un'immagine guidata dai contenuti è `imageSchema(image)` di
+  `src/lib/schemas/common.ts`, cioè `{ src, alt }`, resa con `alt={image.alt}`. Uno sfondo dietro un
+  titolo che dice già la cosa è `backgroundSchema(image)`, `{ src }` senza alt, reso con `alt=""`:
+  è lo sfondo facoltativo dell'hero.
+- **Un elenco di immagini di contenuto è `z.array(imageSchema(image))`, mai `array<string>`.** Nel
+  momento in cui l'alt non ha un posto dove stare nello schema, se lo inventa il markup — e un alt
+  scritto in un componente è la stessa frase su ogni voce.
+- `imageSchema` tipizza l'alt `z.string()` **senza** `.min(1)`: un alt vuoto è la risposta giusta per
+  un'immagine decorativa (che prende anche `aria-hidden`), e il punto è costringere chi scrive a
+  scegliere. Dentro una stessa galleria ogni alt dev'essere **distinto**: sia i lettori di schermo sia
+  Google Immagini li leggono come una lista.

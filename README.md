@@ -95,9 +95,9 @@ La superficie completa, in un posto solo — la milestone `foundations` la distr
   i nomi semantici in `light.css` e `dark.css` restano);
 - `public/og-default.png`: si sostituisce il segnaposto (1200×630), e con lui le misure in
   `SITE.defaultOgImageSize` e l'alt `seo.defaultOgImageAlt` in `src/i18n/strings/it.ts`;
-- `public/favicon.svg` e `public/favicon.ico`: si sostituiscono entrambi. L'SVG è l'unica icona del
-  manifest così com'è: valida, ma **non installabile** — `docs/guides/seo.md` § Icone, manifest e
-  theme-color ha cosa aggiungere per il prompt di installazione;
+- `public/favicon.svg` e `public/favicon.ico`: si sostituiscono entrambi, poi `pnpm gen:icons`
+  rigenera dall'SVG le tre icone PNG del manifest — `docs/guides/seo.md` § Icone, manifest e
+  theme-color dice come sono fatte;
 - `SITE.themeColor`: i colori della chrome del browser, da tenere uguali a `--background` in
   `light.css` e `dark.css`;
 - `src/lib/site.ts` → `DEFAULT_LOCALE`, se il progetto non parte dall'italiano: la leggono
@@ -122,8 +122,9 @@ produzione si ferma finché ce n'è uno.
   barrel `.ts`; il layout vive solo in `Container` e `Section`.
 - **Layout di base e SEO** (`src/layouts/main.astro`): head centralizzata, tema scuro senza FOUC,
   skip-link, view transition.
-- **Sezioni di homepage** (`src/content/homepage/*.yml`): un YAML per sezione, accesso tipizzato
-  solo tramite `getHomepageSections(locale)` — che è anche la cucitura verso un CMS.
+- **Pagine a sezioni** (`src/content/homepage/*.yml` per la homepage): un YAML per sezione, accesso
+  tipizzato solo tramite `get<Nome>Sections(locale)` — che è anche la cucitura verso un CMS.
+  `pnpm gen:collection` ne crea altre.
 - **i18n additiva per costruzione**: la lingua di default tiene per sempre URL senza prefisso e file
   di contenuto PIATTI, quindi una seconda lingua non è mai una ristrutturazione (§ Aggiungere una
   lingua, sotto).
@@ -213,14 +214,15 @@ già a quegli agganci.
 
 `pnpm gen` (menu interattivo) oppure direttamente:
 
-- `pnpm gen:section` — sezione di homepage: schema Zod, YAML piatto e componente, iniettati
-  nell'unione, nello strato dati e nei marcatori `@gen` di `index.astro`.
+- `pnpm gen:section` — sezione di una pagina a sezioni, di default la homepage: schema Zod, YAML
+  piatto e componente, iniettati nell'unione, nello strato dati e nei marcatori `@gen` della pagina.
 - `pnpm gen:page` — pagina statica, o dinamica `[slug]` con `getStaticPaths`; i percorsi annidati
   sono supportati (`legal/privacy`). Titolo e descrizione nascono come chiavi di dizionario,
   iniettate in ogni lingua di `src/i18n/strings/`.
 - `pnpm gen:component` — componente `.astro` nativo secondo la ricetta cva più `cn()`.
-- `pnpm gen:collection` — content collection: schema e contenuto di esempio, registrata in
-  `content.config.ts`.
+- `pnpm gen:collection` — content collection di dati YAML o di documenti MD, con schema e contenuto
+  di esempio, registrata in `content.config.ts`; oppure una pagina a sezioni completa di barrel,
+  strato dati, pagina e prima sezione.
 
 Contratti che vale la pena conoscere (il dettaglio è in `docs/guides/content-collections.md`):
 
@@ -229,11 +231,11 @@ Contratti che vale la pena conoscere (il dettaglio è in `docs/guides/content-co
   file**, e il gate post-generazione (`astro sync` più `pnpm run check`) fa fallire il giro a ogni
   errore;
 - se il gate post-generazione fallisce, i file generati restano su disco per essere ispezionati: il
-  messaggio d'errore dice come tornare indietro (`gen:section` modifica anche tre file esistenti e
-  `gen:page` i dizionari, da riportare con `git checkout`);
-- non rinominare gli ancoraggi dell'iniezione (`export const collections`,
-  `homepageCollectionSchema`, `getHomepageSections`, i marcatori `@gen:home-*`, la costante
-  esportata di ogni dizionario): i generatori li verificano e si fermano con l'errore di contratto.
+  messaggio d'errore dice come tornare indietro (`gen:section` modifica anche tre file esistenti,
+  `gen:page` e la pagina a sezioni di `gen:collection` i dizionari, da riportare con `git checkout`);
+- non rinominare gli ancoraggi dell'iniezione (`export const collections`, `<nome>CollectionSchema`,
+  `get<Nome>Sections`, i marcatori `@gen:<nome>-*` di ogni pagina a sezioni, la costante esportata
+  di ogni dizionario): i generatori li verificano e si fermano con l'errore di contratto.
 
 ## Aggiungere una lingua
 

@@ -38,6 +38,7 @@
     "gen:page": "plop page",
     "gen:component": "plop component",
     "gen:collection": "plop collection",
+    "gen:icons": "node scripts/gen-icons.ts",
     "prepare": "lefthook install --reset-hooks-path || true"
   },
   "dependencies": {
@@ -49,6 +50,7 @@
     "botid": "^1.5.11",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "sharp": "^0.35.4",
     "tailwind-merge": "^3.6.0",
     "typescript": "^6.0.3"
   },

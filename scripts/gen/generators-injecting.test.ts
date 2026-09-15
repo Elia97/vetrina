@@ -1,4 +1,4 @@
-import { actionsFor, addActions, type FunctionAction, promptNamed, registerWith } from '@test/helpers/fake-plop'
+import { actionsFor, addActions, functionSteps, promptNamed, registerWith, runAction } from '@test/helpers/fake-plop'
 import { cleanupRoots, makeRoot, read } from '@test/helpers/gen-fixture'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
@@ -19,30 +19,19 @@ afterEach(() => {
   cleanupRoots()
 })
 
-const run = (action: unknown, answers: Record<string, string | boolean>, plop: unknown) =>
-  (action as FunctionAction)(answers, null, plop as never)
-
-/** Le tre azioni funzione in ordine: pre-volo, iniezione, post-gen — mai invocata, lancia `astro sync`. */
-const steps = (actions: unknown[]) => {
-  const functions = actions.filter((action) => typeof action === 'function')
-  expect(functions).toHaveLength(3)
-  expect(actions.indexOf(functions[0])).toBe(0)
-  return { preflight: functions[0], inject: functions[1] }
-}
-
 describe('gen:collection wiring', () => {
   it('runs the content.config.ts pre-flight before any file is written', () => {
     const { plop, config } = registerWith(collectionGenerator, 'collection')
-    const { preflight } = steps(actionsFor(config, { name: 'services', document: false }))
+    const { preflight } = functionSteps(actionsFor(config, { name: 'services', document: false }))
 
-    expect(run(preflight, { name: 'services' }, plop)).toMatch(/contract checks passed/)
+    expect(runAction(preflight, { name: 'services' }, plop)).toMatch(/contract checks passed/)
   })
 
   it('injects only after the schema and the example entry exist', () => {
     const { plop, config } = registerWith(collectionGenerator, 'collection')
-    const { inject } = steps(actionsFor(config, { name: 'services', document: false }))
+    const { inject } = functionSteps(actionsFor(config, { name: 'services', document: false }))
 
-    expect(run(inject, { name: 'services', document: false }, plop)).toMatch(/injected collection/)
+    expect(runAction(inject, { name: 'services', document: false }, plop)).toMatch(/injected collection/)
     expect(read(process.cwd(), 'src/content.config.ts')).toContain('const services = defineCollection({')
   })
 
@@ -68,31 +57,61 @@ describe('gen:collection wiring', () => {
 })
 
 describe('gen:section wiring', () => {
+  const answers = { collection: 'homepage', name: 'features' }
+
   it('runs the hook-point pre-flight before any file is written', () => {
     const { plop, config } = registerWith(sectionGenerator, 'section')
-    const { preflight } = steps(actionsFor(config, { name: 'features' }))
+    const { preflight } = functionSteps(actionsFor(config, answers))
 
-    expect(run(preflight, { name: 'features' }, plop)).toMatch(/contract checks passed/)
+    expect(runAction(preflight, answers, plop)).toMatch(/contract checks passed/)
   })
 
   it('injects the union entry, the pick and the component, reporting the pascal name', () => {
     const { plop, config } = registerWith(sectionGenerator, 'section')
-    const { inject } = steps(actionsFor(config, { name: 'features' }))
+    const { inject } = functionSteps(actionsFor(config, answers))
 
-    expect(run(inject, { name: 'features' }, plop)).toContain('Features')
+    expect(runAction(inject, answers, plop)).toContain('Features')
     expect(read(process.cwd(), 'src/lib/homepage.ts')).toContain("features: pick('features')")
   })
 
-  it('writes the schema, the content and the component under the same dash-cased name', () => {
+  it('scrive schema, contenuto e componente nelle cartelle della collection scelta', () => {
     const { config } = registerWith(sectionGenerator, 'section')
 
-    expect(addActions(actionsFor(config, { name: 'features' })).map((action) => action.path)).toEqual([
-      'src/lib/schemas/homepage/{{dashCase name}}.ts',
-      'src/content/homepage/{{dashCase name}}.yml',
-      'src/components/home/{{dashCase name}}.astro',
+    const paths = addActions(actionsFor(config, { collection: 'about us', name: 'team members' })).map(
+      ({ path }) => path,
+    )
+
+    expect(paths).toEqual([
+      'src/lib/schemas/about-us/team-members.ts',
+      'src/content/about-us/team-members.yml',
+      'src/components/about-us/team-members.astro',
     ])
   })
 
+  it("porta la risposta sull'immagine al pre-volo e all'iniezione", () => {
+    const { plop, config } = registerWith(sectionGenerator, 'section')
+    const withImage = { collection: 'homepage', name: 'gallery', image: true }
+    const { preflight, inject } = functionSteps(actionsFor(config, withImage))
+
+    expect(runAction(preflight, withImage, plop)).toMatch(/contract checks passed/)
+    runAction(inject, withImage, plop)
+    expect(read(process.cwd(), 'src/lib/schemas/homepage/index.ts')).toContain('gallerySectionSchema(context)')
+  })
+})
+
+describe('gen:section template data', () => {
+  it("passa il nome della sezione come section, che fra le risposte non c'è: node-plop fa vincere le risposte su data", () => {
+    const { config } = registerWith(sectionGenerator, 'section')
+    const answers = { collection: 'homepage', name: 'features', image: false }
+
+    for (const action of addActions(actionsFor(config, answers))) {
+      expect(action.data).toEqual({ section: 'features' })
+      expect(Object.keys(action.data ?? {}).filter((key) => key in answers)).toEqual([])
+    }
+  })
+})
+
+describe('gen:section prompts', () => {
   it('rejects a name whose camel form would be an invalid schema identifier', () => {
     const { config } = registerWith(sectionGenerator, 'section')
 
@@ -100,33 +119,49 @@ describe('gen:section wiring', () => {
     expect(promptNamed(config, 'name').validate?.('...')).toBe('Section name is required')
     expect(promptNamed(config, 'name').validate?.('features')).toBe(true)
   })
+
+  it('chiede la collection, con la homepage di default, e rifiuta un nome che non diventa identificatore', () => {
+    const { config } = registerWith(sectionGenerator, 'section')
+    const prompt = promptNamed(config, 'collection')
+
+    expect(prompt.default).toBe('homepage')
+    expect(prompt.validate?.('2fa')).toMatch(/invalid identifier \(2faCollectionSchema\)/)
+    expect(prompt.validate?.('...')).toBe('Collection name is required')
+    expect(prompt.validate?.('about')).toBe(true)
+  })
+
+  it("chiede se la sezione porta un'immagine, e di default no", () => {
+    const { config } = registerWith(sectionGenerator, 'section')
+
+    expect(promptNamed(config, 'image')).toMatchObject({ type: 'confirm', default: false })
+  })
 })
 
 describe('gen:page wiring', () => {
   it('controlla percorso e dizionari prima di scrivere, poi inietta titolo e descrizione', () => {
     const { plop, config } = registerWith(pageGenerator, 'page')
     const answers = { name: 'about-us', dynamic: false }
-    const { preflight, inject } = steps(actionsFor(config, answers))
+    const { preflight, inject } = functionSteps(actionsFor(config, answers))
 
-    expect(run(preflight, answers, plop)).toMatch(/contract checks passed/)
-    expect(run(inject, answers, plop)).toBe('injected page.aboutUs.title, page.aboutUs.description')
+    expect(runAction(preflight, answers, plop)).toMatch(/contract checks passed/)
+    expect(runAction(inject, answers, plop)).toBe('injected page.aboutUs.title, page.aboutUs.description')
     expect(read(process.cwd(), 'src/i18n/strings/it.ts')).toContain("'page.aboutUs.description': '<PAGE_DESCRIPTION>'")
   })
 
   it('a una pagina dinamica inietta solo il titolo', () => {
     const { plop, config } = registerWith(pageGenerator, 'page')
     const answers = { name: 'blog', dynamic: true }
-    const { inject } = steps(actionsFor(config, answers))
+    const { inject } = functionSteps(actionsFor(config, answers))
 
-    expect(run(inject, answers, plop)).toBe('injected page.blog.title')
+    expect(runAction(inject, answers, plop)).toBe('injected page.blog.title')
   })
 
   it('si ferma prima di scrivere se la pagina esiste già', () => {
     process.chdir(makeRoot({ 'src/pages/about-us.astro': '---\n---\n' }))
     const { plop, config } = registerWith(pageGenerator, 'page')
     const answers = { name: 'about-us', dynamic: false }
-    const { preflight } = steps(actionsFor(config, answers))
+    const { preflight } = functionSteps(actionsFor(config, answers))
 
-    expect(() => run(preflight, answers, plop)).toThrow(/already exists/)
+    expect(() => runAction(preflight, answers, plop)).toThrow(/already exists/)
   })
 })

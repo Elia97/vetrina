@@ -5,7 +5,7 @@ function absoluteUrl(path: string): string {
   return new URL(path, SITE.url).href
 }
 
-interface ListEntry {
+export interface ListEntry {
   name: string
   url: string
 }

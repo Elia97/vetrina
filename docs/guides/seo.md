@@ -80,7 +80,9 @@ Un segnaposto rimasto in `COMPANY` o in `SITE.social` non arriva in produzione: 
 Per una coppia di rotte listing e dettaglio, il **listing** emette `BreadcrumbList` più un
 `ItemList` dei suoi figli (il catalogo); ogni **dettaglio** emette lo schema della singola entità
 (`Service`, `Article`, …) e il proprio `BreadcrumbList`. Non replicare l'entità intera sul listing:
-l'istanza autorevole appartiene al suo URL di dettaglio.
+l'istanza autorevole appartiene al suo URL di dettaglio. Il percorso visibile lo rende `Breadcrumb`
+(`src/components/ui/breadcrumb/`) con lo stesso elenco di voci passato a `buildBreadcrumbList()`,
+così il JSON-LD e la pagina non raccontano due percorsi diversi.
 
 ### Una società, un'entità (quando un progetto ne aggiunge una seconda)
 
@@ -133,10 +135,13 @@ del browser — e viene reso una volta sola da `head.astro`.
 - **`manifest.test.ts` verifica che ogni icona dichiarata esista davvero.** Un'icona elencata ma non
   consegnata è un 404 che il browser segnala solo al momento dell'installazione, dove non guarda
   nessuno — ed è il motivo per cui l'elenco è corto invece che velleitario.
-- **Così com'è, il manifest è valido ma non installabile.** Dichiara solo la favicon SVG, mentre il
-  prompt di installazione di Chrome vuole un raster di almeno 192px. Un progetto aggiunge
-  `/icon-192.png`, `/icon-512.png` e una 512 maskable (contenuto dentro la zona sicura centrale
-  dell'80%, opaca — la maschera adattiva di Android taglia il resto) e le elenca in `ICONS`.
+- **Le icone raster le genera `pnpm gen:icons` dal favicon.** Da `public/favicon.svg` scrive
+  `public/icon-192.png`, `public/icon-512.png` e `public/icon-maskable-512.png`, opache sul colore
+  `SITE.themeColor.light` del manifest: il prompt di installazione di Chrome vuole un raster di almeno
+  192px. La maskable tiene il glifo nel quadrato inscritto nella zona sicura, il cerchio centrale di
+  diametro pari all'80% del lato che la maschera adattiva di Android non taglia. Le icone si
+  committano e si rigenerano dopo aver sostituito il favicon; `scripts/lib/icons.test.ts` lega le
+  loro specifiche alle voci di `ICONS`.
 - **`SITE.themeColor` deve essere uguale a `--background`** in `light.css` e `dark.css`, altrimenti
   la chrome del browser e la pagina non concordano sulla giuntura — lo verifica
   `src/styles/theme-color.test.ts`, che risolve i token e converte oklch in esadecimale. È in
@@ -148,6 +153,17 @@ del browser — e viene reso una volta sola da `head.astro`.
 
 - `@astrojs/sitemap` (in `astro.config.mjs`) emette `sitemap-index.xml` in fase di build: in
   sviluppo non viene mai servito. La sua mappa delle lingue rispecchia `SITE.localeTags`.
+- **`lastmod` viene dalla storia git.** La `serialize` del sitemap,
+  `withLastmod(createLastmodResolver())`, data ogni URL con l'ultimo commit fra i file che lo
+  producono, e `lastmodSources()` in `src/lib/seo/sitemap-lastmod.ts` dice quali sono: `/` è
+  `src/pages/index.astro` più `src/content/homepage`, `/contatti` e `/termini` sono il loro `.astro`.
+  Un progetto ci aggiunge le sue rotte con i file che le producono: una pagina di dettaglio porta il
+  suo `[slug].astro` e il file della voce, e le rotte di un'altra lingua portano i loro file.
+- **Non tutte le pagine hanno `lastmod`, e non sempre.** `/privacy` e `/cookie-policy` ne restano
+  senza: il testo arriva da iubenda durante il build, e git non ne conosce la data. In un clone
+  shallow `git log` attribuisce ogni file al commit di confine, quindi lì `lastmod` si omette, con un
+  avviso nel log del build. La data giusta vuole `fetch-depth: 0`, che `deploy.yml` ha, mentre
+  `lighthouse.yml` e i preview dell'integrazione git di Vercel costruiscono senza la storia completa.
 - **Una sitemap di media vuole un endpoint suo.** L'hook `serialize` dell'integrazione non può
   emettere un namespace `<video:…>` o `<image:…>`: il suo tipo `SitemapItem` è un `Pick` di
   `url|lastmod|changefreq|priority|links` e nient'altro. Quella sitemap si emette da una rotta

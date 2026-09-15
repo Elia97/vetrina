@@ -1,4 +1,6 @@
 ---
+import { Image } from 'astro:assets'
+
 import Button from '@/components/ui/button.astro'
 import Container from '@/components/ui/container.astro'
 import Heading from '@/components/ui/heading.astro'
@@ -6,19 +8,39 @@ import Section from '@/components/ui/section.astro'
 import SectionLabel from '@/components/ui/section-label.astro'
 
 import type { HomepageSections } from '@/lib/homepage'
+import { cn } from '@/lib/utils'
 
 import { ctaHref } from '@/i18n/href'
 
 type Props = HomepageSections['hero']
 
-const { eyebrow, title, subtitle, buttons } = Astro.props
+const { eyebrow, title, subtitle, image, buttons } = Astro.props
 const href = (url: string) => ctaHref(Astro.currentLocale, url)
 ---
 
 <Section
   spacing="spacious"
-  class="relative min-h-svh overflow-hidden border-b border-border bg-background"
+  class={cn(
+    'relative min-h-svh overflow-hidden border-b border-border bg-background',
+    image && 'dark isolate text-foreground',
+  )}
 >
+  {
+    image && (
+      <Fragment>
+        <Image
+          src={image.src}
+          alt=""
+          aria-hidden="true"
+          priority
+          widths={[640, 1024, 1600, 2048]}
+          sizes="100vw"
+          class="absolute inset-0 -z-10 size-full object-cover"
+        />
+        <div class="absolute inset-0 -z-10 bg-background/60" aria-hidden="true"></div>
+      </Fragment>
+    )
+  }
   <Container class="text-center">
     <SectionLabel label={eyebrow} class="mb-4 justify-center" />
     <Heading as="h1" size="display" class="tracking-tight">

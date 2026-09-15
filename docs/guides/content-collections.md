@@ -6,11 +6,16 @@ Tre forme, e si sceglie dalla struttura del contenuto, non dal suo argomento.
 
 - **Singleton diviso in sezioni** — una pagina sola costruita da blocchi eterogenei. Lo schema è una
   `z.discriminatedUnion` su un campo `section`, un file per sezione, dietro una funzione di accesso
-  dedicata (`getXSections(locale?)`) che assembla la pagina. Il pattern della homepage qui sotto è
-  il riferimento: si replica parola per parola.
+  dedicata (`get<Nome>Sections(locale?)`) che assembla la pagina. Non si replica a mano: la crea
+  `pnpm gen:collection` rispondendo sì alla pagina a sezioni, e `pnpm gen:section` le aggiunge
+  sezioni. La homepage qui sotto è la prima.
 - **Piatta a schema condiviso** — molte voci che condividono UNA sola forma di schema, ognuna una
-  pagina o un record completo. Si leggono direttamente (`getCollection` per il listing, `getEntry`
-  per una sola), con chiave sul `generateId` del file (lo slug); nessuno strato di accesso ai dati.
+  pagina o un record completo. Si leggono direttamente, con chiave sul `generateId` del file (lo
+  slug) e senza uno strato di accesso ai dati per collection: `getCollection` per il listing, e
+  `loadLocalizedEntry(collection, id, locale)` di `src/lib/content/localized-entry.ts` per una voce
+  sola, cercata nella cartella della sua lingua. Il percorso lista → dettaglio completo (schema,
+  listing, `[slug]`, SEO) è il blueprint `content-section` del plugin `metodo`, e il percorso
+  visibile lo rende `Breadcrumb` di `src/components/ui/breadcrumb/`.
 - **Documento** (`gen:collection` in modalità documento) — l'unica forma con un `body` renderizzabile
   (MDX o MD). Il frontmatter è uno schema piatto come nella forma a schema condiviso; il corpo si
   rende con `render(entry)` → `<Content />`.
@@ -27,11 +32,17 @@ collection: non montarne una per lui.
   primitive condivise in `src/lib/schemas/common.ts`.
 - L'accesso passa SOLO da `getHomepageSections(locale?)` in `src/lib/homepage.ts`, mai da
   `getCollection('homepage')` chiamato direttamente da una pagina. La catena della fonte unica è
-  schema Zod → `CollectionEntry<'homepage'>['data']` → `HomepageSections` → Props del componente
+  schema Zod → `CollectionEntry<'homepage'>['data']` → `SectionedPage<'homepage'>` di
+  `src/lib/content/localized-sections.ts`, esportato come `HomepageSections` → Props del componente
   (`type Props = HomepageSections['hero']`), così una modifica allo schema si propaga ai tipi dei
   componenti senza una riga di duplicazione scritta a mano.
-- I componenti di sezione vivono in `src/components/home/`, uno per sezione, e si agganciano in
+- I componenti di sezione vivono in `src/components/homepage/`, uno per sezione, e si agganciano in
   `src/pages/index.astro`.
+- Ogni altra pagina a sezioni ha la stessa forma, con i nomi derivati da quello della collection:
+  `src/lib/schemas/<nome>/index.ts` con `<nome>CollectionSchema`, `src/lib/<nome>.ts` con
+  `get<Nome>Sections` e `<Nome>Sections`, i contenuti in `src/content/<nome>/`, i componenti in
+  `src/components/<nome>/`, e i marcatori `@gen:<nome>-*` nella pagina, che può stare a qualunque
+  percorso sotto `src/pages/`.
 
 ## Disposizione per lingua (segue la decisione sul routing i18n nativo)
 
@@ -40,22 +51,26 @@ collection: non montarne una per lui.
   (per l'inglese l'id diventa `en/hero`). Aggiungere una lingua è puramente additivo: i file della lingua di default non si
   spostano mai.
 - `getHomepageSections()` ricade su `DEFAULT_LOCALE` di `src/lib/site.ts`; dalle pagine si passa
-  `Astro.currentLocale`.
+  `Astro.currentLocale`. Le voci lette con `loadLocalizedEntry()` seguono la stessa disposizione, e
+  come per le sezioni una voce della lingua di default finita nella cartella di quella lingua ferma il
+  build.
 
 ## Il contratto del fallire rumorosamente
 
-- Una sezione dichiarata nell'oggetto di ritorno di `getHomepageSections` ma senza il suo file di
+- Una sezione dichiarata nell'oggetto di ritorno di `get<Nome>Sections` ma senza il suo file di
   contenuto solleva un errore in fase di build (`pick()`), così un file dimenticato rompe la CI
   invece di spedire una pagina rotta. Lo stesso errore copre le sezioni duplicate dentro una lingua
-  e i file della lingua di default finiti per sbaglio in una cartella di lingua.
-- La garanzia in fase di build regge perché ogni consumatore di `getHomepageSections` è
+  e i file della lingua di default finiti per sbaglio in una cartella di lingua. Una sezione
+  dell'unione che manca dall'oggetto di ritorno la ferma `astro check`, perché `SectionedPage`
+  vuole una chiave per ogni sezione.
+- La garanzia in fase di build regge perché ogni consumatore di `get<Nome>Sections` è
   prerenderizzato (il default). Un consumatore che si fosse sfilato con `prerender = false`
-  trasformerebbe questi errori in 500 a runtime: le rotte della homepage restano prerenderizzate.
-- **Non togliere il `generateId` personalizzato della collection homepage**: quello di default
+  trasformerebbe questi errori in 500 a runtime: le pagine a sezioni restano prerenderizzate.
+- **Non togliere il `generateId` personalizzato delle collection a sezioni**: quello di default
   slugifica i segmenti e onora una chiave `slug` nello YAML, il che fa atterrare il contenuto in
   silenzio nella lingua sbagliata (le ragioni sono fissate accanto al loader in
   `src/content.config.ts`). È specifico dell'archetipo e non una regola di casa: `gen:collection` lo
-  emette per una collection **dati**, che può essere riletta per cartella di lingua, e lascia di
+  emette per una collection **dati** o **a sezioni**, che si rileggono per cartella di lingua, e lascia di
   proposito quello di default per una collection **documento**, il cui id diventa lo slug della
   rotta e che quindi *vuole* la slugificazione e uno `slug` nel frontmatter.
 - **[HARD] Gli schemi di contenuto usano `z.strictObject`, mai `z.object`.** Un oggetto normale
@@ -160,10 +175,10 @@ dettaglio, tutto quello che sta a valle), così la regola non può divergere fra
 
 ## La cucitura verso un CMS (decisione per progetto, ricerca di luglio 2026)
 
-`getHomepageSections` è la cucitura dell'adapter: i componenti consumano SOLO il suo output
-tipizzato, quindi un progetto può sostituire il backend dei contenuti reimplementando quella
-funzione sola (un loader in fase di build, o una collection viva per avere freschezza in SSR) e la
-catena Zod → Props resta intatta. Non incorporare un CMS nel template.
+Le funzioni `get<Nome>Sections` sono la cucitura dell'adapter: i componenti consumano SOLO il loro
+output tipizzato, quindi un progetto può sostituire il backend dei contenuti reimplementando quelle
+funzioni (un loader in fase di build, o una collection viva per avere freschezza in SSR) e la catena
+Zod → Props resta intatta. Non incorporare un CMS nel template.
 
 - Il cliente ha bisogno di modificare da solo QUESTI file: **Sveltia CMS** si sovrappone uno a uno a
   questa disposizione (file collection con schema per file;
@@ -184,20 +199,32 @@ silenzioso nulla di fatto):
   esportato) e inizializzato con un letterale. Duplicati e collisioni di identificatori (import o
   variabili) sollevano errori descrittivi in un pre-volo, prima che venga scritto un solo file. Il
   commento INJECTION POINT sta DENTRO il letterale: le istruzioni iniettate sopra la dichiarazione
-  staccherebbero un commento in testa.
-- `gen:section` (già presente) verifica tre punti di aggancio in un pre-volo, prima che venga
-  scritto un solo file, e su ciascuno solleva un errore descrittivo:
-  1. `src/lib/schemas/homepage/index.ts` — la chiamata `z.discriminatedUnion` dentro
-     `homepageCollectionSchema`;
-  2. `src/lib/homepage.ts` — il letterale dell'oggetto di ritorno di `getHomepageSections`;
-  3. `src/pages/index.astro` — i marcatori `// @gen:home-imports` e `{/* @gen:home-sections */}`.
-     **Il lato dell'inserimento è parte del contratto: si inserisce SOPRA il marcatore.** Verificato:
-     inserendo sotto `@gen:home-imports`, l'`organizeImports` di Biome adotta il marcatore come
-     trivia iniziale del nuovo import e lo sposta dentro il blocco ordinato.
+  staccherebbero un commento in testa. Una collection a sezioni importa `<nome>CollectionSchema` dal
+  suo barrel.
+- `gen:section` (già presente) chiede la collection a sezioni, di default `homepage`, e verifica tre
+  punti di aggancio in un pre-volo, prima che venga scritto un solo file, e su ciascuno solleva un
+  errore descrittivo. I nomi derivano da quello della collection:
+  1. `src/lib/schemas/<nome>/index.ts` — la chiamata `z.discriminatedUnion` dentro
+     `<nome>CollectionSchema`;
+  2. `src/lib/<nome>.ts` — il letterale dell'oggetto di ritorno di `get<Nome>Sections`;
+  3. l'unica pagina sotto `src/pages/` che porta i marcatori `// @gen:<nome>-imports` e
+     `{/* @gen:<nome>-sections */}` e legge le sezioni in `const content`; per la homepage è
+     `src/pages/index.astro`. **Il lato dell'inserimento è parte del contratto: si inserisce SOPRA il
+     marcatore.** Verificato: inserendo sotto `@gen:homepage-imports`, l'`organizeImports` di Biome
+     adotta il marcatore come trivia iniziale del nuovo import e lo sposta dentro il blocco ordinato.
 
-  Non c'è ancora un'opzione `image()`, perché non esiste una sezione con immagini vera da cui
-  derivarla: si aggiunge quando ci sarà (la funzione di schema guadagna un parametro
-  `SchemaContext`).
+  **L'opzione immagine.** Se la sezione porta un'immagine, lo schema riceve
+  `{ image }: SchemaContext` e il campo `image: imageSchema(image)`, il contenuto punta a
+  `src/assets/placeholder.jpg` e il componente rende un `<Image>`. Nell'unione la sezione entra come
+  `<nome>SectionSchema(context)`: il contesto Astro lo passa alla funzione di schema della
+  collection, e se la funzione non ha ancora il parametro il generatore glielo aggiunge.
+- `gen:collection` con la pagina a sezioni crea la collection insieme alla sua prima sezione, perché
+  i tipi di zod vogliono almeno un membro nell'unione. La registra in `src/content.config.ts` con il
+  `generateId` della homepage, scrive barrel e strato dati, la pagina al percorso scelto con l'`h1`
+  dal dizionario e i due marcatori, e la sezione con i template di `gen:section`. Titolo e
+  descrizione della pagina entrano nei dizionari come per `gen:page`. Il pre-volo verifica che
+  pagina, barrel, strato dati e file della sezione non esistano, che nessuna pagina porti già i
+  marcatori e che le chiavi dei dizionari siano libere.
 - `gen:page` scrive le chiavi della pagina in ogni dizionario di `src/i18n/strings/`:
   `page.<nome>.title`, e per una pagina statica anche `page.<nome>.description`, che nasce
   `'<PAGE_DESCRIPTION>'` e che `check:placeholders` ferma al deploy. Le scrive in tutti perché

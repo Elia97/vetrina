@@ -1,3 +1,4 @@
+import type { ImageFunction } from 'astro:content'
 import { z } from 'astro/zod'
 
 // [HARD] Gli schemi di contenuto sono stretti: un `z.object` normale SCARTA le chiavi
@@ -21,3 +22,11 @@ export const ctaSchema = z.strictObject({
   }),
 })
 export type Cta = z.infer<typeof ctaSchema>
+
+export function imageSchema(image: ImageFunction) {
+  return z.strictObject({ src: image(), alt: z.string() })
+}
+
+export function backgroundSchema(image: ImageFunction) {
+  return z.strictObject({ src: image() })
+}

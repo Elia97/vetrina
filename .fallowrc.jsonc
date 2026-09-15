@@ -9,7 +9,9 @@
     "@astrojs/vercel",
     "@astrojs/sitemap",
     // Raggiunta da `@import "tailwindcss"` in globals.css, che fallow non traccia.
-    "tailwindcss"
+    "tailwindcss",
+    // Il servizio immagini di astro la carica con un import dinamico, in build e in `/_image`.
+    "sharp"
   ],
   "ignoreExports": [
     { "file": "src/components/ui/button.astro", "exports": ["buttonVariants"] },
