@@ -260,6 +260,11 @@ puramente additiva.
 I link della chrome passano da `localizedHref(Astro.currentLocale, path)` (vedi header e footer),
 quindi nav e URL legali si localizzano senza toccare i componenti.
 
+Il selettore di lingua compare da solo nell'header e nella nav mobile quando una pagina esiste in
+almeno due lingue. Una pagina che non esiste in tutte dichiara le sue con la prop `locales` del
+layout, `<MainLayout locales={['it']}>`: alternate hreflang e selettore leggono la stessa lista, come
+spiega la politica degli URL in `docs/guides/seo.md`.
+
 ## Secret di release
 
 L'automazione di release (`release-please.yml`) ha bisogno di questi secret impostati a mano su

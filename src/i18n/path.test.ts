@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 
 import { localizedHref } from '@/i18n/href'
-import { ariaCurrent, localeAgnosticPath } from '@/i18n/path'
+import { ariaCurrent, localeAgnosticPath, localeSwitchHref } from '@/i18n/path'
 
 vi.mock('@/i18n/segments-by-locale', () => import('@test/helpers/second-locale').then((m) => m.translatedSegments))
 
@@ -47,6 +47,17 @@ describe('localeAgnosticPath', () => {
   // Un canonical vuoto si risolve contro l'origine, non contro la pagina.
   it('recovers the root from a path that is only slashes', () => {
     expect(localeAgnosticPath('///', 'it')).toBe('/')
+  })
+})
+
+describe('localeSwitchHref', () => {
+  it.each([
+    ['/', 'it', 'en', '/en'],
+    ['/en', 'en', 'it', '/'],
+    ['/contatti', 'it', 'en', '/en/contact'],
+    ['/en/contact', 'en', 'it', '/contatti'],
+  ])('da %s (%s) verso %s porta a %s', (pathname, current, target, expected) => {
+    expect(localeSwitchHref(target, pathname, current)).toBe(expected)
   })
 })
 

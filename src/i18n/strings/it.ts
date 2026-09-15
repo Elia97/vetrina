@@ -5,6 +5,7 @@ export const it = {
   'a11y.openMenu': 'Apri menu',
   'a11y.closeMenu': 'Chiudi menu',
   'a11y.legalNav': 'Link legali',
+  'a11y.languageNav': 'Lingua',
 
   'nav.home': 'Home',
   'nav.contact': 'Contatti',

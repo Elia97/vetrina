@@ -1,8 +1,8 @@
-import { i18n } from 'astro:config/client'
 import { getAbsoluteLocaleUrl } from 'astro:i18n'
 
 import { DEFAULT_LOCALE, localeTag, SITE } from '@/lib/site'
 
+import { pageLocales } from '@/i18n/locales'
 import { localeAgnosticPath } from '@/i18n/path'
 import { translatePath } from '@/i18n/route-segments'
 import { useTranslations } from '@/i18n/translate'
@@ -25,7 +25,7 @@ interface HeadSeoMeta {
   socialImage: SocialImage
   currentTag: string
   localeAlternates: LocaleAlternate[]
-  defaultHref: string
+  defaultHref?: string
 }
 
 interface HeadSeoParams {
@@ -34,19 +34,13 @@ interface HeadSeoParams {
   currentLocale: string | undefined
   canonicalPath: string
   ogImage: string | undefined
-}
-
-// Le API i18n di Astro e Astro.currentLocale parlano codici di lingua (codes[0] per
-// le voci oggetto); gli URL portano percorsi.
-function configuredLocaleCodes(): string[] {
-  /* v8 ignore next -- le voci locale a oggetto ({ path, codes }) sono una funzione di Astro che la lingua singola di questo template non produce mai */
-  return (i18n?.locales ?? []).map((l) => (typeof l === 'string' ? l : (l.codes[0] ?? l.path)))
+  locales: readonly string[] | undefined
 }
 
 // I motori di ricerca ignorano un insieme di hreflang che non concorda col canonical:
 // entrambi rilocalizzano lo stesso percorso di base.
-function resolveLocaleAlternates(canonicalPath: string): LocaleAlternate[] {
-  return configuredLocaleCodes().map((code) => ({
+function resolveLocaleAlternates(canonicalPath: string, codes: readonly string[]): LocaleAlternate[] {
+  return codes.map((code) => ({
     tag: localeTag(code),
     href: getAbsoluteLocaleUrl(code, translatePath(canonicalPath, code)),
   }))
@@ -67,16 +61,20 @@ export function resolveHeadSeoMeta({
   currentLocale,
   canonicalPath,
   ogImage,
+  locales,
 }: HeadSeoParams): HeadSeoMeta {
   const locale = currentLocale ?? DEFAULT_LOCALE
   const canonical = localeAgnosticPath(canonicalPath, locale)
+  const available = pageLocales(locales)
 
   return {
     documentTitle: absoluteTitle || title === SITE.name ? title : `${title} | ${SITE.name}`,
     canonical: getAbsoluteLocaleUrl(locale, translatePath(canonical, locale)),
     socialImage: resolveSocialImage(ogImage, locale),
     currentTag: localeTag(locale),
-    localeAlternates: resolveLocaleAlternates(canonical),
-    defaultHref: getAbsoluteLocaleUrl(DEFAULT_LOCALE, translatePath(canonical, DEFAULT_LOCALE)),
+    localeAlternates: resolveLocaleAlternates(canonical, available),
+    ...(available.includes(DEFAULT_LOCALE)
+      ? { defaultHref: getAbsoluteLocaleUrl(DEFAULT_LOCALE, translatePath(canonical, DEFAULT_LOCALE)) }
+      : {}),
   }
 }

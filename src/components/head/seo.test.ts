@@ -2,8 +2,9 @@ import { describe, expect, it, vi } from 'vitest'
 
 import { resolveHeadSeoMeta } from '@/components/head/seo'
 
-import { SITE } from '@/lib/site'
+import { localeTag, SITE } from '@/lib/site'
 
+import { localeSwitchHref } from '@/i18n/path'
 import { useTranslations } from '@/i18n/translate'
 
 vi.mock('astro:config/client', () => import('@test/helpers/second-locale').then((m) => m.twoLocaleConfig))
@@ -15,6 +16,7 @@ const params = {
   currentLocale: 'it',
   canonicalPath: '/',
   ogImage: undefined,
+  locales: undefined,
 }
 
 describe('resolveHeadSeoMeta', () => {
@@ -72,6 +74,32 @@ describe("resolveHeadSeoMeta() da una pagina nell'altra lingua", () => {
       { tag: 'en', href: 'https://example.com/en' },
     ])
     expect(meta.defaultHref).toBe('https://example.com')
+  })
+})
+
+describe('resolveHeadSeoMeta() con le lingue dichiarate dalla pagina', () => {
+  it("emette gli alternate delle sole lingue della pagina, e x-default se c'è la lingua di default", () => {
+    const meta = resolveHeadSeoMeta({ ...params, canonicalPath: '/privacy', locales: ['it'] })
+    expect(meta.localeAlternates).toEqual([{ tag: 'it-IT', href: 'https://example.com/privacy' }])
+    expect(meta.defaultHref).toBe('https://example.com/privacy')
+  })
+
+  it('non emette x-default quando la pagina non esiste nella lingua di default', () => {
+    const meta = resolveHeadSeoMeta({ ...params, currentLocale: 'en', canonicalPath: '/en/news', locales: ['en'] })
+    expect(meta.localeAlternates).toEqual([{ tag: 'en', href: 'https://example.com/en/news' }])
+    expect(meta).not.toHaveProperty('defaultHref')
+  })
+
+  it.each([
+    ['/contatti', 'it'],
+    ['/en/contact', 'en'],
+    ['/en', 'en'],
+  ])("da %s (%s) il selettore porta dove punta l'alternate di ogni lingua", (pathname, current) => {
+    const meta = resolveHeadSeoMeta({ ...params, currentLocale: current, canonicalPath: pathname })
+    for (const code of ['it', 'en']) {
+      const alternate = meta.localeAlternates.find((alt) => alt.tag === localeTag(code))
+      expect(new URL(alternate?.href ?? '').pathname).toBe(localeSwitchHref(code, pathname, current))
+    }
   })
 })
 

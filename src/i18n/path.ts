@@ -2,6 +2,7 @@ import { getPathByLocale } from 'astro:i18n'
 
 import { DEFAULT_LOCALE } from '@/lib/site'
 
+import { localizedHref } from '@/i18n/href'
 import { canonicalizePath } from '@/i18n/route-segments'
 
 function localePrefix(currentLocale: string, defaultLocale: string): string {
@@ -27,6 +28,10 @@ export function localeAgnosticPath(pathname: string, currentLocale: string | und
   const unprefixed = stripLocalePrefix(pathname, prefix)
   const canonical = canonicalizePath(unprefixed, locale)
   return normalizeTrailingSlash(canonical)
+}
+
+export function localeSwitchHref(targetLocale: string, pathname: string, currentLocale: string | undefined): string {
+  return localizedHref(targetLocale, localeAgnosticPath(pathname, currentLocale))
 }
 
 export function ariaCurrent(

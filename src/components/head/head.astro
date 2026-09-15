@@ -14,9 +14,19 @@ interface Props {
   ogImage?: string | undefined
   jsonLd?: Record<string, unknown>[] | undefined
   noindex?: boolean | undefined
+  locales?: readonly string[] | undefined
 }
 
-const { title, absoluteTitle = false, description, canonicalPath, ogImage, jsonLd, noindex = false } = Astro.props
+const {
+  title,
+  absoluteTitle = false,
+  description,
+  canonicalPath,
+  ogImage,
+  jsonLd,
+  noindex = false,
+  locales,
+} = Astro.props
 
 const { documentTitle, canonical, socialImage, currentTag, localeAlternates, defaultHref } = resolveHeadSeoMeta({
   title,
@@ -24,6 +34,7 @@ const { documentTitle, canonical, socialImage, currentTag, localeAlternates, def
   currentLocale: Astro.currentLocale,
   canonicalPath: canonicalPath ?? Astro.url.pathname,
   ogImage,
+  locales,
 })
 ---
 

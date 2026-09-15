@@ -12,8 +12,7 @@ type LocaleEntry = string | { path: string; codes: string[] }
 
 const i18n = (astroConfig as { i18n?: { defaultLocale: string; locales: LocaleEntry[] } }).i18n
 
-// Le API di Astro parlano di codici; per una voce oggetto è codes[0], con la stessa
-// normalizzazione di src/components/head/seo.ts.
+// Stessa normalizzazione di src/i18n/locales.ts.
 function codesOf(locales: readonly LocaleEntry[]): string[] {
   return locales.map((locale) => (typeof locale === 'string' ? locale : (locale.codes[0] ?? locale.path)))
 }

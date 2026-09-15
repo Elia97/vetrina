@@ -161,6 +161,10 @@ apre il pannello della CMP, non porta a una pagina.
   `true`, e dà sottolineatura e colore pieno del testo. Sulle altre voci `ariaCurrent()` restituisce
   `undefined`, che omette l'attributo: Astro rende un `false` come `aria-current="false"`, e il
   selettore prende anche quello.
+- **Il selettore di lingua** (`src/components/layout/language-switcher.astro`) sta nell'header e
+  nella nav mobile, e compare solo quando la pagina esiste in almeno due lingue. La lingua corrente
+  è testo con `aria-current="true"`, le altre sono link con `lang` e `hreflang`, e ogni nome è
+  scritto nella lingua che nomina (`localeName()` in `src/i18n/locales.ts`).
 - I glifi delle icone sono `aria-hidden` con l'etichetta sul controllo; il selettore di variazione
   testuale (`&#xFE0E;`) va sui codepoint che WebKit renderebbe come emoji.
 - Mattoni per gli overlay (per menu e dialog che un progetto aggiunge):

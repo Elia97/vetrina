@@ -1,0 +1,43 @@
+---
+import { DEFAULT_LOCALE, localeTag } from '@/lib/site'
+import { cn } from '@/lib/utils'
+
+import { localeName, pageLocales } from '@/i18n/locales'
+import { localeSwitchHref } from '@/i18n/path'
+import { useTranslations } from '@/i18n/translate'
+
+interface Props {
+  locales?: readonly string[] | undefined
+  class?: string | undefined
+  itemClass?: string | undefined
+}
+
+const { locales, class: className, itemClass } = Astro.props
+const available = pageLocales(locales)
+const current = Astro.currentLocale ?? DEFAULT_LOCALE
+const t = useTranslations(Astro.currentLocale)
+const item = cn('font-medium text-sm underline-offset-4 transition-colors aria-[current]:underline', itemClass)
+---
+
+{
+  available.length > 1 && (
+    <nav aria-label={t('a11y.languageNav')} class={cn('flex items-center gap-4', className)}>
+      {available.map((code) =>
+        code === current ? (
+          <span aria-current="true" lang={localeTag(code)} class={item}>
+            {localeName(code)}
+          </span>
+        ) : (
+          <a
+            href={localeSwitchHref(code, Astro.url.pathname, Astro.currentLocale)}
+            hreflang={localeTag(code)}
+            lang={localeTag(code)}
+            class={item}
+          >
+            {localeName(code)}
+          </a>
+        ),
+      )}
+    </nav>
+  )
+}

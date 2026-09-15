@@ -25,6 +25,7 @@ interface Props {
   noindex?: boolean
   heroOverlay?: boolean
   overlayChrome?: 'auto' | 'light'
+  locales?: readonly string[]
 }
 
 const {
@@ -37,6 +38,7 @@ const {
   noindex,
   heroOverlay = false,
   overlayChrome = 'auto',
+  locales,
 } = Astro.props
 const lang = Astro.currentLocale ?? DEFAULT_LOCALE
 ---
@@ -51,13 +53,13 @@ const lang = Astro.currentLocale ?? DEFAULT_LOCALE
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <JsFlag />
     <ThemeScript />
-    <Head {title} {absoluteTitle} {description} {canonicalPath} {ogImage} {jsonLd} {noindex} />
+    <Head {title} {absoluteTitle} {description} {canonicalPath} {ogImage} {jsonLd} {noindex} {locales} />
     <Tracking />
     <ClientRouter />
   </head>
   <body class="flex min-h-svh flex-col">
     <SkipLink />
-    <Header heroOverlay={heroOverlay} overlayChrome={overlayChrome} />
+    <Header heroOverlay={heroOverlay} overlayChrome={overlayChrome} locales={locales} />
     {/* tabindex=-1: lo skip-link deve muovere il focus vero, non solo il punto di partenza del Tab */}
     <main id="main-content" class="flex-1" tabindex="-1">
       <slot />
