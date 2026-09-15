@@ -112,6 +112,15 @@ legali, social. I testi NON stanno lì: le voci portano chiavi di dizionario i18
 `useTranslations(Astro.currentLocale)` (`src/i18n/strings/<lingua>.ts`). Nessuna etichetta fissa nei
 componenti; i link interni passano da `localizedHref()` così si localizzano insieme al sito.
 
+L'identità legale viene invece da `src/lib/company.ts` (`COMPANY`): la riga in fondo al footer porta
+ragione sociale, sede e partita IVA, e i recapiti di `/contatti` portano telefono, email e sede.
+L'indirizzo in una riga lo rende `src/components/layout/company-address.astro` in entrambi i posti.
+Il telefono sta in E.164 in `phone`, per `tel:` e per il JSON-LD, e nella forma che si legge in
+`phoneDisplay`.
+
+Il controllo delle preferenze cookie del footer è un `<button type="button" aria-haspopup="dialog">`:
+apre il pannello della CMP, non porta a una pagina.
+
 ## Modi di dire di Tailwind v4 (non tornare alle abitudini della v3)
 
 - **Mai `outline-none`.** Un `ring` è una box-shadow, e le box-shadow spariscono in modalità

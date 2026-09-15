@@ -86,8 +86,10 @@ La superficie completa, in un posto solo — la milestone `foundations` la distr
 - `src/lib/site.ts`: nome, url, descrizione, voci di nav, CTA e legali (la chrome si rende da qui, e
   le voci portano chiavi i18n, non testo), più i profili di `SITE.social`, che arrivano con
   `href: '#'` e finiscono nel footer;
-- `src/lib/company.ts`: il soggetto giuridico — ragione sociale, telefono, email, indirizzo e
-  partita IVA; i primi quattro alimentano il JSON-LD `Organization` della homepage;
+- `src/lib/company.ts`: il soggetto giuridico — ragione sociale, telefono (`phone` in E.164 e
+  `phoneDisplay` nella forma che si legge), email, indirizzo e partita IVA. Si vedono nella riga
+  legale del footer e nei recapiti di `/contatti`; i primi quattro alimentano anche il JSON-LD
+  `Organization` della homepage;
 - `src/styles/tokens.css`: l'UNICO file da toccare per il rebranding visivo (primitive oklch grezze;
   i nomi semantici in `light.css` e `dark.css` restano);
 - `public/og-default.png`: si sostituisce il segnaposto (1200×630), e con lui le misure in

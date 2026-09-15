@@ -1,0 +1,28 @@
+---
+import CompanyAddress from '@/components/layout/company-address.astro'
+
+import { COMPANY } from '@/lib/company'
+
+import { useTranslations } from '@/i18n/translate'
+
+const t = useTranslations(Astro.currentLocale)
+const linkClass = 'font-medium text-foreground underline underline-offset-4'
+---
+
+<div>
+  <h2 class="font-display font-semibold text-foreground text-xl tracking-tight">{t('contact.detailsTitle')}</h2>
+  <dl class="mt-4 flex flex-col gap-3 text-sm">
+    <div>
+      <dt class="text-muted-foreground">{t('contact.phone')}</dt>
+      <dd><a href={`tel:${COMPANY.phone}`} class={linkClass}>{COMPANY.phoneDisplay}</a></dd>
+    </div>
+    <div>
+      <dt class="text-muted-foreground">{t('contact.email')}</dt>
+      <dd><a href={`mailto:${COMPANY.email}`} class={linkClass}>{COMPANY.email}</a></dd>
+    </div>
+    <div>
+      <dt class="text-muted-foreground">{t('contact.address')}</dt>
+      <dd><CompanyAddress /></dd>
+    </div>
+  </dl>
+</div>

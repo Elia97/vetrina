@@ -268,7 +268,7 @@ Conseguenze che vale la pena dichiarare apertamente:
 - `consentOnContinuedBrowsing: false` **[HARD]**: lo scroll o la navigazione continuata non sono un
   consenso valido secondo le linee guida sui cookie del Garante del 2021.
   `floatingPreferencesButtonDisplay: false` è accettabile solo perché il consenso resta revocabile
-  dal `.iubenda-cs-preferences-link` nel footer. Se tieni il flag, tieni quel link.
+  dal controllo `.iubenda-cs-preferences-link` nel footer. Se tieni il flag, tieni quel controllo.
 - Si carica solo `iubenda_cs.js`: niente autoblocking, niente stub GPP. L'autoblocking aggiungerebbe
   una richiesta che blocca il parser e una seconda fonte di verità per un gate che l'applicazione già
   possiede.

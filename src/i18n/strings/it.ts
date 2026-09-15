@@ -23,6 +23,9 @@ export const it = {
 
   'contact.pageTitle': 'Contatti',
   'contact.pageDescription': 'Raccontaci il tuo progetto: ti rispondiamo al più presto.',
+  'contact.detailsTitle': 'Recapiti',
+  'contact.phone': 'Telefono',
+  'contact.address': 'Sede',
   'contact.formTitle': 'Richiesta informazioni',
   'contact.formIntro': 'Compila il form e ti ricontatteremo al più presto.',
   'contact.firstName': 'Nome',
@@ -51,6 +54,7 @@ export const it = {
 
   'footer.legalHeading': 'Legale',
   'footer.allRightsReserved': 'Tutti i diritti riservati.',
+  'footer.vatNumber': 'P.IVA',
 } as const
 
 export type UIKey = keyof typeof it

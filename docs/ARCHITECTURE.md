@@ -135,7 +135,7 @@ vanno in una direzione sola:
   pagine). `site.ts` è la fonte unica dei metadati del sito e dei contenuti della chrome; `motion/`
   possiede il ciclo di vita delle animazioni lato client.
 - `components/` consuma `lib/`. `components/layout/` è l'arredo di pagina, guidato interamente da
-  `SITE` (nav, CTA, legali, microcopy: nessun contenuto fisso).
+  `SITE` (nav, CTA, legali, microcopy) e da `COMPANY` (l'identità legale): nessun contenuto fisso.
 - `layouts/` compone i componenti nel guscio del documento; `pages/` parla ai layout, mai
   direttamente a `head.astro`.
 

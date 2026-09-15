@@ -1,4 +1,5 @@
 ---
+import ContactDetails from '@/components/contact/contact-details.astro'
 import ContactForm from '@/components/contact/contact-form.astro'
 import Container from '@/components/ui/container.astro'
 import Section from '@/components/ui/section.astro'
@@ -27,6 +28,10 @@ const breadcrumbList = buildBreadcrumbList([
       <div class="mx-auto max-w-2xl">
         <h1 class="font-display font-semibold text-4xl text-foreground tracking-tight">{title}</h1>
         <p class="mt-3 text-muted-foreground">{description}</p>
+
+        <div class="mt-8">
+          <ContactDetails />
+        </div>
 
         <div class="mt-10">
           <ContactForm />

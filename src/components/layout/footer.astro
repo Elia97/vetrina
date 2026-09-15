@@ -1,7 +1,9 @@
 ---
+import CompanyAddress from '@/components/layout/company-address.astro'
 import Container from '@/components/ui/container.astro'
 
 import { getTrackingConfig } from '@/lib/analytics/tracking'
+import { COMPANY } from '@/lib/company'
 import { SITE } from '@/lib/site'
 
 import { localizedHref } from '@/i18n/href'
@@ -13,7 +15,7 @@ const href = (path: string) => localizedHref(Astro.currentLocale, path)
 const current = (path: string) => ariaCurrent(path, Astro.url.pathname, Astro.currentLocale)
 const year = new Date().getFullYear()
 
-// [HARD] Il consenso resta revocabile da questo link: il badge fluttuante della CMP
+// [HARD] Il consenso resta revocabile da questo controllo: il badge fluttuante della CMP
 // è disattivato (src/lib/consent/iubenda.ts).
 const hasCmp = getTrackingConfig() !== null
 ---
@@ -41,13 +43,14 @@ const hasCmp = getTrackingConfig() !== null
         }
         {
           hasCmp && (
-            /* iubenda aggancia il click dal nome della classe; href è il ripiego prima dello script. */
-            <a
-              href="#"
-              class="iubenda-cs-preferences-link text-muted-foreground text-sm transition-colors hover:text-foreground"
+            /* iubenda aggancia il click dal nome della classe. */
+            <button
+              type="button"
+              aria-haspopup="dialog"
+              class="iubenda-cs-preferences-link cursor-pointer text-left text-muted-foreground text-sm transition-colors hover:text-foreground"
             >
               {t('legal.cookiePreferences')}
-            </a>
+            </button>
           )
         }
       </nav>
@@ -56,7 +59,10 @@ const hasCmp = getTrackingConfig() !== null
     <div
       class="mt-10 flex flex-col gap-4 border-border/60 border-t pt-6 text-muted-foreground text-sm sm:flex-row sm:items-center sm:justify-between"
     >
-      <p>&copy; {year} {SITE.name}. {t('footer.allRightsReserved')}</p>
+      <div class="flex flex-col gap-1">
+        <p>&copy; {year} {SITE.name}. {t('footer.allRightsReserved')}</p>
+        <p>{COMPANY.legalName} · <CompanyAddress /> · {t('footer.vatNumber')} {COMPANY.vatNumber}</p>
+      </div>
       {
         SITE.social.length > 0 && (
           <ul class="flex items-center gap-4">
