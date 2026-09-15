@@ -1,10 +1,10 @@
-import { i18n } from 'astro:config/client'
 import { getRelativeLocaleUrl } from 'astro:i18n'
+
+import { DEFAULT_LOCALE } from '@/lib/site'
 
 import { translatePath } from '@/i18n/route-segments'
 
 export function localizedHref(locale: string | undefined, path: string): string {
-  /* v8 ignore next -- astro:config/client lo inietta Astro a ogni render; il ripiego protegge un modulo che non può mancare */
-  const target = locale ?? i18n?.defaultLocale ?? 'it'
+  const target = locale ?? DEFAULT_LOCALE
   return getRelativeLocaleUrl(target, translatePath(path, target))
 }

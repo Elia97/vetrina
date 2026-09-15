@@ -1,3 +1,5 @@
+export const DEFAULT_LOCALE = 'it'
+
 export const SITE = {
   name: '<PROJECT_NAME>',
   // Alimenta `site` in astro.config.mjs e ogni URL assoluto canonical/OG/hreflang.

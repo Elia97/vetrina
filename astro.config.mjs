@@ -7,7 +7,7 @@ import { defineConfig, envField } from 'astro/config'
 
 import { cspIntegration } from './src/lib/csp/integration'
 import { isExcludedFromSitemap } from './src/lib/seo/crawl-policy'
-import { SITE } from './src/lib/site'
+import { DEFAULT_LOCALE, SITE } from './src/lib/site'
 
 export default defineConfig({
   site: SITE.url,
@@ -21,8 +21,8 @@ export default defineConfig({
   // di minuti. Vale per l'unica funzione `_render`, che serve anche /_image.
   adapter: vercel({ maxDuration: 20 }),
   i18n: {
-    defaultLocale: 'it',
-    locales: ['it'],
+    defaultLocale: DEFAULT_LOCALE,
+    locales: [DEFAULT_LOCALE],
     routing: {
       prefixDefaultLocale: false,
     },
@@ -35,7 +35,7 @@ export default defineConfig({
     sitemap({
       filter: (page) => !isExcludedFromSitemap(page),
       i18n: {
-        defaultLocale: 'it',
+        defaultLocale: DEFAULT_LOCALE,
         locales: { ...SITE.localeTags },
       },
     }),

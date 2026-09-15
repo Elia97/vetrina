@@ -1,7 +1,7 @@
 import { i18n as stubbedI18n } from '@test/stubs/astro-config-client'
 import { describe, expect, it } from 'vitest'
 
-import { SITE } from '@/lib/site'
+import { DEFAULT_LOCALE, SITE } from '@/lib/site'
 
 import astroConfig from '../../astro.config.mjs'
 
@@ -39,6 +39,11 @@ describe('locale configuration stays in one shape', () => {
 
   it('routes its own default locale', () => {
     expect(codesOf(i18n?.locales ?? [])).toContain(i18n?.defaultLocale)
+  })
+
+  it('prende la lingua di default da DEFAULT_LOCALE, nella configurazione e nello stub', () => {
+    expect(i18n?.defaultLocale).toBe(DEFAULT_LOCALE)
+    expect(stubbedI18n.defaultLocale).toBe(DEFAULT_LOCALE)
   })
 
   it('keeps the unit-test stub mirroring the real config', () => {

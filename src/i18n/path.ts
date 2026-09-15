@@ -1,5 +1,6 @@
-import { i18n } from 'astro:config/client'
 import { getPathByLocale } from 'astro:i18n'
+
+import { DEFAULT_LOCALE } from '@/lib/site'
 
 import { canonicalizePath } from '@/i18n/route-segments'
 
@@ -21,10 +22,8 @@ function normalizeTrailingSlash(path: string): string {
 }
 
 export function localeAgnosticPath(pathname: string, currentLocale: string | undefined): string {
-  /* v8 ignore next -- astro:config/client lo inietta Astro a ogni render; il ripiego protegge un modulo che non può mancare */
-  const defaultLocale = i18n?.defaultLocale ?? 'it'
-  const locale = currentLocale ?? defaultLocale
-  const prefix = localePrefix(locale, defaultLocale)
+  const locale = currentLocale ?? DEFAULT_LOCALE
+  const prefix = localePrefix(locale, DEFAULT_LOCALE)
   const unprefixed = stripLocalePrefix(pathname, prefix)
   const canonical = canonicalizePath(unprefixed, locale)
   return normalizeTrailingSlash(canonical)

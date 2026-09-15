@@ -100,8 +100,11 @@ La superficie completa, in un posto solo — la milestone `foundations` la distr
   theme-color ha cosa aggiungere per il prompt di installazione;
 - `SITE.themeColor`: i colori della chrome del browser, da tenere uguali a `--background` in
   `light.css` e `dark.css`;
-- `astro.config.mjs` → `i18n.defaultLocale` e `locales` se il progetto non parte dall'italiano (§
-  Aggiungere una lingua, sotto, ha l'elenco completo);
+- `src/lib/site.ts` → `DEFAULT_LOCALE`, se il progetto non parte dall'italiano: la leggono
+  `astro.config.mjs` (lingua di default, lingue instradate e sitemap), i moduli che ripiegano sulla
+  lingua di default e lo stub dei test. Non copre la chiave di `SITE.localeTags` né il dizionario
+  `src/i18n/strings/it.ts`, che si rinomina insieme alla costante che esporta: `src/i18n/ui.ts` ne
+  deriva `UIKey` e il tipo di ogni dizionario;
 - `vercel.json`: il redirect da `www.example.com` a `example.com`, sul dominio vero e verso l'host
   canonico scelto (`docs/guides/deploy-ops.md` § Checklist per il go-live);
 - `src/content/homepage/hero.yml`: il copy vero della homepage.

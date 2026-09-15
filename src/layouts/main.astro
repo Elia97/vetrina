@@ -1,5 +1,4 @@
 ---
-import { i18n } from 'astro:config/client'
 import { ClientRouter } from 'astro:transitions'
 
 import Head from '@/components/head/head.astro'
@@ -9,6 +8,8 @@ import Tracking from '@/components/head/tracking.astro'
 import Footer from '@/components/layout/footer.astro'
 import Header from '@/components/layout/header.astro'
 import SkipLink from '@/components/layout/skip-link.astro'
+
+import { DEFAULT_LOCALE } from '@/lib/site'
 
 import '@/styles/globals.css'
 
@@ -37,7 +38,7 @@ const {
   heroOverlay = false,
   overlayChrome = 'auto',
 } = Astro.props
-const lang = Astro.currentLocale ?? i18n?.defaultLocale ?? 'it'
+const lang = Astro.currentLocale ?? DEFAULT_LOCALE
 ---
 
 <!doctype html>

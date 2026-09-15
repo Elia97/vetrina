@@ -1,7 +1,7 @@
 import { i18n } from 'astro:config/client'
 import { getAbsoluteLocaleUrl } from 'astro:i18n'
 
-import { localeTag, SITE } from '@/lib/site'
+import { DEFAULT_LOCALE, localeTag, SITE } from '@/lib/site'
 
 import { localeAgnosticPath } from '@/i18n/path'
 import { translatePath } from '@/i18n/route-segments'
@@ -68,9 +68,7 @@ export function resolveHeadSeoMeta({
   canonicalPath,
   ogImage,
 }: HeadSeoParams): HeadSeoMeta {
-  /* v8 ignore next -- astro:config/client lo inietta Astro a ogni render; il ripiego protegge un modulo che non può mancare */
-  const defaultLocale = i18n?.defaultLocale ?? 'it'
-  const locale = currentLocale ?? defaultLocale
+  const locale = currentLocale ?? DEFAULT_LOCALE
   const canonical = localeAgnosticPath(canonicalPath, locale)
 
   return {
@@ -79,6 +77,6 @@ export function resolveHeadSeoMeta({
     socialImage: resolveSocialImage(ogImage, locale),
     currentTag: localeTag(locale),
     localeAlternates: resolveLocaleAlternates(canonical),
-    defaultHref: getAbsoluteLocaleUrl(defaultLocale, translatePath(canonical, defaultLocale)),
+    defaultHref: getAbsoluteLocaleUrl(DEFAULT_LOCALE, translatePath(canonical, DEFAULT_LOCALE)),
   }
 }
