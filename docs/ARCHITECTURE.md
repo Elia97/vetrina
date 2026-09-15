@@ -43,7 +43,7 @@ src/
     layout/    # header, footer, nav mobile, skip-link                   chrome
     contact/   # riferimento svolto: un form dietro un'azione            example
     legal/     # riferimento svolto: una pagina legale                   example
-    home/      # una sezione di homepage                                 example
+    homepage/  # le sezioni della homepage                               example
   lib/         # logica senza markup — strati foglia (regola sotto)
     seo/       #   json-ld, crawl-policy, manifest                       machinery
     forms/     #   honeypot, honeypot-schema, rate-limit, form-fields    machinery
@@ -118,10 +118,11 @@ Cosa resta piatto, e perché non è una svista:
 - `site.ts` e `company.ts` sono le due fonti uniche di configurazione, importate da ovunque: una
   cartella aggiungerebbe un salto ai file più letti del repo;
 - `utils.ts` è `cn()`, importato da quasi ogni componente;
-- `contact.ts`, `homepage.ts` e `schemas/` restano piatti perché sono `seed`, non perché spostarli
-  costerebbe: i generatori plop li raggiungono per percorso fisso, e quei percorsi sono dove
-  atterrano le sezioni di un progetto vero. Metterli sotto qualcosa tipo `example/` farebbe scrivere
-  a `pnpm gen:section` del codice di progetto dentro una cartella che si chiama come una demo.
+- `contact.ts`, gli strati dati delle pagine a sezioni come `homepage.ts` e `schemas/` restano piatti
+  perché sono `seed`, non perché spostarli costerebbe: i generatori plop li raggiungono per percorso,
+  derivato dal nome della collection, e quei percorsi sono dove atterrano le sezioni di un progetto
+  vero. Metterli sotto qualcosa tipo `example/` farebbe scrivere a `pnpm gen:section` del codice di
+  progetto dentro una cartella che si chiama come una demo.
 
 **[HARD]** I ruoli sono un aiuto alla lettura, non un confine di import: il codice `example` importa
 `machinery` liberamente, e a vincolare la direzione sono le regole di stratificazione della sezione

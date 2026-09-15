@@ -355,7 +355,7 @@ Si accendono dalla pagina, `<MainLayout heroOverlay overlayChrome="light">`, e p
   l'header non segue lo scorrimento, ma gli ancoraggi atterrano comunque 80px sotto il bordo;
 - `transition:name="site-header"` in `header.astro` lega l'header delle pagine con e senza overlay:
   la view transition li tratta come lo stesso elemento e anima il passaggio dall'uno all'altro;
-- `src/pages/index.astro` non lo accende, benché l'hero di `src/components/home/hero.astro` sia
+- `src/pages/index.astro` non lo accende, benché l'hero di `src/components/homepage/hero.astro` sia
   `min-h-svh`.
 
 ### Gusci condivisi con un'opinione, contro le primitive di `ui/`

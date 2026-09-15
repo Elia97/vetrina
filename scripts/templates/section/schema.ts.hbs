@@ -5,9 +5,9 @@ import { z } from 'astro/zod'
 
 import { ctaSchema{{#if image}}, imageSchema{{/if}} } from '../common'
 
-export function {{camelCase name}}SectionSchema({{#if image}}{ image }: SchemaContext{{/if}}) {
+export function {{camelCase section}}SectionSchema({{#if image}}{ image }: SchemaContext{{/if}}) {
   return z.strictObject({
-    section: z.literal('{{camelCase name}}'),
+    section: z.literal('{{camelCase section}}'),
     title: z.string().min(1),
     body: z.string().optional(),
     {{#if image}}
@@ -17,4 +17,4 @@ export function {{camelCase name}}SectionSchema({{#if image}}{ image }: SchemaCo
   })
 }
 
-export type {{pascalCase name}}Section = z.infer<ReturnType<typeof {{camelCase name}}SectionSchema>>
+export type {{pascalCase section}}Section = z.infer<ReturnType<typeof {{camelCase section}}SectionSchema>>

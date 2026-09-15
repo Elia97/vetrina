@@ -7,8 +7,9 @@ const BARREL = 'src/lib/schemas/homepage/index.ts'
 const DATA = 'src/lib/homepage.ts'
 const PAGE = 'src/pages/index.astro'
 
-const FEATURES = { camel: 'features', kebab: 'features', pascal: 'Features' }
-const GALLERY = { camel: 'gallery', kebab: 'gallery', pascal: 'Gallery' }
+const HOMEPAGE = { camel: 'homepage', kebab: 'homepage', pascal: 'Homepage' }
+const FEATURES = { collection: HOMEPAGE, camel: 'features', kebab: 'features', pascal: 'Features' }
+const GALLERY = { collection: HOMEPAGE, camel: 'gallery', kebab: 'gallery', pascal: 'Gallery' }
 
 const BARREL_WITHOUT_CONTEXT = [
   "import { z } from 'astro/zod'",
@@ -17,6 +18,21 @@ const BARREL_WITHOUT_CONTEXT = [
   "  return z.discriminatedUnion('section', [heroSectionSchema()])",
   '}',
 ].join('\n')
+
+const ABOUT_PAGE = 'src/pages/company/about.astro'
+const ABOUT = {
+  'src/lib/schemas/about/index.ts': [
+    "import { z } from 'astro/zod'",
+    "import { introSectionSchema } from './intro'",
+    'export function aboutCollectionSchema() {',
+    "  return z.discriminatedUnion('section', [introSectionSchema()])",
+    '}',
+  ].join('\n'),
+  'src/lib/about.ts':
+    "export async function getAboutSections() { const { pick } = await load(); return { intro: pick('intro') } }",
+  [ABOUT_PAGE]:
+    '---\n// @gen:about-imports\nconst content = await getAboutSections()\n---\n{/* @gen:about-sections */}\n',
+}
 
 const inject = (root: string) => injectSection({ root, ...FEATURES })
 
@@ -45,8 +61,23 @@ describe('injectSection', () => {
 
     inject(root)
 
-    expect(read(root, PAGE)).toContain("import Features from '@/components/home/features.astro'")
+    expect(read(root, PAGE)).toContain("import Features from '@/components/homepage/features.astro'")
     expect(read(root, PAGE)).toContain('<Features {...content.features} />')
+  })
+})
+
+describe('una seconda collection a sezioni', () => {
+  it('scrive nel barrel, nello strato dati e nella pagina della collection scelta, e non nella homepage', () => {
+    const root = makeRoot(ABOUT)
+    const collection = { camel: 'about', kebab: 'about', pascal: 'About' }
+
+    injectSection({ root, collection, camel: 'team', kebab: 'team', pascal: 'Team' })
+
+    expect(read(root, 'src/lib/schemas/about/index.ts')).toContain('teamSectionSchema()')
+    expect(read(root, 'src/lib/about.ts')).toContain("team: pick('team')")
+    expect(read(root, ABOUT_PAGE)).toContain("import Team from '@/components/about/team.astro'")
+    expect(read(root, ABOUT_PAGE)).toContain('<Team {...content.team} />')
+    expect(read(root, PAGE)).not.toContain('Team')
   })
 })
 
@@ -82,8 +113,8 @@ describe("una sezione con l'immagine", () => {
 
 describe('insertion position relative to the markers', () => {
   it.each([
-    ["import Features from '@/components/home/features.astro'", '// @gen:home-imports'],
-    ['<Features {...content.features} />', '{/* @gen:home-sections */}'],
+    ["import Features from '@/components/homepage/features.astro'", '// @gen:homepage-imports'],
+    ['<Features {...content.features} />', '{/* @gen:homepage-sections */}'],
   ])('puts %s above its marker', (inserted, marker) => {
     const root = makeRoot()
 
@@ -99,8 +130,8 @@ describe('insertion position relative to the markers', () => {
 
     inject(root)
 
-    expect(read(root, PAGE)).toContain('// @gen:home-imports')
-    expect(read(root, PAGE)).toContain('{/* @gen:home-sections */}')
+    expect(read(root, PAGE)).toContain('// @gen:homepage-imports')
+    expect(read(root, PAGE)).toContain('{/* @gen:homepage-sections */}')
   })
 })
 

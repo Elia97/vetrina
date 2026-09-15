@@ -7,11 +7,11 @@ import Button from '@/components/ui/button.astro'
 import Container from '@/components/ui/container.astro'
 import Heading from '@/components/ui/heading.astro'
 import Section from '@/components/ui/section.astro'
-import type { HomepageSections } from '@/lib/homepage'
+import type { {{pascalCase collection}}Sections } from '@/lib/{{dashCase collection}}'
 
 import { ctaHref } from '@/i18n/href'
 
-type Props = HomepageSections['{{camelCase name}}']
+type Props = {{pascalCase collection}}Sections['{{camelCase section}}']
 
 const { title, body, {{#if image}}image, {{/if}}buttons } = Astro.props
 const href = (url: string) => ctaHref(Astro.currentLocale, url)

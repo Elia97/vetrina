@@ -7,13 +7,18 @@ const BARREL = 'src/lib/schemas/homepage/index.ts'
 const DATA = 'src/lib/homepage.ts'
 const PAGE = 'src/pages/index.astro'
 
-const page = (frontmatter = '') => `---\n${frontmatter}\n// @gen:home-imports\n---\n{/* @gen:home-sections */}\n`
+const HOMEPAGE = { camel: 'homepage', kebab: 'homepage', pascal: 'Homepage' }
+const ABOUT = { camel: 'about', kebab: 'about', pascal: 'About' }
+
+const page = (frontmatter = '') =>
+  `---\n${frontmatter}\n// @gen:homepage-imports\n---\n{/* @gen:homepage-sections */}\n`
 
 const assertOn =
-  (overrides: Record<string, string | null> = {}, name = 'features', image = false) =>
+  (overrides: Record<string, string | null> = {}, name = 'features', image = false, collection = HOMEPAGE) =>
   () =>
     assertSectionInjectable({
       root: makeRoot(overrides),
+      collection,
       camel: name,
       kebab: name,
       pascal: `${name[0]?.toUpperCase()}${name.slice(1)}`,
@@ -40,6 +45,21 @@ describe('hook points in the schema barrel', () => {
   it('refuses when the union members are not an array literal', () => {
     const src = "export function homepageCollectionSchema() { return z.discriminatedUnion('section', members) }"
     expect(assertOn({ [BARREL]: src })).toThrow(/not an array literal/)
+  })
+})
+
+describe('la collection scelta', () => {
+  it('rifiuta una collection senza barrel, che nasce da gen:collection', () => {
+    expect(assertOn({}, 'team', false, ABOUT)).toThrow(/"about" collection has no schema barrel/)
+  })
+
+  it('rifiuta una collection con il barrel ma senza strato dati', () => {
+    const barrel = "export function aboutCollectionSchema() { return z.discriminatedUnion('section', []) }"
+    expect(assertOn({ 'src/lib/schemas/about/index.ts': barrel }, 'team', false, ABOUT)).toThrow(/has no data layer/)
+  })
+
+  it('rifiuta quando più pagine portano il marcatore delle sezioni', () => {
+    expect(assertOn({ 'src/pages/other.astro': page() })).toThrow(/all carry the/)
   })
 })
 
@@ -70,13 +90,13 @@ describe('hook points in the data layer', () => {
   })
 })
 
-describe('markers in index.astro', () => {
+describe('markers in the page', () => {
   it('refuses without the imports marker, since the import has no anchor', () => {
-    expect(assertOn({ [PAGE]: '---\n---\n{/* @gen:home-sections */}\n' })).toThrow(/@gen:home-imports/)
+    expect(assertOn({ [PAGE]: '---\n---\n{/* @gen:homepage-sections */}\n' })).toThrow(/@gen:homepage-imports/)
   })
 
   it('refuses without the sections marker, since the component has no anchor', () => {
-    expect(assertOn({ [PAGE]: '---\n// @gen:home-imports\n---\n' })).toThrow(/@gen:home-sections/)
+    expect(assertOn({ [PAGE]: '---\n// @gen:homepage-imports\n---\n' })).toThrow(/@gen:homepage-sections/)
   })
 })
 
@@ -111,13 +131,13 @@ describe('collisions', () => {
   })
 
   it('treats a page with markers but no frontmatter as having no bindings', () => {
-    expect(assertOn({ [PAGE]: '// @gen:home-imports\n{/* @gen:home-sections */}\n' })).not.toThrow()
+    expect(assertOn({ [PAGE]: '// @gen:homepage-imports\n{/* @gen:homepage-sections */}\n' })).not.toThrow()
   })
 
   it.each([
     'src/lib/schemas/homepage/features.ts',
     'src/content/homepage/features.yml',
-    'src/components/home/features.astro',
+    'src/components/homepage/features.astro',
   ])('refuses when %s already exists', (target) => {
     expect(assertOn({ [target]: 'leftover from an aborted run' })).toThrow(/already exists/)
   })

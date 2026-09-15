@@ -1,5 +1,5 @@
 ---
-import Hero from '@/components/home/hero.astro'
+import Hero from '@/components/homepage/hero.astro'
 
 import MainLayout from '@/layouts/main.astro'
 
@@ -7,12 +7,12 @@ import { getHomepageSections } from '@/lib/homepage'
 import { buildOrganization, buildWebSite } from '@/lib/seo/json-ld'
 import { SITE } from '@/lib/site'
 
-// @gen:home-imports (i generatori inseriscono i nuovi import SOPRA questa riga)
+// @gen:homepage-imports (i generatori inseriscono i nuovi import SOPRA questa riga)
 
 const content = await getHomepageSections(Astro.currentLocale)
 ---
 
 <MainLayout title={SITE.name} description={SITE.description} jsonLd={[buildOrganization(), buildWebSite()]}>
   <Hero {...content.hero} />
-  {/* @gen:home-sections */}
+  {/* @gen:homepage-sections */}
 </MainLayout>

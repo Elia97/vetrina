@@ -1,12 +1,6 @@
-import type { CollectionEntry } from 'astro:content'
+import { loadLocalizedSections, type SectionedPage } from '@/lib/content/localized-sections'
 
-import { loadLocalizedSections } from '@/lib/content/localized-sections'
-
-type Section = CollectionEntry<'homepage'>['data']
-type SectionId = Section['section']
-type SectionData<S extends SectionId> = Extract<Section, { section: S }>
-
-export type HomepageSections = { [S in SectionId]: SectionData<S> }
+export type HomepageSections = SectionedPage<'homepage'>
 
 export async function getHomepageSections(locale?: string): Promise<HomepageSections> {
   const { pick } = await loadLocalizedSections('homepage', locale)

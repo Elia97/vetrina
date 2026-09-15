@@ -9,7 +9,7 @@ const ROLLBACK_HINT =
   'the injected page.* keys with `git checkout -p` on those paths, and delete the generated page. A re-run ' +
   'without rollback fails pre-flight with "is already there".'
 
-function pathSegments(plop, value) {
+export function pathSegments(plop, value) {
   const dash = plop.getHelper('dashCase')
   return String(value)
     .split('/')
@@ -17,7 +17,7 @@ function pathSegments(plop, value) {
     .filter(Boolean)
 }
 
-function pageStrings({ pageKey, pageTitle, dynamic }) {
+export function pageStrings({ pageKey, pageTitle, dynamic }) {
   const title = { key: `page.${pageKey}.title`, value: pageTitle }
   return dynamic ? [title] : [title, { key: `page.${pageKey}.description`, value: '<PAGE_DESCRIPTION>' }]
 }

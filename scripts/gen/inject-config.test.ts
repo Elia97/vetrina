@@ -113,6 +113,16 @@ describe('the loader the archetype gets', () => {
     expect(block(root, 'authors')).toContain('generateId: ({ entry }) => entry.replace(')
   })
 
+  it('registra una collection a sezioni sul suo barrel, con il generateId della homepage', () => {
+    const root = makeRoot()
+
+    injectCollection({ root, camel: 'about', kebab: 'about', document: false, sections: true })
+
+    expect(config(root)).toMatch(/import \{ aboutCollectionSchema \} from ["']@\/lib\/schemas\/about["']/)
+    expect(block(root, 'about')).toContain('schema: aboutCollectionSchema')
+    expect(block(root, 'about')).toContain('generateId: ({ entry }) => entry.replace(')
+  })
+
   it('quotes a dashed collection key instead of using a shorthand', () => {
     const root = makeRoot()
 

@@ -26,6 +26,7 @@ export interface AddAction {
   type: string
   path: string
   templateFile: string
+  data?: Record<string, unknown>
 }
 
 export type FunctionAction = (answers: Answers, config: unknown, api: FakePlop) => string
@@ -37,6 +38,7 @@ export interface Prompt {
   name: string
   message: string
   default?: string | boolean
+  when?: (answers: Answers) => boolean
   validate?: (value: unknown) => true | string
 }
 
@@ -80,6 +82,20 @@ export function actionsFor(config: GeneratorConfig, answers: Answers): PlopActio
 
 export const addActions = (actions: PlopAction[]): AddAction[] =>
   actions.filter((action): action is AddAction => typeof action !== 'function')
+
+/** Post-gen, la terza azione, non è mai invocata: lancia `astro sync`. */
+export function functionSteps(actions: PlopAction[]): { preflight: FunctionAction; inject: FunctionAction } {
+  const [preflight, inject, ...rest] = actions.filter(
+    (action): action is FunctionAction => typeof action === 'function',
+  )
+  if (!preflight || !inject || rest.length !== 1 || actions[0] !== preflight) {
+    throw new Error('expected exactly three function actions, the pre-flight first')
+  }
+  return { preflight, inject }
+}
+
+export const runAction = (action: FunctionAction, answers: Answers, plop: FakePlop): string =>
+  action(answers, null, plop)
 
 export const promptNamed = (config: GeneratorConfig, name: string): Prompt =>
   config.prompts.find((prompt) => prompt.name === name) as Prompt

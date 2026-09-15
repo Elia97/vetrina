@@ -3,35 +3,41 @@
 import { existsSync, readFileSync, writeFileSync } from 'node:fs'
 import { Node, Project, SyntaxKind } from 'ts-morph'
 
+import { findSectionedPages, sectionFiles, sectionTargets } from './section-targets.mjs'
 import { isNameTaken } from './ts-morph-utils.mjs'
 
-const SCHEMA_BARREL = 'src/lib/schemas/homepage/index.ts'
-const DATA_LAYER = 'src/lib/homepage.ts'
-const INDEX_PAGE = 'src/pages/index.astro'
-const IMPORTS_MARKER = '// @gen:home-imports'
-const SECTIONS_MARKER = '{/* @gen:home-sections */}'
 const GUIDE = 'docs/guides/content-collections.md'
 
 function fail(where, problem) {
   throw new Error(`gen:section injection failed in ${where}: ${problem} (contract: ${GUIDE})`)
 }
 
-function locateUnionArray(project, root) {
-  const barrel = project.addSourceFileAtPath(`${root}/${SCHEMA_BARREL}`)
-  const fn = barrel.getFunction('homepageCollectionSchema')
+function addSource(project, root, path, missing) {
+  if (!existsSync(`${root}/${path}`)) fail(path, missing)
+  return project.addSourceFileAtPath(`${root}/${path}`)
+}
+
+function locateUnionArray(project, root, targets, collection) {
+  const created = 'a sectioned collection is created by `pnpm gen:collection`'
+  const barrel = addSource(
+    project,
+    root,
+    targets.barrel,
+    `the "${collection}" collection has no schema barrel — ${created}`,
+  )
+  const fn = barrel.getFunction(targets.schemaFunction)
   if (!fn) {
-    fail(SCHEMA_BARREL, 'no `homepageCollectionSchema` function — was it renamed?')
+    fail(targets.barrel, `no \`${targets.schemaFunction}\` function — was it renamed?`)
   }
   const call = fn
     .getDescendantsOfKind(SyntaxKind.CallExpression)
     .find((c) => c.getExpression().getText() === 'z.discriminatedUnion')
   if (!call) {
-    fail(SCHEMA_BARREL, 'no `z.discriminatedUnion(…)` call inside homepageCollectionSchema')
+    fail(targets.barrel, `no \`z.discriminatedUnion(…)\` call inside ${targets.schemaFunction}`)
   }
-  const arrayArg = call.getArguments()[1]
-  const union = arrayArg?.asKind(SyntaxKind.ArrayLiteralExpression)
+  const union = call.getArguments()[1]?.asKind(SyntaxKind.ArrayLiteralExpression)
   if (!union) {
-    fail(SCHEMA_BARREL, 'the second argument of z.discriminatedUnion is not an array literal')
+    fail(targets.barrel, 'the second argument of z.discriminatedUnion is not an array literal')
   }
   return { barrel, fn, union }
 }
@@ -39,11 +45,17 @@ function locateUnionArray(project, root) {
 const inUnion = (union, camel) =>
   union.getElements().some((element) => element.getText().startsWith(`${camel}SectionSchema(`))
 
-function locateReturnObject(project, root) {
-  const home = project.addSourceFileAtPath(`${root}/${DATA_LAYER}`)
-  const fn = home.getFunction('getHomepageSections')
+function locateReturnObject(project, root, targets, collection) {
+  const created = 'a sectioned collection is created by `pnpm gen:collection`'
+  const layer = addSource(
+    project,
+    root,
+    targets.dataLayer,
+    `the "${collection}" collection has no data layer — ${created}`,
+  )
+  const fn = layer.getFunction(targets.dataFunction)
   if (!fn) {
-    fail(DATA_LAYER, 'no `getHomepageSections` function — was it renamed?')
+    fail(targets.dataLayer, `no \`${targets.dataFunction}\` function — was it renamed?`)
   }
   const ret = fn
     .getBody()
@@ -51,62 +63,70 @@ function locateReturnObject(project, root) {
     .findLast((s) => s.isKind(SyntaxKind.ReturnStatement))
   const obj = ret?.getExpression()?.asKind(SyntaxKind.ObjectLiteralExpression)
   if (!obj) {
-    fail(DATA_LAYER, 'getHomepageSections has no top-level `return { … }` object literal to register the pick() in')
+    fail(
+      targets.dataLayer,
+      `${targets.dataFunction} has no top-level \`return { … }\` object literal to register the pick() in`,
+    )
   }
   return obj
 }
 
-function readIndexPage(root) {
-  const src = readFileSync(`${root}/${INDEX_PAGE}`, 'utf8')
-  if (!src.includes(IMPORTS_MARKER)) {
-    fail(INDEX_PAGE, `the \`${IMPORTS_MARKER}\` marker is missing — the import has no anchor`)
+function readSectionedPage(root, targets) {
+  const pages = findSectionedPages(root, targets.sectionsMarker)
+  if (pages.length === 0) {
+    fail('src/pages/', `no page carries the \`${targets.sectionsMarker}\` marker — the component has no anchor`)
   }
-  if (!src.includes(SECTIONS_MARKER)) {
-    fail(INDEX_PAGE, `the \`${SECTIONS_MARKER}\` marker is missing — the component has no anchor`)
+  if (pages.length > 1) {
+    fail(
+      'src/pages/',
+      `${pages.join(' and ')} all carry the \`${targets.sectionsMarker}\` marker — keep it on one page`,
+    )
   }
-  return src
+  const [page] = pages
+  const src = readFileSync(`${root}/${page}`, 'utf8')
+  if (!src.includes(targets.importsMarker)) {
+    fail(page, `the \`${targets.importsMarker}\` marker is missing — the import has no anchor`)
+  }
+  return { page, src }
 }
 
-function assertContextForwardable(fn) {
+function assertContextForwardable(fn, targets) {
   const [first] = fn.getParameters()
   if (first && !Node.isIdentifier(first.getNameNode())) {
     fail(
-      SCHEMA_BARREL,
-      'homepageCollectionSchema destructures its parameter — name it `context: SchemaContext`, so an image section can receive it',
+      targets.barrel,
+      `${targets.schemaFunction} destructures its parameter — name it \`context: SchemaContext\`, so an image section can receive it`,
     )
   }
 }
 
-export function assertSectionInjectable({ root, camel, kebab, pascal, image = false }) {
+export function assertSectionInjectable({ root, collection, camel, kebab, pascal, image = false }) {
+  const targets = sectionTargets(collection)
   const project = new Project()
-  const { barrel, fn, union } = locateUnionArray(project, root)
+  const { barrel, fn, union } = locateUnionArray(project, root, targets, collection.kebab)
   if (inUnion(union, camel)) {
-    fail(SCHEMA_BARREL, `section "${camel}" is already in the union — pick another name`)
+    fail(targets.barrel, `section "${camel}" is already in the union — pick another name`)
   }
-  if (image) assertContextForwardable(fn)
+  if (image) assertContextForwardable(fn, targets)
   if (isNameTaken(barrel, `${camel}SectionSchema`)) {
     fail(
-      SCHEMA_BARREL,
+      targets.barrel,
       `the identifier \`${camel}SectionSchema\` is already taken — the injected import would collide. Pick another name`,
     )
   }
-  const obj = locateReturnObject(project, root)
+  const obj = locateReturnObject(project, root, targets, collection.kebab)
   if (obj.getProperty(camel)) {
-    fail(DATA_LAYER, `section "${camel}" is already picked in getHomepageSections`)
+    fail(targets.dataLayer, `section "${camel}" is already picked in ${targets.dataFunction}`)
   }
-  const src = readIndexPage(root)
+  const { page, src } = readSectionedPage(root, targets)
   const frontmatter = src.split('---')[1] ?? ''
   if (new RegExp(`\\b${pascal}\\b`).test(frontmatter)) {
     fail(
-      INDEX_PAGE,
+      page,
       `the identifier \`${pascal}\` is already used in the frontmatter — the component import would collide. Pick another name`,
     )
   }
-  for (const target of [
-    `src/lib/schemas/homepage/${kebab}.ts`,
-    `src/content/homepage/${kebab}.yml`,
-    `src/components/home/${kebab}.astro`,
-  ]) {
+  for (const target of sectionFiles(targets, kebab)) {
     if (existsSync(`${root}/${target}`)) {
       fail(target, 'the file already exists — remove it first or pick another name')
     }
@@ -123,10 +143,11 @@ function contextArgument(barrel, fn) {
   return 'context'
 }
 
-export function injectSection({ root, camel, kebab, pascal, image = false }) {
+export function injectSection({ root, collection, camel, kebab, pascal, image = false }) {
+  const targets = sectionTargets(collection)
   const project = new Project()
 
-  const { barrel, fn, union } = locateUnionArray(project, root)
+  const { barrel, fn, union } = locateUnionArray(project, root, targets, collection.kebab)
   if (!barrel.getImportDeclaration((d) => d.getModuleSpecifierValue() === `./${kebab}`)) {
     barrel.addImportDeclaration({
       moduleSpecifier: `./${kebab}`,
@@ -137,21 +158,22 @@ export function injectSection({ root, camel, kebab, pascal, image = false }) {
     union.addElement(`${camel}SectionSchema(${image ? contextArgument(barrel, fn) : ''})`)
   }
 
-  const obj = locateReturnObject(project, root)
+  const obj = locateReturnObject(project, root, targets, collection.kebab)
   if (!obj.getProperty(camel)) {
     obj.addPropertyAssignment({ name: camel, initializer: `pick('${camel}')` })
   }
 
   project.saveSync()
 
-  let src = readIndexPage(root)
-  const imp = `import ${pascal} from '@/components/home/${kebab}.astro'`
+  const { page, src: original } = readSectionedPage(root, targets)
+  let src = original
+  const imp = `import ${pascal} from '@/components/${collection.kebab}/${kebab}.astro'`
   if (!src.includes(imp)) {
-    src = src.replace(IMPORTS_MARKER, `${imp}\n${IMPORTS_MARKER}`)
+    src = src.replace(targets.importsMarker, `${imp}\n${targets.importsMarker}`)
   }
   const use = `<${pascal} {...content.${camel}} />`
   if (!src.includes(use)) {
-    src = src.replace(SECTIONS_MARKER, `${use}\n  ${SECTIONS_MARKER}`)
+    src = src.replace(targets.sectionsMarker, `${use}\n  ${targets.sectionsMarker}`)
   }
-  writeFileSync(`${root}/${INDEX_PAGE}`, src)
+  writeFileSync(`${root}/${page}`, src)
 }
