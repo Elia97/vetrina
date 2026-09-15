@@ -2,16 +2,18 @@
 // og:locale vuole la forma con underscore del tag BCP 47.
 import { SITE } from '@/lib/site'
 
+import type { SocialImage } from './seo'
+
 interface Props {
   title: string
   description?: string | undefined
   canonical: string
   currentTag: string
   localeAlternates: { tag: string; href: string }[]
-  ogImageUrl: string
+  image: SocialImage
 }
 
-const { title, description, canonical, currentTag, localeAlternates, ogImageUrl } = Astro.props
+const { title, description, canonical, currentTag, localeAlternates, image } = Astro.props
 ---
 
 <meta property="og:type" content="website" />
@@ -25,4 +27,7 @@ const { title, description, canonical, currentTag, localeAlternates, ogImageUrl 
     .filter((alt) => alt.tag !== currentTag)
     .map((alt) => <meta property="og:locale:alternate" content={alt.tag.replace('-', '_')} />)
 }
-<meta property="og:image" content={ogImageUrl} />
+<meta property="og:image" content={image.url} />
+{image.width ? <meta property="og:image:width" content={String(image.width)} /> : null}
+{image.height ? <meta property="og:image:height" content={String(image.height)} /> : null}
+{image.alt ? <meta property="og:image:alt" content={image.alt} /> : null}

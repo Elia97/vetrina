@@ -4,6 +4,7 @@ export const SITE = {
   url: 'https://example.com',
   description: '<DESCRIPTION>',
   defaultOgImage: '/og-default.png',
+  defaultOgImageSize: { width: 1200, height: 630 },
   // In esadecimale, non oklch: `<meta name="theme-color">` lo interpreta lo strato di interfaccia del browser, non il motore CSS.
   themeColor: { light: '#fafafa', dark: '#0a0a0a' },
   // Le chiavi devono corrispondere ai codici di lingua in `i18n.locales` (astro.config.mjs):

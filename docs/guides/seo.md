@@ -84,7 +84,13 @@ o un riferimento compatto usato come `author`, `publisher` o `provider` — i no
 - Gli URL delle immagini OG e Twitter sono sempre assoluti, costruiti da `SITE.url`.
 - `public/og-default.png` è un segnaposto 1200×630 a tinta unita: **si sostituisce in ogni
   progetto**, tenendo `SITE.defaultOgImage` puntato su un file che esiste (un `og:image` morto fa
-  fallire i validatori delle social card).
+  fallire i validatori delle social card). Con lui cambiano `SITE.defaultOgImageSize`, che
+  `src/lib/site.test.ts` confronta con l'intestazione del PNG, e il suo alt, la chiave
+  `seo.defaultOgImageAlt` del dizionario.
+- **Misure e alt valgono solo per l'immagine di default.** `og:image:width`, `og:image:height`,
+  `og:image:alt` e `twitter:image:alt` escono quando la pagina non passa un `ogImage` suo: di
+  un'immagine di pagina il template non conosce le misure. Facebook usa le misure per mostrare
+  l'immagine già alla prima condivisione, prima di averla scaricata ed elaborata.
 - **Un'immagine OG generata è in cache per sempre.** `@vercel/og` risponde con
   `cache-control: public, immutable, max-age=31536000`, quindi modificare il template non aggiorna
   né le immagini già servite né le copie che i social tengono. Per rinfrescarle serve un *URL

@@ -5,16 +5,24 @@ import { localeTag, SITE } from '@/lib/site'
 
 import { localeAgnosticPath } from '@/i18n/path'
 import { translatePath } from '@/i18n/route-segments'
+import { useTranslations } from '@/i18n/translate'
 
 interface LocaleAlternate {
   tag: string
   href: string
 }
 
+export interface SocialImage {
+  url: string
+  width?: number
+  height?: number
+  alt?: string
+}
+
 interface HeadSeoMeta {
   documentTitle: string
   canonical: string
-  ogImageUrl: string
+  socialImage: SocialImage
   currentTag: string
   localeAlternates: LocaleAlternate[]
   defaultHref: string
@@ -44,6 +52,15 @@ function resolveLocaleAlternates(canonicalPath: string): LocaleAlternate[] {
   }))
 }
 
+function resolveSocialImage(ogImage: string | undefined, locale: string): SocialImage {
+  if (ogImage !== undefined) return { url: new URL(ogImage, SITE.url).href }
+  return {
+    url: new URL(SITE.defaultOgImage, SITE.url).href,
+    ...SITE.defaultOgImageSize,
+    alt: useTranslations(locale)('seo.defaultOgImageAlt'),
+  }
+}
+
 export function resolveHeadSeoMeta({
   title,
   absoluteTitle,
@@ -59,8 +76,7 @@ export function resolveHeadSeoMeta({
   return {
     documentTitle: absoluteTitle || title === SITE.name ? title : `${title} | ${SITE.name}`,
     canonical: getAbsoluteLocaleUrl(locale, translatePath(canonical, locale)),
-    // OG image ALWAYS absolute: social crawlers don't resolve relative paths.
-    ogImageUrl: new URL(ogImage ?? SITE.defaultOgImage, SITE.url).href,
+    socialImage: resolveSocialImage(ogImage, locale),
     currentTag: localeTag(locale),
     localeAlternates: resolveLocaleAlternates(canonical),
     defaultHref: getAbsoluteLocaleUrl(defaultLocale, translatePath(canonical, defaultLocale)),

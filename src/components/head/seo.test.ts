@@ -4,6 +4,8 @@ import { resolveHeadSeoMeta } from '@/components/head/seo'
 
 import { SITE } from '@/lib/site'
 
+import { useTranslations } from '@/i18n/translate'
+
 const params = {
   title: 'Page title',
   absoluteTitle: false,
@@ -37,10 +39,10 @@ describe('resolveHeadSeoMeta', () => {
 
   it('resolves the og image against the site origin, defaulting to SITE.defaultOgImage', () => {
     const fallback = resolveHeadSeoMeta(params)
-    expect(fallback.ogImageUrl).toBe('https://example.com/og-default.png')
+    expect(fallback.socialImage.url).toBe('https://example.com/og-default.png')
 
     const custom = resolveHeadSeoMeta({ ...params, ogImage: '/covers/home.png' })
-    expect(custom.ogImageUrl).toBe('https://example.com/covers/home.png')
+    expect(custom.socialImage.url).toBe('https://example.com/covers/home.png')
   })
 })
 
@@ -63,5 +65,21 @@ describe('resolveHeadSeoMeta().documentTitle', () => {
   it('lascia nudo il titolo quando la pagina passa absoluteTitle', () => {
     const meta = resolveHeadSeoMeta({ ...params, absoluteTitle: true })
     expect(meta.documentTitle).toBe('Page title')
+  })
+})
+
+describe('resolveHeadSeoMeta().socialImage', () => {
+  it("porta misure e alt dell'immagine di default", () => {
+    expect(resolveHeadSeoMeta(params).socialImage).toEqual({
+      url: 'https://example.com/og-default.png',
+      ...SITE.defaultOgImageSize,
+      alt: useTranslations('it')('seo.defaultOgImageAlt'),
+    })
+  })
+
+  it('con un ogImage di pagina porta solo il suo URL', () => {
+    expect(resolveHeadSeoMeta({ ...params, ogImage: '/covers/home.png' }).socialImage).toEqual({
+      url: 'https://example.com/covers/home.png',
+    })
   })
 })

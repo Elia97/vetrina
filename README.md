@@ -81,7 +81,8 @@ La superficie completa, in un posto solo — la milestone `foundations` la distr
   partita IVA; i primi quattro alimentano il JSON-LD `Organization` della homepage;
 - `src/styles/tokens.css`: l'UNICO file da toccare per il rebranding visivo (primitive oklch grezze;
   i nomi semantici in `light.css` e `dark.css` restano);
-- `public/og-default.png`: si sostituisce il segnaposto (1200×630);
+- `public/og-default.png`: si sostituisce il segnaposto (1200×630), e con lui le misure in
+  `SITE.defaultOgImageSize` e l'alt `seo.defaultOgImageAlt` in `src/i18n/strings/it.ts`;
 - `public/favicon.svg` e `public/favicon.ico`: si sostituiscono entrambi. L'SVG è l'unica icona del
   manifest così com'è: valida, ma **non installabile** — `docs/guides/seo.md` § Icone, manifest e
   theme-color ha cosa aggiungere per il prompt di installazione;

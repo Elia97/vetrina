@@ -18,7 +18,7 @@ interface Props {
 
 const { title, absoluteTitle = false, description, canonicalPath, ogImage, jsonLd, noindex = false } = Astro.props
 
-const { documentTitle, canonical, ogImageUrl, currentTag, localeAlternates, defaultHref } = resolveHeadSeoMeta({
+const { documentTitle, canonical, socialImage, currentTag, localeAlternates, defaultHref } = resolveHeadSeoMeta({
   title,
   absoluteTitle,
   currentLocale: Astro.currentLocale,
@@ -45,9 +45,9 @@ const { documentTitle, canonical, ogImageUrl, currentTag, localeAlternates, defa
   canonical={canonical}
   currentTag={currentTag}
   localeAlternates={localeAlternates}
-  ogImageUrl={ogImageUrl}
+  image={socialImage}
 />
 
-<HeadTwitter title={title} description={description} ogImageUrl={ogImageUrl} />
+<HeadTwitter title={title} description={description} image={socialImage} />
 
 <HeadJsonLd items={jsonLd} />
