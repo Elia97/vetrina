@@ -1,0 +1,36 @@
+---
+import { ChevronRight } from '@lucide/astro'
+import type { HTMLAttributes } from 'astro/types'
+
+import type { ListEntry } from '@/lib/seo/json-ld'
+import { cn } from '@/lib/utils'
+
+import { useTranslations } from '@/i18n/translate'
+
+interface Props extends HTMLAttributes<'nav'> {
+  items: readonly ListEntry[]
+}
+
+const { items, class: className, ...rest } = Astro.props
+const t = useTranslations(Astro.currentLocale)
+const last = items.length - 1
+---
+
+<nav aria-label={t('a11y.breadcrumb')} class={cn('text-sm text-muted-foreground', className)} {...rest}>
+  <ol class="flex flex-wrap items-center gap-1.5">
+    {
+      items.map((item, index) => (
+        <li class="inline-flex items-center gap-1.5">
+          <a
+            href={item.url}
+            aria-current={index === last ? 'page' : undefined}
+            class="hover:text-foreground aria-[current]:text-foreground"
+          >
+            {item.name}
+          </a>
+          {index < last && <ChevronRight aria-hidden="true" class="size-3.5" stroke-width={1} />}
+        </li>
+      ))
+    }
+  </ol>
+</nav>

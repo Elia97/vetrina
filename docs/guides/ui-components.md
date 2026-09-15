@@ -312,6 +312,10 @@ tailwind-merge): la forma dell'API di shadcn senza il runtime React o Radix.
   per il contenuto statico. Il ruolo va su un elemento che è già nella pagina quando il messaggio
   cambia, come i paragrafi di esito del form (`forms-email.md` § Convenzioni dell'interfaccia dei
   form).
+- `Breadcrumb` (`ui/breadcrumb/`) rende un percorso di voci `{ name, url }`, le stesse che
+  `buildBreadcrumbList()` trasforma in JSON-LD: la pagina costruisce l'elenco una volta e lo passa a
+  entrambi. È una `<nav>` con l'etichetta del dizionario e un `<ol>`; ogni voce è un link, l'ultima
+  porta `aria-current="page"`, e i separatori sono icone `aria-hidden`.
 - `Select` è la primitiva di riferimento per il miglioramento progressivo: il `<select>` nativo si
   rende per primo e resta la fonte di verità verso il form; lo strato di script
   (`select-behavior.ts`) inserisce un trigger e una listbox stilati (focus rotante,

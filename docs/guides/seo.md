@@ -80,7 +80,9 @@ Un segnaposto rimasto in `COMPANY` o in `SITE.social` non arriva in produzione: 
 Per una coppia di rotte listing e dettaglio, il **listing** emette `BreadcrumbList` più un
 `ItemList` dei suoi figli (il catalogo); ogni **dettaglio** emette lo schema della singola entità
 (`Service`, `Article`, …) e il proprio `BreadcrumbList`. Non replicare l'entità intera sul listing:
-l'istanza autorevole appartiene al suo URL di dettaglio.
+l'istanza autorevole appartiene al suo URL di dettaglio. Il percorso visibile lo rende `Breadcrumb`
+(`src/components/ui/breadcrumb/`) con lo stesso elenco di voci passato a `buildBreadcrumbList()`,
+così il JSON-LD e la pagina non raccontano due percorsi diversi.
 
 ### Una società, un'entità (quando un progetto ne aggiunge una seconda)
 

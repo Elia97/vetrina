@@ -38,7 +38,7 @@ src/
     head/      # metadati, icone, manifest, script pre-paint             machinery
     ui/        # design system (cva + cn), zero JS lato client           machinery
                #   non usate dal template, pronte per i progetti:
-               #   badge, cta-banner, reveal, select                     machinery
+               #   badge, breadcrumb, cta-banner, reveal, select         machinery
     forms/     # binder di invio, errori di campo, honeypot, BotID       machinery
     layout/    # header, footer, nav mobile, skip-link                   chrome
     contact/   # riferimento svolto: un form dietro un'azione            example
@@ -53,7 +53,7 @@ src/
     consent/   #   gate del consenso e CMP iubenda                       machinery
     analytics/ #   GTM dietro il gate, ponte verso dataLayer             machinery
     legal/     #   documenti legali ospitati (iubenda)                   machinery
-    content/   #   lettore di collection consapevole della lingua        machinery
+    content/   #   lettori di sezioni e voci consapevoli della lingua    machinery
     vendor/    #   client di terze parti (brevo)                         machinery
     schemas/   #   schemi delle content collection                       seed
     site.ts    #   identità del sito, fonte unica                        config

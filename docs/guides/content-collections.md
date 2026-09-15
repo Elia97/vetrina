@@ -10,8 +10,12 @@ Tre forme, e si sceglie dalla struttura del contenuto, non dal suo argomento.
   `pnpm gen:collection` rispondendo sì alla pagina a sezioni, e `pnpm gen:section` le aggiunge
   sezioni. La homepage qui sotto è la prima.
 - **Piatta a schema condiviso** — molte voci che condividono UNA sola forma di schema, ognuna una
-  pagina o un record completo. Si leggono direttamente (`getCollection` per il listing, `getEntry`
-  per una sola), con chiave sul `generateId` del file (lo slug); nessuno strato di accesso ai dati.
+  pagina o un record completo. Si leggono direttamente, con chiave sul `generateId` del file (lo
+  slug) e senza uno strato di accesso ai dati per collection: `getCollection` per il listing, e
+  `loadLocalizedEntry(collection, id, locale)` di `src/lib/content/localized-entry.ts` per una voce
+  sola, cercata nella cartella della sua lingua. Il percorso lista → dettaglio completo (schema,
+  listing, `[slug]`, SEO) è il blueprint `content-section` del plugin `metodo`, e il percorso
+  visibile lo rende `Breadcrumb` di `src/components/ui/breadcrumb/`.
 - **Documento** (`gen:collection` in modalità documento) — l'unica forma con un `body` renderizzabile
   (MDX o MD). Il frontmatter è uno schema piatto come nella forma a schema condiviso; il corpo si
   rende con `render(entry)` → `<Content />`.
@@ -47,7 +51,9 @@ collection: non montarne una per lui.
   (per l'inglese l'id diventa `en/hero`). Aggiungere una lingua è puramente additivo: i file della lingua di default non si
   spostano mai.
 - `getHomepageSections()` ricade su `DEFAULT_LOCALE` di `src/lib/site.ts`; dalle pagine si passa
-  `Astro.currentLocale`.
+  `Astro.currentLocale`. Le voci lette con `loadLocalizedEntry()` seguono la stessa disposizione, e
+  come per le sezioni una voce della lingua di default finita nella cartella di quella lingua ferma il
+  build.
 
 ## Il contratto del fallire rumorosamente
 
