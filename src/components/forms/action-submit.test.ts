@@ -171,3 +171,19 @@ describe('binding lifecycle', () => {
     expect(event.defaultPrevented).toBe(true)
   })
 })
+
+describe("l'aggancio del form", () => {
+  it('abilita il pulsante di invio che il markup consegna disabilitato', () => {
+    const form = buildForm()
+    submitButton(form).disabled = true
+
+    createActionFormBinding({
+      formSelector: '[data-contact-form]',
+      buildPayload: () => ({}),
+      submit: vi.fn((): Promise<{ error?: unknown }> => Promise.resolve({})),
+    })()
+
+    expect(submitButton(form).disabled).toBe(false)
+    expect(submitButton(form).textContent).toBe('Invia')
+  })
+})

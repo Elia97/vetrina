@@ -10,15 +10,40 @@ interface ListEntry {
   url: string
 }
 
-export function buildOrganization() {
+function companyFields() {
   return {
-    '@context': 'https://schema.org',
-    '@type': 'Organization',
     name: COMPANY.legalName,
     url: SITE.url,
     telephone: COMPANY.phone,
     email: COMPANY.email,
     address: { '@type': 'PostalAddress', ...COMPANY.address },
+    vatID: COMPANY.vatNumber,
+    ...(SITE.social.length > 0 ? { sameAs: SITE.social.map(({ href }) => href) } : {}),
+    ...(COMPANY.logo ? { logo: absoluteUrl(COMPANY.logo) } : {}),
+  }
+}
+
+export function buildOrganization() {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    ...companyFields(),
+  }
+}
+
+interface LocalBusinessEntry {
+  openingHours?: readonly string[] | undefined
+  geo?: { latitude: number; longitude: number } | undefined
+}
+
+/** @public */
+export function buildLocalBusiness({ openingHours, geo }: LocalBusinessEntry = {}) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'LocalBusiness',
+    ...companyFields(),
+    ...(openingHours ? { openingHours } : {}),
+    ...(geo ? { geo: { '@type': 'GeoCoordinates', ...geo } } : {}),
   }
 }
 

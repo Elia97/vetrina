@@ -87,6 +87,7 @@ export function createActionFormBinding<P>(config: {
   function setup(): void {
     for (const form of document.querySelectorAll<HTMLFormElement>(config.formSelector)) {
       form.addEventListener('submit', handleSubmit)
+      setPending(form, false)
     }
   }
 

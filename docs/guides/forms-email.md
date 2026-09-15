@@ -49,11 +49,16 @@ arrivano all'utente tali e quali: `applyFieldErrors()` li stampa dritti negli sl
 campi si costruiscono da `src/lib/forms/form-fields.ts` (`requiredText`, `emailField`,
 `consentField`), che portano messaggi `error:` risolti tramite `useTranslations()`;
 `form-fields.test.ts` verifica ciascuno contro il dizionario, così un campo non può ricadere in
-silenzio sul messaggio di default.
+silenzio sul messaggio di default. Lo stesso vale per i messaggi delle `ActionError` di
+`src/actions/index.ts` (chiavi `forms.action.*`), che `messageOf()` mostra all'utente, e per le
+email di `src/emails/contact.ts` (chiavi `email.*`): `guards.test.ts`, `contact.test.ts` ed
+`emails/contact.test.ts` li confrontano con il dizionario.
 
-Lo schema sta a livello di modulo, fuori da ogni richiesta, quindi i messaggi si risolvono nella
-**lingua di default**. Una seconda lingua significa costruire lo schema dentro l'handler
-dell'azione, dove `Astro.currentLocale` è noto.
+Schema, errori delle azioni ed email risolvono le stringhe a livello di modulo, nella **lingua di
+default**, e non ce n'è una migliore da usare: il form chiama l'azione via RPC (`accept: 'json'`),
+la richiesta arriva su `/_actions/contact`, e lì `Astro.currentLocale` vale sempre la lingua di
+default, qualunque sia la pagina da cui parte l'invio. Un progetto con due lingue passa la lingua
+della pagina nel payload, e costruisce su quella messaggi ed email.
 
 **[HARD] `required` nel markup significa obbligatorio nello schema.** Il form è `novalidate`, perché
 altrimenti i fumetti del browser segnalerebbero il primo campo non valido con parole e stile propri,
@@ -78,8 +83,11 @@ La politica si sceglie dalla **forma** dell'azione:
   recapito dell'invio è il fornitore, quindi il guasto che fa scattare l'`ActionError` è esattamente
   quello che lo distrugge. L'handler registra `[contact] lead-recovery` con l'input già validato
   prima di sollevare l'errore; tieni quella riga in ogni azione che aggiungi, e cercala nei log di
-  runtime dopo un disservizio. Porta dati personali di proposito: un progetto con una politica di
-  conservazione più stretta oscura il campo di testo libero invece di togliere la riga.
+  runtime dopo un disservizio. Porta quello che serve a ricontattare chi ha scritto, cioè nome,
+  cognome ed email, e del messaggio solo la lunghezza, che basta a distinguere un contatto vero da
+  uno vuoto: il testo libero è la parte che fa della riga un problema di GDPR. La proiezione è
+  `leadRecoveryRecord()` in `src/lib/contact.ts`; un progetto che vuole il payload intero registra
+  `input` e lo dichiara nella sua informativa.
 - Rate limiting: `rateLimit('contact:' + clientAddress)`, una finestra scorrevole in memoria (5 ogni
   60 secondi), per istanza. Ogni form ha il **suo prefisso di ambito** (`'<nome>:' + clientAddress`)
   così le finestre restano indipendenti. Si azzera agli avvii a freddo e non è condivisa fra le
@@ -178,18 +186,21 @@ Regole che vale la pena tenere in un progetto:
 - `escapeHtml` sostituisce attraverso una **funzione**, mai una stringa di sostituzione: in una
   stringa, `$&` e `$1` sono pattern di sostituzione, quindi un valore utente che ne contenesse uno
   verrebbe riespanso dopo l'escaping.
-- I testi sono nella lingua di default del sito, e l'oggetto porta `SITE.name`.
+- Titoli, oggetti, etichette, corpo della risposta automatica e `lang` vengono dal dizionario
+  (`email.*`), nella lingua di default (§ Validazione). La cornice degli oggetti con `SITE.name`
+  resta nel codice, e l'indirizzo entra nel corpo della risposta automatica al posto di `{email}`
+  attraverso una funzione, come in `escapeHtml`.
 
 ## Convenzioni dell'interfaccia dei form
 
 - Il ciclo di invio vive **una volta sola** nel binder condiviso
   (`createActionFormBinding({ formSelector, buildPayload, submit })`,
   `src/components/forms/action-submit.ts`): il modulo di un singolo form fornisce solo un
-  `formSelector`, un `buildPayload` e l'azione. Il binder disabilita il bottone e ne cambia
-  l'etichetta durante l'attesa (`data-i18n-sending` e `data-i18n-submit` sul form — i moduli di
-  comportamento non portano stringhe), commuta i paragrafi `[data-form-success]` e
-  `[data-form-error]` (`role="status"` e `role="alert"`), e chiama `form.reset()` in caso di
-  successo. Non reimplementarlo mai per singolo form.
+  `formSelector`, un `buildPayload` e l'azione. Il binder abilita il bottone di invio quando
+  aggancia il form, lo disabilita e ne cambia l'etichetta durante l'attesa (`data-i18n-sending` e
+  `data-i18n-submit` sul form — i moduli di comportamento non portano stringhe), commuta i
+  paragrafi `[data-form-success]` e `[data-form-error]` (`role="status"` e `role="alert"`), e
+  chiama `form.reset()` in caso di successo. Non reimplementarlo mai per singolo form.
 - **Multi-istanza per default**: il binder aggancia **ogni** form corrispondente con
   `querySelectorAll` e resta idempotente attraverso le view transition. Quando lo stesso form viene
   reso più di una volta nella stessa pagina, si passa una prop `idPrefix` per dare uno spazio dei
@@ -197,9 +208,18 @@ Regole che vale la pena tenere in un progetto:
   identici, perché hanno come ambito il singolo `<form>`.
 - I campi compongono le primitive `Field` con **etichette visibili**, che è il default accessibile
   (un progetto può passare a `sr-only` più placeholder come scelta estetica).
-- La strada dell'invio richiede JavaScript (è una chiamata a un'Astro Action): non c'è un ripiego
-  con `action=`. L'azione impone comunque tutto lato server, quindi un ripiego senza JS si può
-  aggiungere senza cambiare il contratto.
+- **[HARD] Senza JavaScript il form non invia niente, e non mette niente nell'URL.** L'invio è una
+  chiamata a un'Astro Action (`accept: 'json'`) da una pagina prerenderizzata, quindi non c'è un
+  ripiego con `action=`, e il markup si difende da solo in tre pezzi:
+  - il pulsante di invio arriva `disabled` e lo abilita il binder: finché lo script non gira il form
+    non parte nemmeno con Invio, perché la specifica HTML esclude l'invio implicito quando il
+    pulsante predefinito è disabilitato;
+  - il form è `method="post"`: un invio partito comunque porta i campi nel corpo della richiesta,
+    non nella query string che finisce nei log, nel referrer e nella cronologia;
+  - un `<noscript>` rimanda ai recapiti della pagina.
+
+  `markup-contract.test.ts` rende `contact-form.astro` e fissa tutti e tre. L'azione impone comunque
+  tutto lato server, quindi un ripiego senza JS si può aggiungere senza cambiare il contratto.
 
 ### La superficie di validazione
 
@@ -290,7 +310,8 @@ fixture condivise e i mock di fornitore e BotID stanno in `test/helpers/actions.
    modo.
 4. **Interfaccia** in `src/components/<nome>/*.astro`: il contratto di presentazione fatto di
    `data-*` — il marcatore del form, le etichette `data-i18n-*` e i paragrafi
-   `[data-form-success|error]` — più `<HoneypotField />` e un `<FieldError>` per chiave dello schema.
+   `[data-form-success|error]` — più `<HoneypotField />`, un `<FieldError>` per chiave dello schema,
+   e il form `method="post"` con il pulsante di invio `disabled` nel markup.
 5. **Comportamento** in `src/components/<nome>/<nome>-form-behavior.ts`: un solo
    `createActionFormBinding({ formSelector, buildPayload, submit })` — si riusa il binder condiviso,
    non si reimplementa il ciclo di invio. `buildPayload` fa passare `HONEYPOT_FIELD`.

@@ -95,11 +95,15 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
+      - run: pnpm run check:placeholders
+
       # Il `vercel build` qui sotto esegue solo `astro build`: niente Biome, niente astro check, niente vitest.
       - run: pnpm run ci
 
       # `pnpm dlx` risolve l'ultima versione a runtime e Dependabot non la guarda: si alza a mano.
       - run: pnpm dlx vercel@58 pull --yes --environment=production
+
+      - run: pnpm run check:placeholders --env .vercel/.env.production.local
 
       - run: pnpm dlx vercel@58 build --prod
 

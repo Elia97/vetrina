@@ -1,6 +1,9 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
+import { COMPANY } from '@/lib/company'
 import { SITE } from '@/lib/site'
+
+import { it as dictionary } from '@/i18n/strings/it'
 
 const CMP_ENV = { PUBLIC_GTM_ID: 'GTM-TEST', PUBLIC_IUBENDA_SITE_ID: '1234567' }
 
@@ -16,7 +19,7 @@ async function renderFooter(env: Record<string, string> = {}, pathname = '/') {
   return renderToFragment(Footer, { request: new Request(`https://example.com${pathname}`) })
 }
 
-const cmpLink = (document: Awaited<ReturnType<typeof renderFooter>>) =>
+const cmpControl = (document: Awaited<ReturnType<typeof renderFooter>>) =>
   document.querySelector('.iubenda-cs-preferences-link')
 
 afterEach(() => {
@@ -48,15 +51,27 @@ describe('footer.astro', () => {
     ])
     expect(marked).toEqual([['/privacy', 'page']])
   })
+
+  it('porta ragione sociale, sede e partita IVA da COMPANY', async () => {
+    const text = ((await renderFooter()).body.textContent ?? '').replace(/\s+/g, ' ')
+    const { streetAddress, postalCode, addressLocality, addressRegion } = COMPANY.address
+    const address = `${streetAddress}, ${postalCode} ${addressLocality} (${addressRegion})`
+
+    expect(text).toContain(`${COMPANY.legalName} · ${address} · ${dictionary['footer.vatNumber']} ${COMPANY.vatNumber}`)
+  })
 })
 
-// [HARD] GDPR: il link deve seguire la CMP in entrambe le direzioni (src/lib/consent/iubenda.ts).
-describe('the cookie-preferences link', () => {
-  it('is absent when no CMP is configured, which is how the template ships', async () => {
-    expect(cmpLink(await renderFooter())).toBeNull()
+// [HARD] GDPR: unica revoca del consenso, perché src/lib/consent/iubenda.ts spegne floatingPreferencesButtonDisplay.
+describe('il controllo delle preferenze cookie', () => {
+  it('manca senza una CMP configurata, che è come il template arriva', async () => {
+    expect(cmpControl(await renderFooter())).toBeNull()
   })
 
-  it('appears once the CMP is configured', async () => {
-    expect(cmpLink(await renderFooter(CMP_ENV))).not.toBeNull()
+  it('compare con la CMP configurata, come pulsante che apre un dialog', async () => {
+    const control = cmpControl(await renderFooter(CMP_ENV))
+
+    expect(control?.tagName).toBe('BUTTON')
+    expect(control?.getAttribute('type')).toBe('button')
+    expect(control?.getAttribute('aria-haspopup')).toBe('dialog')
   })
 })

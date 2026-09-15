@@ -14,6 +14,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { HONEYPOT_FIELD } from '@/lib/forms/honeypot'
 
+import { it as dictionary } from '@/i18n/strings/it'
+
 vi.mock('@/lib/vendor/brevo', () => brevoMock)
 vi.mock('botid/server', () => botidMock)
 
@@ -53,6 +55,7 @@ describe('rate limit', () => {
     const error = await rejectionOf(handleContact(CONTACT_INPUT, CLIENT))
 
     expect(error.code).toBe('TOO_MANY_REQUESTS')
+    expect(error.message).toBe(dictionary['forms.action.tooManyRequests'])
     expect(brevoMock.sendTransactionalEmail).not.toHaveBeenCalled()
   })
 
@@ -93,6 +96,7 @@ describe('bot check', () => {
     const error = await rejectionOf(handleContact(CONTACT_INPUT, CLIENT))
 
     expect(error.code).toBe('FORBIDDEN')
+    expect(error.message).toBe(dictionary['forms.action.securityCheckFailed'])
     expect(brevoMock.sendTransactionalEmail).not.toHaveBeenCalled()
   })
 

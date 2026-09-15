@@ -9,6 +9,7 @@ const HOOK_POINTS = [
   'src/lib/homepage.ts',
   'src/pages/index.astro',
   'src/content.config.ts',
+  'src/i18n/strings/it.ts',
 ] as const
 
 const roots: string[] = []

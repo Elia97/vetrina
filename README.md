@@ -85,9 +85,12 @@ La superficie completa, in un posto solo — la milestone `foundations` la distr
   genera, quindi deve corrispondere al progetto nuovo e non restare `vetrina`;
 - `src/lib/site.ts`: nome, url, descrizione, voci di nav, CTA e legali (la chrome si rende da qui, e
   le voci portano chiavi i18n, non testo), più i profili di `SITE.social`, che arrivano con
-  `href: '#'` e finiscono nel footer;
-- `src/lib/company.ts`: il soggetto giuridico — ragione sociale, telefono, email, indirizzo e
-  partita IVA; i primi quattro alimentano il JSON-LD `Organization` della homepage;
+  `href: '#'` e finiscono nel footer e nel `sameAs` del JSON-LD;
+- `src/lib/company.ts`: il soggetto giuridico — ragione sociale, telefono (`phone` in E.164 e
+  `phoneDisplay` nella forma che si legge), email, indirizzo e partita IVA, più il `logo`
+  facoltativo, un file di `public/` su fondo chiaro. Si vedono nella riga legale del footer e nei
+  recapiti di `/contatti`, e alimentano il JSON-LD `Organization` della homepage, con la partita IVA
+  come `vatID`;
 - `src/styles/tokens.css`: l'UNICO file da toccare per il rebranding visivo (primitive oklch grezze;
   i nomi semantici in `light.css` e `dark.css` restano);
 - `public/og-default.png`: si sostituisce il segnaposto (1200×630), e con lui le misure in
@@ -102,6 +105,10 @@ La superficie completa, in un posto solo — la milestone `foundations` la distr
 - `vercel.json`: il redirect da `www.example.com` a `example.com`, sul dominio vero e verso l'host
   canonico scelto (`docs/guides/deploy-ops.md` § Checklist per il go-live);
 - `src/content/homepage/hero.yml`: il copy vero della homepage.
+
+Quello che resta lo trova il deploy: `pnpm run check:placeholders` elenca, con file e riga, i
+segnaposto rimasti in `src/lib/site.ts`, `src/lib/company.ts` e nei dizionari, e il deploy di
+produzione si ferma finché ce n'è uno.
 
 ## Cosa ti dà lo scaffold
 
@@ -206,7 +213,8 @@ già a quegli agganci.
 - `pnpm gen:section` — sezione di homepage: schema Zod, YAML piatto e componente, iniettati
   nell'unione, nello strato dati e nei marcatori `@gen` di `index.astro`.
 - `pnpm gen:page` — pagina statica, o dinamica `[slug]` con `getStaticPaths`; i percorsi annidati
-  sono supportati (`legal/privacy`).
+  sono supportati (`legal/privacy`). Titolo e descrizione nascono come chiavi di dizionario,
+  iniettate in ogni lingua di `src/i18n/strings/`.
 - `pnpm gen:component` — componente `.astro` nativo secondo la ricetta cva più `cn()`.
 - `pnpm gen:collection` — content collection: schema e contenuto di esempio, registrata in
   `content.config.ts`.
@@ -218,11 +226,11 @@ Contratti che vale la pena conoscere (il dettaglio è in `docs/guides/content-co
   file**, e il gate post-generazione (`astro sync` più `pnpm run check`) fa fallire il giro a ogni
   errore;
 - se il gate post-generazione fallisce, i file generati restano su disco per essere ispezionati: il
-  messaggio d'errore dice come tornare indietro (`gen:section` modifica anche tre file esistenti, da
-  riportare con `git checkout`);
+  messaggio d'errore dice come tornare indietro (`gen:section` modifica anche tre file esistenti e
+  `gen:page` i dizionari, da riportare con `git checkout`);
 - non rinominare gli ancoraggi dell'iniezione (`export const collections`,
-  `homepageCollectionSchema`, `getHomepageSections`, i marcatori `@gen:home-*`): i generatori li
-  verificano e si fermano con l'errore di contratto.
+  `homepageCollectionSchema`, `getHomepageSections`, i marcatori `@gen:home-*`, la costante
+  esportata di ogni dizionario): i generatori li verificano e si fermano con l'errore di contratto.
 
 ## Aggiungere una lingua
 

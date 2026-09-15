@@ -2,13 +2,16 @@ import { ActionError, defineAction } from 'astro:actions'
 import { BOTID_ENFORCE, CONTACT_FROM_EMAIL, CONTACT_FROM_NAME, CONTACT_TO_EMAIL } from 'astro:env/server'
 import { checkBotId } from 'botid/server'
 
-import { type ContactRequest, contactAttributes, contactSchema } from '@/lib/contact'
+import { type ContactRequest, contactAttributes, contactSchema, leadRecoveryRecord } from '@/lib/contact'
 import { isHoneypotFilled } from '@/lib/forms/honeypot'
 import { rateLimit } from '@/lib/forms/rate-limit'
 import { type BrevoResult, sendTransactionalEmail, upsertContact } from '@/lib/vendor/brevo'
 
+import { useTranslations } from '@/i18n/translate'
+
 import { renderContactAutoreply, renderContactNotification } from '@/emails/contact'
 
+const t = useTranslations()
 const sender = { email: CONTACT_FROM_EMAIL, name: CONTACT_FROM_NAME }
 
 function droppedByHoneypot(input: Parameters<typeof isHoneypotFilled>[0]): boolean {
@@ -21,7 +24,7 @@ function assertNotRateLimited(clientAddress: string): void {
   if (rateLimit(`contact:${clientAddress}`)) return
   throw new ActionError({
     code: 'TOO_MANY_REQUESTS',
-    message: 'Troppe richieste, riprova tra poco.',
+    message: t('forms.action.tooManyRequests'),
   })
 }
 
@@ -47,7 +50,7 @@ async function assertNotBot(): Promise<void> {
   console.warn('[contact] bot detected — submission rejected')
   throw new ActionError({
     code: 'FORBIDDEN',
-    message: 'Verifica di sicurezza non superata, riprova.',
+    message: t('forms.action.securityCheckFailed'),
   })
 }
 
@@ -79,18 +82,17 @@ function sendContactEmails(input: ContactRequest): Promise<[BrevoResult, BrevoRe
   ])
 }
 
-// [HARD] La riga di lead-recovery registra dati personali di proposito (l'unico recapito è
-// Brevo): un progetto lo dichiara nella sua informativa oppure oscura `message` qui.
+// [HARD] GDPR: sostituire `leadRecoveryRecord(input)` con `input` vuol dire dichiararlo nell'informativa del progetto.
 function reportContactResults(
   input: ContactRequest,
   [notified, autoreplied, persisted]: [BrevoResult, BrevoResult, BrevoResult],
 ): void {
   if (!notified.ok) {
     console.error('[contact] notification failed:', notified.error)
-    console.error('[contact] lead-recovery', JSON.stringify(input))
+    console.error('[contact] lead-recovery', JSON.stringify(leadRecoveryRecord(input)))
     throw new ActionError({
       code: 'INTERNAL_SERVER_ERROR',
-      message: 'Invio non riuscito, riprova.',
+      message: t('forms.action.sendFailed'),
     })
   }
   if (!autoreplied.ok) {

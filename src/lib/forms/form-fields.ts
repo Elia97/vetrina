@@ -2,8 +2,8 @@ import { z } from 'astro/zod'
 
 import { useTranslations } from '@/i18n/translate'
 
-// Risolti a livello di modulo, fuori da ogni richiesta: una seconda lingua significa
-// costruire lo schema dentro l'handler dell'azione, dove la lingua è nota.
+// Lingua di default, sempre: la richiesta di un'azione arriva su /_actions/<nome>, dove
+// Astro.currentLocale è la lingua di default qualunque sia la pagina.
 const t = useTranslations()
 
 /** [HARD] Un campo marcato `required` nel markup usa questo, non `.default('')`: il form è

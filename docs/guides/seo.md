@@ -49,11 +49,28 @@ Convenzioni stabilite dalla head centralizzata (`src/components/head/head.astro`
 I dati strutturati si passano come oggetti tramite la prop `jsonLd` del layout. `head/json-ld.astro`
 codifica `<` (nella forma unicode) prima di `set:html`, così il contenuto non può chiudere in
 anticipo l'elemento script. Non usare mai `set:html` sull'output grezzo di `JSON.stringify` da
-nessun'altra parte. Gli schemi di tutto il sito (`Organization`, costruito da `COMPANY` e `SITE`, e
-`WebSite`) sono dichiarati inline in `src/pages/index.astro` e vivono solo sulla homepage.
-`src/lib/seo/json-ld.ts` porta i due costruttori di liste — `buildBreadcrumbList` e `buildItemList` —
-che rendono assoluti i loro URL rispetto a `SITE.url`; un progetto ci aggiunge i costruttori delle
-proprie entità.
+nessun'altra parte.
+
+I costruttori stanno tutti in `src/lib/seo/json-ld.ts`, rendono assoluti i loro URL rispetto a
+`SITE.url`, e un progetto ci aggiunge quelli delle proprie entità. Il template ne monta tre:
+`buildOrganization()` e `buildWebSite()` in `src/pages/index.astro`, che vivono solo sulla homepage,
+e `buildBreadcrumbList()` in `src/pages/contatti.astro`. Gli altri (`buildItemList()`,
+`buildArticle()`, `buildFaqPage()`, `buildLocalBusiness()`) aspettano le pagine che li chiedono.
+
+`Organization` e `LocalBusiness` portano gli stessi campi aziendali, da `COMPANY` e `SITE`: ragione
+sociale, telefono, email e indirizzo, la partita IVA come `vatID`, i profili di `SITE.social` come
+`sameAs` e, solo se `COMPANY.logo` è impostato, il `logo`. Come nodo principale della homepage se ne
+sceglie uno:
+
+- **`Organization`** per un'azienda che non riceve il pubblico in una sede, come un'agenzia o un
+  servizio online;
+- **`LocalBusiness`** per un'attività con una sede che il pubblico raggiunge, come un negozio, uno
+  studio o un ristorante: porta anche `openingHours` e `geo`, che `Organization` non ha. In
+  `src/pages/index.astro` si sostituisce `buildOrganization()` con `buildLocalBusiness()`, a cui si
+  passano orari e coordinate.
+
+Un segnaposto rimasto in `COMPANY` o in `SITE.social` non arriva in produzione: lo ferma
+`check:placeholders` nel job di deploy (`deploy-ops.md` § La catena dei gate).
 
 Per una coppia di rotte listing e dettaglio, il **listing** emette `BreadcrumbList` più un
 `ItemList` dei suoi figli (il catalogo); ogni **dettaglio** emette lo schema della singola entità
@@ -73,8 +90,9 @@ o un riferimento compatto usato come `author`, `publisher` o `provider` — i no
   riferimento compatto e nel nodo completo: se differiscono, la fusione produce un'entità sola con
   due nomi.
 - **Un `logo` deve stare su fondo chiaro.** Google lo dipinge sul proprio pannello bianco, dove un
-  logotipo bianco su trasparente sparisce. Verifica da un test che il file esista in `public/`: un
-  logo che risponde 404 fallisce in silenzio, come le icone del manifest qui sotto.
+  logotipo bianco su trasparente sparisce. `src/lib/seo/json-ld.test.ts` verifica che il file di
+  `COMPANY.logo` esista in `public/`: un logo che risponde 404 fallisce in silenzio, come le icone
+  del manifest qui sotto.
 - **Un `name` che viene da un campo di contenuto passa da un normalizzatore a riga singola.** Gli
   scalari a blocco di YAML tengono i loro a capo, e uno che arriva a un `<title>` o al `name` di uno
   schema ci finisce stampato tale e quale.
