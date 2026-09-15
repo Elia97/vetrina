@@ -19,6 +19,7 @@ const t = useTranslations(Astro.currentLocale)
       aria-invalid — il gate unico è src/lib/contact.ts. */}
   <form
     novalidate
+    method="post"
     data-contact-form
     data-i18n-sending={t('contact.sending')}
     data-i18n-submit={t('contact.submit')}
@@ -36,7 +37,10 @@ const t = useTranslations(Astro.currentLocale)
         {t('contact.error')}
       </p>
 
-      <Button type="submit" class="w-full">{t('contact.submit')}</Button>
+      <noscript>
+        <p class="w-full text-muted-foreground text-sm">{t('contact.noscript')}</p>
+      </noscript>
+      <Button type="submit" class="w-full" disabled>{t('contact.submit')}</Button>
     </CardFooter>
   </form>
 </Card>

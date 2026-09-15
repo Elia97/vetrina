@@ -185,11 +185,11 @@ Regole che vale la pena tenere in un progetto:
 - Il ciclo di invio vive **una volta sola** nel binder condiviso
   (`createActionFormBinding({ formSelector, buildPayload, submit })`,
   `src/components/forms/action-submit.ts`): il modulo di un singolo form fornisce solo un
-  `formSelector`, un `buildPayload` e l'azione. Il binder disabilita il bottone e ne cambia
-  l'etichetta durante l'attesa (`data-i18n-sending` e `data-i18n-submit` sul form — i moduli di
-  comportamento non portano stringhe), commuta i paragrafi `[data-form-success]` e
-  `[data-form-error]` (`role="status"` e `role="alert"`), e chiama `form.reset()` in caso di
-  successo. Non reimplementarlo mai per singolo form.
+  `formSelector`, un `buildPayload` e l'azione. Il binder abilita il bottone di invio quando
+  aggancia il form, lo disabilita e ne cambia l'etichetta durante l'attesa (`data-i18n-sending` e
+  `data-i18n-submit` sul form — i moduli di comportamento non portano stringhe), commuta i
+  paragrafi `[data-form-success]` e `[data-form-error]` (`role="status"` e `role="alert"`), e
+  chiama `form.reset()` in caso di successo. Non reimplementarlo mai per singolo form.
 - **Multi-istanza per default**: il binder aggancia **ogni** form corrispondente con
   `querySelectorAll` e resta idempotente attraverso le view transition. Quando lo stesso form viene
   reso più di una volta nella stessa pagina, si passa una prop `idPrefix` per dare uno spazio dei
@@ -197,9 +197,18 @@ Regole che vale la pena tenere in un progetto:
   identici, perché hanno come ambito il singolo `<form>`.
 - I campi compongono le primitive `Field` con **etichette visibili**, che è il default accessibile
   (un progetto può passare a `sr-only` più placeholder come scelta estetica).
-- La strada dell'invio richiede JavaScript (è una chiamata a un'Astro Action): non c'è un ripiego
-  con `action=`. L'azione impone comunque tutto lato server, quindi un ripiego senza JS si può
-  aggiungere senza cambiare il contratto.
+- **[HARD] Senza JavaScript il form non invia niente, e non mette niente nell'URL.** L'invio è una
+  chiamata a un'Astro Action (`accept: 'json'`) da una pagina prerenderizzata, quindi non c'è un
+  ripiego con `action=`, e il markup si difende da solo in tre pezzi:
+  - il pulsante di invio arriva `disabled` e lo abilita il binder: finché lo script non gira il form
+    non parte nemmeno con Invio, perché la specifica HTML esclude l'invio implicito quando il
+    pulsante predefinito è disabilitato;
+  - il form è `method="post"`: un invio partito comunque porta i campi nel corpo della richiesta,
+    non nella query string che finisce nei log, nel referrer e nella cronologia;
+  - un `<noscript>` rimanda ai recapiti della pagina.
+
+  `markup-contract.test.ts` rende `contact-form.astro` e fissa tutti e tre. L'azione impone comunque
+  tutto lato server, quindi un ripiego senza JS si può aggiungere senza cambiare il contratto.
 
 ### La superficie di validazione
 
@@ -290,7 +299,8 @@ fixture condivise e i mock di fornitore e BotID stanno in `test/helpers/actions.
    modo.
 4. **Interfaccia** in `src/components/<nome>/*.astro`: il contratto di presentazione fatto di
    `data-*` — il marcatore del form, le etichette `data-i18n-*` e i paragrafi
-   `[data-form-success|error]` — più `<HoneypotField />` e un `<FieldError>` per chiave dello schema.
+   `[data-form-success|error]` — più `<HoneypotField />`, un `<FieldError>` per chiave dello schema,
+   e il form `method="post"` con il pulsante di invio `disabled` nel markup.
 5. **Comportamento** in `src/components/<nome>/<nome>-form-behavior.ts`: un solo
    `createActionFormBinding({ formSelector, buildPayload, submit })` — si riusa il binder condiviso,
    non si reimplementa il ciclo di invio. `buildPayload` fa passare `HONEYPOT_FIELD`.

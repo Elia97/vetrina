@@ -36,6 +36,8 @@ export const it = {
   'contact.privacyPolicy': 'Privacy Policy',
   'contact.submit': 'Invia richiesta',
   'contact.sending': 'Invio…',
+  'contact.noscript':
+    'Per inviare il modulo serve JavaScript: puoi scriverci o chiamarci ai recapiti di questa pagina.',
   'contact.success': 'Richiesta inviata. Ti ricontatteremo a breve.',
   'contact.error': 'Invio non riuscito. Riprova tra poco.',
   'contact.genericFieldError': 'Controlla i dati inseriti.',
