@@ -1,5 +1,3 @@
-# In pausa finché lo scaffold non è personalizzato: si riattiva togliendo le due
-# righe `open-pull-requests-limit: 0`.
 version: 2
 updates:
   - package-ecosystem: 'npm'
@@ -17,8 +15,6 @@ updates:
       default-days: 7
       semver-major-days: 14
     ignore:
-      # Nessuna major da un aggiornamento automatico: il gruppo unico qui sotto le
-      # trascinerebbe insieme alle patch, e `cooldown` non le trattiene (@vercel/og 1.0.0 è del 2023).
       - dependency-name: '*'
         update-types: ['version-update:semver-major']
       # `astro check` usa l'API programmatica di TypeScript, che il compilatore nativo 7.x
@@ -26,8 +22,7 @@ updates:
       - dependency-name: 'typescript'
         update-types: ['version-update:semver-major']
     groups:
-      # Un gruppo, una PR per ciclo: due PR mergiate a secondi di distanza fondono i
-      # rispettivi pnpm-lock.yaml in uno YAML con una chiave duplicata, illeggibile.
+      # Due PR mergiate a secondi di distanza fondono i pnpm-lock.yaml con una chiave duplicata.
       npm:
         patterns:
           - '*'
@@ -38,12 +33,9 @@ updates:
       interval: 'weekly'
     labels:
       - 'github-actions'
-    # `chore` di proposito, al contrario del gruppo npm qui sopra: la versione di un'action non
-    # entra mai nell'artefatto deployato, quindi qui non c'è niente da pubblicare.
     commit-message:
       prefix: 'chore(deps)'
     groups:
-      # Stesso ragionamento del gruppo npm: una PR per ciclo, non una per action.
       github-actions:
         patterns:
           - '*'

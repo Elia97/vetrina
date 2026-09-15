@@ -1,14 +1,17 @@
 ---
+import type { SocialImage } from './seo'
+
 interface Props {
   title: string
   description?: string | undefined
-  ogImageUrl: string
+  image: SocialImage
 }
 
-const { title, description, ogImageUrl } = Astro.props
+const { title, description, image } = Astro.props
 ---
 
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:title" content={title} />
 {description ? <meta name="twitter:description" content={description} /> : null}
-<meta name="twitter:image" content={ogImageUrl} />
+<meta name="twitter:image" content={image.url} />
+{image.alt ? <meta name="twitter:image:alt" content={image.alt} /> : null}

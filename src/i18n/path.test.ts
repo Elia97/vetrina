@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import { localizedHref } from '@/i18n/href'
-import { localeAgnosticPath } from '@/i18n/path'
+import { ariaCurrent, localeAgnosticPath } from '@/i18n/path'
 
 // Un canonical che non concorda con la pagina su cui sta viene ignorato dai motori di ricerca.
 describe('localeAgnosticPath', () => {
@@ -41,6 +41,39 @@ describe('localeAgnosticPath', () => {
   // Un canonical vuoto si risolve contro l'origine, non contro la pagina.
   it('recovers the root from a path that is only slashes', () => {
     expect(localeAgnosticPath('///', 'it')).toBe('/')
+  })
+})
+
+describe('ariaCurrent', () => {
+  it.each([
+    ['/', 'it'],
+    ['/en', 'en'],
+  ])('marca la home come pagina corrente su %s (%s)', (pathname, locale) => {
+    expect(ariaCurrent('/', pathname, locale)).toBe('page')
+  })
+
+  it('marca la voce di una pagina interna quando è quella aperta', () => {
+    expect(ariaCurrent('/contatti', '/contatti', 'it')).toBe('page')
+  })
+
+  it('marca la stessa voce anche con lo slash finale', () => {
+    expect(ariaCurrent('/contatti', '/contatti/', 'it')).toBe('page')
+  })
+
+  it('marca come sezione la voce di cui la pagina aperta è una sottopagina', () => {
+    expect(ariaCurrent('/work', '/work/case-study', 'it')).toBe('true')
+  })
+
+  it('non fa mai della home la sezione delle altre pagine', () => {
+    expect(ariaCurrent('/', '/contatti', 'it')).toBeUndefined()
+  })
+
+  it('non prende per sottopagina un percorso che ha solo lo stesso prefisso', () => {
+    expect(ariaCurrent('/work', '/workshop', 'it')).toBeUndefined()
+  })
+
+  it('ripiega sulla lingua di default quando Astro non ne dà una', () => {
+    expect(ariaCurrent('/contatti', '/contatti', undefined)).toBe('page')
   })
 })
 

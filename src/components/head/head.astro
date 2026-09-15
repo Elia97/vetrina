@@ -8,6 +8,7 @@ import HeadTwitter from './twitter.astro'
 
 interface Props {
   title: string
+  absoluteTitle?: boolean | undefined
   description?: string | undefined
   canonicalPath?: string | undefined
   ogImage?: string | undefined
@@ -15,9 +16,11 @@ interface Props {
   noindex?: boolean | undefined
 }
 
-const { title, description, canonicalPath, ogImage, jsonLd, noindex = false } = Astro.props
+const { title, absoluteTitle = false, description, canonicalPath, ogImage, jsonLd, noindex = false } = Astro.props
 
-const { canonical, ogImageUrl, currentTag, localeAlternates, defaultHref } = resolveHeadSeoMeta({
+const { documentTitle, canonical, socialImage, currentTag, localeAlternates, defaultHref } = resolveHeadSeoMeta({
+  title,
+  absoluteTitle,
   currentLocale: Astro.currentLocale,
   canonicalPath: canonicalPath ?? Astro.url.pathname,
   ogImage,
@@ -28,7 +31,7 @@ const { canonical, ogImageUrl, currentTag, localeAlternates, defaultHref } = res
 <meta name="generator" content={Astro.generator} />
 <HeadIcons />
 
-<title>{title}</title>
+<title>{documentTitle}</title>
 {description ? <meta name="description" content={description} /> : null}
 {/* Astro scarta in build le intestazioni di risposta di una pagina prerenderizzata
     (src/middleware.ts), quindi questo è l'unico noindex per percorso che la raggiunge. */}
@@ -42,9 +45,9 @@ const { canonical, ogImageUrl, currentTag, localeAlternates, defaultHref } = res
   canonical={canonical}
   currentTag={currentTag}
   localeAlternates={localeAlternates}
-  ogImageUrl={ogImageUrl}
+  image={socialImage}
 />
 
-<HeadTwitter title={title} description={description} ogImageUrl={ogImageUrl} />
+<HeadTwitter title={title} description={description} image={socialImage} />
 
 <HeadJsonLd items={jsonLd} />

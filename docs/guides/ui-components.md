@@ -142,6 +142,16 @@ componenti; i link interni passano da `localizedHref()` così si localizzano ins
   `<main id="main-content" tabindex="-1">` (è il tabindex a far muovere davvero il focus). Nascosto
   con `sr-only` e ripristinato con utility prefissate `focus:` — ricorda che `not-sr-only` azzera il
   padding, quindi anche il padding va prefissato con `focus:`.
+- **La voce della pagina corrente porta `aria-current`** nelle tre `<nav>` dell'arredo (header,
+  nav mobile, link legali del footer): `page` sulla voce della pagina aperta, `true` su quella
+  della sezione quando si è in una sua sottopagina, e `/` non è mai una sezione. È lo schema del
+  Service navigation di GOV.UK. Il valore lo calcola `ariaCurrent()` in `src/i18n/path.ts`,
+  confrontando l'`href` della voce con il percorso corrente riportato alla lingua di default.
+- **Lo stile della voce corrente sta sull'attributo**, non su una classe calcolata nel markup: la
+  variante `aria-[current]:` di Tailwind v4 genera il selettore `[aria-current]`, che copre `page` e
+  `true`, e dà sottolineatura e colore pieno del testo. Sulle altre voci `ariaCurrent()` restituisce
+  `undefined`, che omette l'attributo: Astro rende un `false` come `aria-current="false"`, e il
+  selettore prende anche quello.
 - I glifi delle icone sono `aria-hidden` con l'etichetta sul controllo; il selettore di variazione
   testuale (`&#xFE0E;`) va sui codepoint che WebKit renderebbe come emoji.
 - Mattoni per gli overlay (per menu e dialog che un progetto aggiunge):
@@ -272,6 +282,13 @@ tailwind-merge): la forma dell'API di shadcn senza il runtime React o Radix.
   (`input.astro`, `textarea.astro`, `select.astro`). `FieldError` è l'unica parte con un
   comportamento attaccato: il suo contratto e il test che lo presidia stanno in `forms-email.md` §
   La superficie di validazione.
+- `Alert` non porta nessun `role` di suo. `role="alert"` è una live region assertiva: interrompe
+  quello che lo screen reader sta dicendo, e su un avviso presente al caricamento alcuni lo
+  annunciano prima del titolo della pagina. Si passa `role="alert"` per un errore che compare in
+  risposta a un'azione, `role="status"` per un esito che non deve interrompere, e nessuno dei due
+  per il contenuto statico. Il ruolo va su un elemento che è già nella pagina quando il messaggio
+  cambia, come i paragrafi di esito del form (`forms-email.md` § Convenzioni dell'interfaccia dei
+  form).
 - `Select` è la primitiva di riferimento per il miglioramento progressivo: il `<select>` nativo si
   rende per primo e resta la fonte di verità verso il form; lo strato di script
   (`select-behavior.ts`) inserisce un trigger e una listbox stilati (focus rotante,

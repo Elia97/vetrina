@@ -10,6 +10,7 @@ import { SITE } from '@/lib/site'
 import { cn } from '@/lib/utils'
 
 import { localizedHref } from '@/i18n/href'
+import { ariaCurrent } from '@/i18n/path'
 import { useTranslations } from '@/i18n/translate'
 
 interface Props {
@@ -22,6 +23,7 @@ const lightChrome = heroOverlay && overlayChrome === 'light'
 
 const t = useTranslations(Astro.currentLocale)
 const href = (path: string) => localizedHref(Astro.currentLocale, path)
+const current = (path: string) => ariaCurrent(path, Astro.url.pathname, Astro.currentLocale)
 
 const headerClass = heroOverlay
   ? 'absolute inset-x-0 top-0 z-header'
@@ -30,10 +32,10 @@ const headerClass = heroOverlay
 const wordmarkClass = lightChrome ? 'text-white' : 'text-foreground'
 
 const navLinkClass = lightChrome
-  ? 'text-white/85 hover:text-white'
+  ? 'text-white/85 hover:text-white aria-[current]:text-white'
   : heroOverlay
-    ? 'text-foreground/80 hover:text-foreground'
-    : 'text-muted-foreground hover:text-foreground'
+    ? 'text-foreground/80 hover:text-foreground aria-[current]:text-foreground'
+    : 'text-muted-foreground hover:text-foreground aria-[current]:text-foreground'
 
 const controlClass = lightChrome ? 'text-white hover:text-white/80' : 'text-muted-foreground hover:text-foreground'
 ---
@@ -45,7 +47,14 @@ const controlClass = lightChrome ? 'text-white hover:text-white/80' : 'text-mute
     <nav aria-label={t('a11y.primaryNav')} class="hidden items-center gap-6 md:flex">
       {
         SITE.nav.map((link) => (
-          <a href={href(link.href)} class={cn('font-medium text-sm transition-colors', navLinkClass)}>
+          <a
+            href={href(link.href)}
+            aria-current={current(link.href)}
+            class={cn(
+              'font-medium text-sm underline-offset-4 transition-colors aria-[current]:underline',
+              navLinkClass,
+            )}
+          >
             {t(link.key)}
           </a>
         ))

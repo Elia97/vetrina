@@ -24,7 +24,7 @@
     "lhci:local": "bash scripts/lhci-local.sh",
     "check:deadcode": "fallow dead-code",
     "check:health": "fallow health --complexity",
-    "check:comments": "node scripts/check-comments.ts",
+    "check:comments": "node scripts/check-comments.ts --strict",
     "check:language": "node scripts/check-language.ts",
     "check:routes": "node scripts/check-routes.ts",
     "check:roadmap": "node scripts/check-roadmap.ts",

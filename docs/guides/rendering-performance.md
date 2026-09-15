@@ -15,6 +15,35 @@
   l'head in quel punto: il `<link>` del foglio di stile finisce nel body e viene ricreato da zero a
   ogni view transition, che è un lampo di contenuto senza stile a ogni navigazione.
 
+### Il costo di `<ClientRouter />`
+
+Misure sul build del template con Astro 7.2.7, in byte gzip come li conta
+`scripts/bundle-budget.mjs`:
+
+- **Il chunk del router pesa 4.762 byte**, 13.922 non compressi: circa due terzi della chiusura
+  statica di `/`, 7.104 byte, che `pnpm run perf:bundle` stampa come 6,9 KB. Il resto sono
+  `prefetch` (1.153), `mobile-nav` (941), `binding` (137), `page` (67) e `client` (44).
+- **Il prefetch si conta a parte.** Il router lo importa, ma lo importa anche l'ingresso `page` che
+  Astro aggiunge a ogni pagina quando `astro.config.mjs` accende `prefetch`: togliere il router
+  toglie il suo chunk, e il prefetch resta finché resta quella configurazione.
+- **Ogni pagina porta anche due `<style>` inline**, per `transition:name` su `site-header`
+  (`src/components/layout/header.astro`) e su `site-footer` (`src/components/layout/footer.astro`):
+  2.347 byte non compressi ciascuno, 317 e 318 gzip. Vengono da quegli attributi, non dal router:
+  restano finché restano gli attributi, e stanno nell'HTML, dove nessuno dei due budget guarda.
+
+Quattro regole del template esistono per il router, e senza di lui smettono di servire. Nessuna
+porta `[HARD]`:
+
+- **il focus dopo lo scambio** — `src/lib/a11y/route-focus.ts`, `ui-components.md` § Pattern di
+  accessibilità nell'arredo;
+- **l'idempotenza del setup** — `src/lib/motion/binding.ts`, § Sistema di animazione
+  (`src/lib/motion/`) qui sotto;
+- **l'unione degli hash CSP fra le pagine** — `src/lib/csp/integration.ts`, `deploy-ops.md`
+  § Content-Security-Policy;
+- **gli script inline che non rigirano** e ascoltano `astro:after-swap` —
+  `src/components/head/js-flag.astro` e `src/components/head/theme-script.astro`, e la voce sulle
+  view transition qui sopra.
+
 ## Budget di bundle (`scripts/bundle-budget.mjs`)
 
 `pnpm perf:bundle`, che la CI lancia subito dopo la build. Attraversa `dist/client` e per ogni rotta
@@ -26,9 +55,9 @@ job.
   nella colonna `DEFERRED` e non costa niente al budget: si carica dopo il paint, dietro una guardia
   a runtime. Spostare una dipendenza pesante dietro un import dinamico è quindi il modo standard per
   rientrare nel budget.
-- **Il default è 20 KB gzip**, circa il doppio della rotta più pesante di partenza (`/contatti`, ~10
-  KB: ClientRouter, nav mobile e form di contatto). È tarato per prendere una *dipendenza* che entra
-  nel percorso critico, non i singoli KB.
+- **Il default è 20 KB gzip**, circa una volta e mezza la rotta più pesante di partenza
+  (`/contatti`, 13,4 KB: router, prefetch, nav mobile e form di contatto). È tarato per prendere
+  una *dipendenza* che entra nel percorso critico, non i singoli KB.
 - **Una classe di rotte più pesante** si mette prima del default in `BUDGETS`
   (`scripts/lib/bundle-budget.ts`) con il suo `matches`: vince la prima corrispondenza. Una pagina
   che monta una libreria di animazione sta lì, e non in un default globale alzato, così il resto del
@@ -55,8 +84,9 @@ come «questa pagina è leggera»:
 
 - **gli script `is:inline`.** Lo script del tema è inline in ogni pagina e Astro lo passa
   **tale e quale**: non impacchettato, non minificato, commenti compresi. Costa byte a ogni risposta
-  HTML e non compare in nessuno dei numeri. Tienilo corto, e tieni i suoi commenti privi di markup,
-  perché atterrano nel documento come testo letterale;
+  HTML e non compare in nessuno dei numeri. Tienilo corto, e nel corpo di uno script `is:inline` non
+  scrivere commenti: un fatto che serve va nel frontmatter o in un `{/* … */}` sopra lo script, che
+  non arrivano nell'HTML;
 - **il CSS.** Il budget riguarda solo il JavaScript lato client;
 - **immagini e font.** Lì il peso lo governano `astro:assets` e l'API dei font, non questo.
 

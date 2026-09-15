@@ -47,6 +47,8 @@ export const it = {
   'forms.error.messageTooLong': 'Il messaggio è troppo lungo (massimo 2000 caratteri).',
   'forms.error.consentRequired': 'Devi acconsentire al trattamento dei dati per inviare la richiesta.',
 
+  'seo.defaultOgImageAlt': '<OG_IMAGE_ALT>',
+
   'footer.legalHeading': 'Legale',
   'footer.allRightsReserved': 'Tutti i diritti riservati.',
 } as const

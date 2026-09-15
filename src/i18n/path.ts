@@ -20,11 +20,23 @@ function normalizeTrailingSlash(path: string): string {
   return path.replace(/\/+$/, '') || '/'
 }
 
-export function localeAgnosticPath(pathname: string, currentLocale: string): string {
+export function localeAgnosticPath(pathname: string, currentLocale: string | undefined): string {
   /* v8 ignore next -- astro:config/client lo inietta Astro a ogni render; il ripiego protegge un modulo che non può mancare */
   const defaultLocale = i18n?.defaultLocale ?? 'it'
-  const prefix = localePrefix(currentLocale, defaultLocale)
+  const locale = currentLocale ?? defaultLocale
+  const prefix = localePrefix(locale, defaultLocale)
   const unprefixed = stripLocalePrefix(pathname, prefix)
-  const canonical = canonicalizePath(unprefixed, currentLocale)
+  const canonical = canonicalizePath(unprefixed, locale)
   return normalizeTrailingSlash(canonical)
+}
+
+export function ariaCurrent(
+  href: string,
+  pathname: string,
+  currentLocale: string | undefined,
+): 'page' | 'true' | undefined {
+  const path = localeAgnosticPath(pathname, currentLocale)
+  if (path === href) return 'page'
+  if (href !== '/' && path.startsWith(`${href}/`)) return 'true'
+  return undefined
 }

@@ -17,7 +17,7 @@ export const alertVariants = cva('relative w-full rounded-lg border border-borde
 
 interface Props extends HTMLAttributes<'div'>, VariantProps<typeof alertVariants> {}
 
-const { variant, class: className, role = 'alert', ...rest } = Astro.props
+const { variant, class: className, ...rest } = Astro.props
 ---
 
-<div role={role} class={cn(alertVariants({ variant }), className)} {...rest}><slot /></div>
+<div class={cn(alertVariants({ variant }), className)} {...rest}><slot /></div>

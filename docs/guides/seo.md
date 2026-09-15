@@ -11,6 +11,12 @@ Convenzioni stabilite dalla head centralizzata (`src/components/head/head.astro`
   → `resolveHeadSeoMeta`, coperta da `head/seo.test.ts`), e il rendering è diviso per competenza
   (`head/{alternates,og,twitter,json-ld}.astro`). Si estende aggiungendo meta al sottocomponente
   giusto, non facendo crescere l'orchestratore.
+- **Il `<title>` si compone in `resolveHeadSeoMeta`, mai nelle pagine.** La pagina passa al layout
+  il suo titolo nudo, che spesso usa anche come `<h1>` o nel `BreadcrumbList`, e la head lo emette
+  come «Contatti | Nome del sito»: il separatore è `|` anche quando il titolo contiene già un `—`,
+  come quelli di 404 e 500. Il titolo resta nudo quando è già `SITE.name`, come sulla home, e
+  quando la pagina passa `absoluteTitle` al layout.
+- **`og:title` e `twitter:title` restano nudi**: il nome del sito lo porta già `og:site_name`.
 - `<meta charset>` e `<meta viewport>` stanno nel **layout**, prima dello script inline del tema: la
   dichiarazione di codifica deve stare entro i primi 1024 byte del documento. Non spostarli dentro
   `head.astro`.
@@ -78,7 +84,13 @@ o un riferimento compatto usato come `author`, `publisher` o `provider` — i no
 - Gli URL delle immagini OG e Twitter sono sempre assoluti, costruiti da `SITE.url`.
 - `public/og-default.png` è un segnaposto 1200×630 a tinta unita: **si sostituisce in ogni
   progetto**, tenendo `SITE.defaultOgImage` puntato su un file che esiste (un `og:image` morto fa
-  fallire i validatori delle social card).
+  fallire i validatori delle social card). Con lui cambiano `SITE.defaultOgImageSize`, che
+  `src/lib/site.test.ts` confronta con l'intestazione del PNG, e il suo alt, la chiave
+  `seo.defaultOgImageAlt` del dizionario.
+- **Misure e alt valgono solo per l'immagine di default.** `og:image:width`, `og:image:height`,
+  `og:image:alt` e `twitter:image:alt` escono quando la pagina non passa un `ogImage` suo: di
+  un'immagine di pagina il template non conosce le misure. Facebook usa le misure per mostrare
+  l'immagine già alla prima condivisione, prima di averla scaricata ed elaborata.
 - **Un'immagine OG generata è in cache per sempre.** `@vercel/og` risponde con
   `cache-control: public, immutable, max-age=31536000`, quindi modificare il template non aggiorna
   né le immagini già servite né le copie che i social tengono. Per rinfrescarle serve un *URL

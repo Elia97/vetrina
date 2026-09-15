@@ -3,6 +3,15 @@
 Template Astro per siti vetrina, uso personale e freelance: per ogni progetto nuovo si riparte da qui
 invece di lavorare dentro `vetrina` stesso. È il primo dei tre template del sistema, con `ecommerce` e `monorepo`.
 
+**È specifico per Vercel.** `vercel.json` porta intestazioni, redirect, rewrite e regione delle
+funzioni, l'adapter è `@astrojs/vercel`, il form di contatto passa da Vercel BotID, e la
+produzione esce solo da un tag di release (`docs/guides/deploy-ops.md` § Modello di deploy): portarlo
+su un altro host non è una riga di configurazione.
+
+**Per avviarlo in locale**, con il Node di `.nvmrc`: `corepack enable && pnpm install`, poi
+`pnpm dev`. Gli script stanno in `package.json`; quali girano come gate, e in che ordine, lo dice
+`docs/guides/deploy-ops.md` § La catena dei gate.
+
 Il metodo di lavoro — commit e PR, commenti, lingua, pianificazione, agenti verticali — non sta in
 questo repository: è il plugin `metodo` e `metodo.md` del repository `metodo-astro`, che il sistema
 di lavoro importa in ogni progetto. Questo file copre quello che succede *dentro* il repo.
@@ -75,10 +84,14 @@ La superficie completa, in un posto solo — la milestone `foundations` la distr
 - `package.json#name` (e `release-please-config.json`): trapela nel changelog che release-please
   genera, quindi deve corrispondere al progetto nuovo e non restare `vetrina`;
 - `src/lib/site.ts`: nome, url, descrizione, voci di nav, CTA e legali (la chrome si rende da qui, e
-  le voci portano chiavi i18n, non testo);
+  le voci portano chiavi i18n, non testo), più i profili di `SITE.social`, che arrivano con
+  `href: '#'` e finiscono nel footer;
+- `src/lib/company.ts`: il soggetto giuridico — ragione sociale, telefono, email, indirizzo e
+  partita IVA; i primi quattro alimentano il JSON-LD `Organization` della homepage;
 - `src/styles/tokens.css`: l'UNICO file da toccare per il rebranding visivo (primitive oklch grezze;
   i nomi semantici in `light.css` e `dark.css` restano);
-- `public/og-default.png`: si sostituisce il segnaposto (1200×630);
+- `public/og-default.png`: si sostituisce il segnaposto (1200×630), e con lui le misure in
+  `SITE.defaultOgImageSize` e l'alt `seo.defaultOgImageAlt` in `src/i18n/strings/it.ts`;
 - `public/favicon.svg` e `public/favicon.ico`: si sostituiscono entrambi. L'SVG è l'unica icona del
   manifest così com'è: valida, ma **non installabile** — `docs/guides/seo.md` § Icone, manifest e
   theme-color ha cosa aggiungere per il prompt di installazione;
@@ -86,6 +99,8 @@ La superficie completa, in un posto solo — la milestone `foundations` la distr
   `light.css` e `dark.css`;
 - `astro.config.mjs` → `i18n.defaultLocale` e `locales` se il progetto non parte dall'italiano (§
   Aggiungere una lingua, sotto, ha l'elenco completo);
+- `vercel.json`: il redirect da `www.example.com` a `example.com`, sul dominio vero e verso l'host
+  canonico scelto (`docs/guides/deploy-ops.md` § Checklist per il go-live);
 - `src/content/homepage/hero.yml`: il copy vero della homepage.
 
 ## Cosa ti dà lo scaffold
@@ -158,13 +173,12 @@ non carica nessun tag e non scrive nessun cookie non essenziale. Per accenderlo:
 2. Imposta `PUBLIC_GTM_ID`, `PUBLIC_IUBENDA_SITE_ID` e `PUBLIC_IUBENDA_COOKIE_POLICY_ID` — su Vercel
    come variabili **Plain**, mai Sensitive (una variabile Sensitive arriva alla build come la
    stringa letterale `[SENSITIVE]`). Sono id pubblici che finiscono nel bundle, non segreti.
-3. **Allarga la CSP in `vercel.json`** e con essa le asserzioni in `src/vercel-headers.test.ts`. Gli
-   elenchi esatti delle sorgenti stanno nel commento in testa a
-   `src/components/head/tracking.astro`. Saltare questo passo è l'errore che vale la pena conoscere:
-   `astro dev` non legge mai `vercel.json`, quindi in locale sembra tutto a posto e in produzione il
-   banner non compare affatto.
-4. Verifica su una preview, accettando e rifiutando, con GA4 Realtime aperto: prima del consenso a
-   Google non deve arrivare niente.
+3. **La CSP non si tocca**: gli host di GTM e iubenda stanno già in `src/lib/csp/directives.ts`, da
+   cui la policy si genera in fase di build, e `vercel.json` porta solo `frame-ancestors`. Un
+   fornitore in più va in `directives.ts`, mai in `vercel.json`: `docs/guides/deploy-ops.md` §
+   Tracciamento e Consent Mode v2.
+4. Verifica su una preview, accettando e rifiutando, con GA4 Realtime e la console aperti: prima del
+   consenso a Google non deve arrivare niente, e nessuna richiesta deve essere bloccata dalla CSP.
 
 Lo stesso id di policy fa passare anche `/privacy` e `/cookie-policy` dalle loro bozze segnaposto ai
 documenti iubenda ospitati. Vengono scaricati in fase di build, quindi una policy modificata su

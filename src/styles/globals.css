@@ -3,11 +3,9 @@
 @import "./light.css";
 @import "./dark.css";
 
-/* variante dark: i prefissi `dark:` risolvono su `.dark` e il suo sottoalbero (strategia a classe ufficiale della v4) */
 @custom-variant dark (&:where(.dark, .dark *));
 
-/* Il `container` della v4 non ha configurazione di centratura e padding: si estende qui una
-   volta sola. Si consuma SOLO tramite components/ui/container.astro. */
+/* Il `container` di Tailwind v4 non porta opzioni di centratura e padding. */
 @utility container {
   margin-inline: auto;
   padding-inline: 1rem;
@@ -16,14 +14,11 @@
   }
 }
 
-/* Riscontro alla pressione: l'1% sta di proposito sotto il gradino più piccolo di Tailwind,
-   che su un bottone si legge come un rimbalzo invece che come una pressione. */
 @utility scale-press {
   scale: 0.99;
 }
 
-/* Altezze in frazioni di viewport, nominate per ritararle in un posto solo. `svh` e non
-   `vh`: su mobile `vh` conta la chrome ritratta del browser e sfora lo schermo. */
+/* `svh` e non `vh`: su mobile `vh` conta la chrome ritratta del browser e sfora lo schermo. */
 @utility min-h-status {
   min-height: 50svh;
 }
@@ -31,8 +26,6 @@
   min-height: 70svh;
 }
 
-/* Utility z-index nominate invece di `z-[var(--z-…)]`: un valore arbitrario è una via di fuga
-   dalla scala, e si legge come tale. La scala sta in tokens.css. */
 @utility z-raised {
   z-index: var(--z-raised);
 }
@@ -71,13 +64,10 @@
   --color-input: var(--input);
   --color-ring: var(--ring);
 
-  /* Agganci per i webfont: l'API font di Astro definisce `--font-stack-*` quando un progetto
-     ne registra (README.md). Senza, il ripiego di var() tiene lo stack di sistema. */
+  /* `--font-stack-*` è la `cssVariable` dei webfont registrati in astro.config.mjs: README.md § Aggiungere un webfont. */
   --font-sans: var(--font-stack-base, ui-sans-serif, system-ui, sans-serif);
   --font-display: var(--font-stack-display, ui-sans-serif, system-ui, sans-serif);
 
-  /* max() tiene validi i gradini derivati per qualunque --radius del marchio: con valori
-     piccoli (o 0 per gli angoli vivi) il calc() nudo andrebbe sotto zero. */
   --radius-sm: max(0px, calc(var(--radius) - 4px));
   --radius-md: max(0px, calc(var(--radius) - 2px));
   --radius-lg: var(--radius);
@@ -92,8 +82,7 @@
     @apply bg-background font-sans text-foreground antialiased;
   }
 
-  /* Blocco dello scroll (l'attributo lo gira lib/overlay/scroll-lock.ts). `scrollbar-gutter`
-     evita che il layout si sposti quando la barra sparisce. */
+  /* `data-scroll-locked` lo gira lib/overlay/scroll-lock.ts. */
   html[data-scroll-locked] {
     overflow: hidden;
     scrollbar-gutter: stable;
@@ -101,8 +90,7 @@
 }
 
 @layer utilities {
-  /* Contorno di focus uniforme per gli interattivi personalizzati: quello trasparente a riposo
-     tiene in piedi la modalità forced-colors, dove riceve un colore. */
+  /* Il contorno trasparente a riposo resta visibile in forced-colors, dove il browser gli dà un colore. */
   .focus-ring {
     outline: 2px solid transparent;
     outline-offset: 2px;
@@ -112,8 +100,8 @@
   }
 }
 
-/* ─── Rivelazione allo scroll ([data-reveal], vedi components/ui/reveal.astro) ───
-   Triplo gate, e ogni pezzo dei selettori regge un caso suo: docs/guides/rendering-performance.md. */
+/* Perché servono i gate: html.js e la media query in docs/guides/rendering-performance.md § Rivelazione allo scroll,
+   reveal-failsafe in components/head/js-flag.astro. */
 @media (prefers-reduced-motion: no-preference) {
   html.js [data-reveal] {
     transition:
@@ -127,8 +115,6 @@
     transform: translateY(var(--reveal-y, 24px));
   }
 
-  /* Variante a cascata: `data-reveal-stagger` su un contenitore fa entrare i figli in
-     sequenza — ogni figlio imposta `--i`, e il passo è `--reveal-stagger` (default 0,08s). */
   /* fallow-ignore-next-line css-selector-complexity -- vedi la nota sui gate qui sopra */
   html.js [data-reveal-stagger] > * {
     transition:

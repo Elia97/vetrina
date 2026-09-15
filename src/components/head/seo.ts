@@ -5,21 +5,32 @@ import { localeTag, SITE } from '@/lib/site'
 
 import { localeAgnosticPath } from '@/i18n/path'
 import { translatePath } from '@/i18n/route-segments'
+import { useTranslations } from '@/i18n/translate'
 
 interface LocaleAlternate {
   tag: string
   href: string
 }
 
+export interface SocialImage {
+  url: string
+  width?: number
+  height?: number
+  alt?: string
+}
+
 interface HeadSeoMeta {
+  documentTitle: string
   canonical: string
-  ogImageUrl: string
+  socialImage: SocialImage
   currentTag: string
   localeAlternates: LocaleAlternate[]
   defaultHref: string
 }
 
 interface HeadSeoParams {
+  title: string
+  absoluteTitle: boolean
   currentLocale: string | undefined
   canonicalPath: string
   ogImage: string | undefined
@@ -41,16 +52,31 @@ function resolveLocaleAlternates(canonicalPath: string): LocaleAlternate[] {
   }))
 }
 
-export function resolveHeadSeoMeta({ currentLocale, canonicalPath, ogImage }: HeadSeoParams): HeadSeoMeta {
+function resolveSocialImage(ogImage: string | undefined, locale: string): SocialImage {
+  if (ogImage !== undefined) return { url: new URL(ogImage, SITE.url).href }
+  return {
+    url: new URL(SITE.defaultOgImage, SITE.url).href,
+    ...SITE.defaultOgImageSize,
+    alt: useTranslations(locale)('seo.defaultOgImageAlt'),
+  }
+}
+
+export function resolveHeadSeoMeta({
+  title,
+  absoluteTitle,
+  currentLocale,
+  canonicalPath,
+  ogImage,
+}: HeadSeoParams): HeadSeoMeta {
   /* v8 ignore next -- astro:config/client lo inietta Astro a ogni render; il ripiego protegge un modulo che non può mancare */
   const defaultLocale = i18n?.defaultLocale ?? 'it'
   const locale = currentLocale ?? defaultLocale
   const canonical = localeAgnosticPath(canonicalPath, locale)
 
   return {
+    documentTitle: absoluteTitle || title === SITE.name ? title : `${title} | ${SITE.name}`,
     canonical: getAbsoluteLocaleUrl(locale, translatePath(canonical, locale)),
-    // OG image ALWAYS absolute: social crawlers don't resolve relative paths.
-    ogImageUrl: new URL(ogImage ?? SITE.defaultOgImage, SITE.url).href,
+    socialImage: resolveSocialImage(ogImage, locale),
     currentTag: localeTag(locale),
     localeAlternates: resolveLocaleAlternates(canonical),
     defaultHref: getAbsoluteLocaleUrl(defaultLocale, translatePath(canonical, defaultLocale)),

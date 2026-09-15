@@ -13,14 +13,12 @@ export default defineConfig({
   site: SITE.url,
   output: 'static',
   // Il default 'ignore' di Astro risolve sia /pagina sia /pagina/, dando alle due forme
-  // canonical concorrenti. head.astro normalizza su quello che si imposta qui.
+  // canonical concorrenti. localeAgnosticPath() in src/i18n/path.ts normalizza su questo valore.
   trailingSlash: 'never',
-  // Il default `hover` documentato non fa niente su touch. Astro limita il costo di
-  // `viewport` saltando i link scorsi in fretta e rispettando Save-Data.
   prefetch: { prefetchAll: true, defaultStrategy: 'viewport' },
 
-  // Sopra gli 8s che il client Brevo si concede, molto sotto il default di piattaforma
-  // che è di minuti. Vale per l'unica funzione `_render`, che serve anche /_image.
+  // Sopra REQUEST_TIMEOUT_MS di src/lib/vendor/brevo.ts e sotto il default di piattaforma, che è
+  // di minuti. Vale per l'unica funzione `_render`, che serve anche /_image.
   adapter: vercel({ maxDuration: 20 }),
   i18n: {
     defaultLocale: 'it',
@@ -34,7 +32,6 @@ export default defineConfig({
     // in .vercel/output/static.
     cspIntegration(),
     // Emette sitemap-index.xml, a cui src/pages/robots.txt.ts indirizza i crawler.
-    // Le esclusioni stanno in src/lib/seo/crawl-policy.ts, mai qui.
     sitemap({
       filter: (page) => !isExcludedFromSitemap(page),
       i18n: {
@@ -48,8 +45,7 @@ export default defineConfig({
   },
   env: {
     schema: {
-      // Facoltativa di proposito: senza la chiave src/lib/vendor/brevo.ts non fa niente
-      // in sviluppo e rifiuta in produzione. Vedi docs/guides/forms-email.md.
+      // Senza la chiave src/lib/vendor/brevo.ts non fa niente in sviluppo e rifiuta in produzione.
       BREVO_API_KEY: envField.string({
         context: 'server',
         access: 'secret',
