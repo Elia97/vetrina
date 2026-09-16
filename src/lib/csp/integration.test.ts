@@ -39,6 +39,7 @@ function run(dir: URL): { info: ReturnType<typeof vi.fn> } {
 afterEach(() => {
   if (root) rmSync(root, { recursive: true, force: true })
   root = ''
+  vi.unstubAllEnvs()
 })
 
 describe('cspIntegration', () => {
@@ -80,5 +81,27 @@ describe('cspIntegration', () => {
 
     expect(read('fragment.html')).toBe('<div>no head here</div>')
     expect(info).toHaveBeenCalledWith(expect.stringContaining('0/1 pages'))
+  })
+})
+
+describe('cspIntegration and VERCEL_ENV', () => {
+  it('opens the policy to the toolbar when VERCEL_ENV is preview, and says so in the log', () => {
+    vi.stubEnv('VERCEL_ENV', 'preview')
+    const dir = buildOutput({ 'index.html': '<head><meta charset="utf-8"></head>' })
+
+    const { info } = run(dir)
+
+    expect(read('index.html')).toContain('https://vercel.live')
+    expect(info).toHaveBeenCalledWith(expect.stringContaining('preview hosts'))
+  })
+
+  it('leaves the toolbar out on every other environment', () => {
+    vi.stubEnv('VERCEL_ENV', 'production')
+    const dir = buildOutput({ 'index.html': '<head><meta charset="utf-8"></head>' })
+
+    const { info } = run(dir)
+
+    expect(read('index.html')).not.toContain('https://vercel.live')
+    expect(info).not.toHaveBeenCalledWith(expect.stringContaining('preview hosts'))
   })
 })

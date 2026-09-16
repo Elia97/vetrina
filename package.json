@@ -29,6 +29,7 @@
     "check:routes": "node scripts/check-routes.ts",
     "check:roadmap": "node scripts/check-roadmap.ts",
     "check:placeholders": "node scripts/check-placeholders.ts",
+    "check:vercel-cli": "node scripts/check-vercel-cli.ts",
     "audit:diff": "fallow audit --coverage coverage/coverage-final.json",
     "audit:brief": "fallow review --brief",
     "review": "fallow review --brief",

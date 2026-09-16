@@ -92,10 +92,7 @@ cat << 'EOF'
        gh secret set VERCEL_ORG_ID
        gh secret set VERCEL_PROJECT_ID
 
-  3. Vercel → Settings → Build & Deployment → Ignored Build Step →
-     "Run my Bash script" → bash scripts/vercel-ignore-build.sh
-
-  4. (With release auto-deploy active) the 'production' environment is created on
+  3. (With release auto-deploy active) the 'production' environment is created on
      the workflow's first run; optional: Settings → Environments → production →
      required reviewers, if you ever want a manual gate on the deploy.
 

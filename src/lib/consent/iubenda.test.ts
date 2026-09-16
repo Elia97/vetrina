@@ -4,7 +4,22 @@ import { describe, expect, it, vi } from 'vitest'
 import type { ConsentGate, ConsentPreference } from '@/lib/consent/gate'
 import { type BootstrapDeps, bootstrapIubenda, buildCsConfiguration } from '@/lib/consent/iubenda'
 
-const CONFIG = { siteId: '1234567', cookiePolicyId: '7654321', lang: 'it' }
+const ORIGIN = 'https://acme.test'
+
+const CONFIG = {
+  siteId: '1234567',
+  cookiePolicyId: '7654321',
+  lang: 'it',
+  cookiePolicyPath: '/cookie-policy',
+  privacyPolicyPath: '/privacy',
+}
+
+const csOptions = (onPreference: (pref: ConsentPreference) => void = vi.fn()) => ({
+  ...CONFIG,
+  cookiePolicyUrl: `${ORIGIN}/cookie-policy`,
+  privacyPolicyUrl: `${ORIGIN}/privacy`,
+  onPreference,
+})
 
 function makeGate(): ConsentGate & { applyPreference: ReturnType<typeof vi.fn> } {
   return {
@@ -15,7 +30,7 @@ function makeGate(): ConsentGate & { applyPreference: ReturnType<typeof vi.fn> }
 }
 
 function makeWin(config?: typeof CONFIG) {
-  const win = { __consentConfig: config } as unknown as Window & typeof globalThis
+  const win = { __consentConfig: config, location: { origin: ORIGIN } } as unknown as Window & typeof globalThis
   return win
 }
 
@@ -30,23 +45,39 @@ function boot(overrides: Partial<BootstrapDeps> = {}) {
 describe('buildCsConfiguration', () => {
   // Numeri, non stringhe: il widget di iubenda rifiuta in silenzio la forma stringa.
   it('converts the ids to numbers', () => {
-    const cfg = buildCsConfiguration({ ...CONFIG, onPreference: vi.fn() })
+    const cfg = buildCsConfiguration(csOptions())
     expect(cfg.siteId).toBe(1234567)
     expect(cfg.cookiePolicyId).toBe(7654321)
   })
 
   // [HARD] La navigazione continuata non è consenso secondo le linee guida 2021 del Garante.
   it('never accepts consent on continued browsing', () => {
-    expect(buildCsConfiguration({ ...CONFIG, onPreference: vi.fn() }).consentOnContinuedBrowsing).toBe(false)
+    expect(buildCsConfiguration(csOptions()).consentOnContinuedBrowsing).toBe(false)
   })
 
   it('asks for per-purpose consent, which is what the gate maps', () => {
-    expect(buildCsConfiguration({ ...CONFIG, onPreference: vi.fn() }).perPurposeConsent).toBe(true)
+    expect(buildCsConfiguration(csOptions()).perPurposeConsent).toBe(true)
+  })
+
+  it('sends both policy links to the pages of the site, opened in a new tab', () => {
+    const cfg = buildCsConfiguration(csOptions())
+
+    expect(cfg.cookiePolicyUrl).toBe(`${ORIGIN}/cookie-policy`)
+    expect(cfg.privacyPolicyUrl).toBe(`${ORIGIN}/privacy`)
+    expect(cfg.cookiePolicyInOtherWindow).toBe(true)
+    expect(cfg.privacyPolicyInOtherWindow).toBe(true)
+  })
+
+  it('omits a policy URL the site does not publish', () => {
+    const cfg = buildCsConfiguration({ ...csOptions(), cookiePolicyUrl: '', privacyPolicyUrl: '' })
+
+    expect(cfg).not.toHaveProperty('cookiePolicyUrl')
+    expect(cfg).not.toHaveProperty('privacyPolicyUrl')
   })
 
   it('routes both the fresh and the stored preference to the same handler', () => {
     const onPreference = vi.fn()
-    const { callback } = buildCsConfiguration({ ...CONFIG, onPreference })
+    const { callback } = buildCsConfiguration(csOptions(onPreference))
     const pref: ConsentPreference = { consent: true }
 
     callback.onPreferenceExpressed(pref)
@@ -75,6 +106,22 @@ describe('bootstrapIubenda', () => {
     const { loadScript } = boot({ win: makeWin({ ...CONFIG, siteId: '' }) })
 
     expect(loadScript).not.toHaveBeenCalled()
+  })
+
+  it('builds the policy URLs on the origin the page is served from', () => {
+    const { win } = boot()
+    const cfg = win._iub?.csConfiguration as ReturnType<typeof buildCsConfiguration>
+
+    expect(cfg.cookiePolicyUrl).toBe(`${ORIGIN}/cookie-policy`)
+    expect(cfg.privacyPolicyUrl).toBe(`${ORIGIN}/privacy`)
+  })
+
+  it('leaves the policy URLs out when the site publishes no legal page', () => {
+    const win = makeWin({ ...CONFIG, cookiePolicyPath: '', privacyPolicyPath: '' })
+    const cfg = boot({ win }).win._iub?.csConfiguration as ReturnType<typeof buildCsConfiguration>
+
+    expect(cfg).not.toHaveProperty('cookiePolicyUrl')
+    expect(cfg).not.toHaveProperty('privacyPolicyUrl')
   })
 })
 

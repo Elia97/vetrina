@@ -12,15 +12,22 @@ di niente, in questo file.
 
 La produzione esce **solo da un tag di release**, mai da un push su `main`:
 
-- `scripts/vercel-ignore-build.sh` è collegato all'*Ignored Build Step* di Vercel (Settings → Build
-  & Deployment → «Run my Bash script»). Esce 0 (salta) su `main` e su `release-please--*`, esce 1
-  (procedi) su tutto il resto, quindi l'integrazione git produce solo deploy di **preview**. I branch
-  di dependabot vengono tagliati ancora prima, da `git.deploymentEnabled` in `vercel.json`. Un salto
-  compare nel pannello come **deployment annullato di 1s**, non come un deployment mancante: vale la
-  pena saperlo prima di mettersi a cercare un deploy che non è mai avvenuto.
-- **Prima del primo tag di release non esiste nessun deployment**, né di preview né di produzione. Le
-  prime milestone si verificano solo con `pnpm dev` e `pnpm run build`: vale la pena saperlo prima di
-  promettere un link a un cliente.
+- `scripts/vercel-ignore-build.sh` arriva a Vercel da `ignoreCommand` in `vercel.json`, che
+  sovrascrive l'*Ignored Build Step* delle impostazioni di progetto (documentazione Vercel,
+  `project-configuration/vercel-json`). Il contratto è invertito: esce 0 (salta) su `main` e su
+  `release-please--*`, esce 1 (procedi) su tutto il resto, quindi l'integrazione git produce solo
+  deploy di **preview**. I branch di dependabot vengono tagliati ancora prima, da
+  `git.deploymentEnabled`, sempre in `vercel.json`. Un salto compare nel pannello come **deployment
+  annullato di 1s**, non come un deployment mancante: vale la pena saperlo prima di mettersi a
+  cercare un deploy che non è mai avvenuto.
+- **Il job di deploy non ci passa.** Il comando gira quando un deployment entra nello stato
+  `BUILDING` su Vercel (documentazione Vercel, `project-configuration/project-settings`), mentre
+  `deploy.yml` costruisce fuori da Vercel con `vercel build --prod` e carica l'artefatto già pronto
+  con `vercel deploy --prebuilt` (documentazione Vercel, `cli/build`): la strada del tag non incontra
+  mai questa regola.
+- **I preview esistono dal primo push, la produzione no.** Ogni branch pushato ne riceve uno, ma
+  prima del primo tag di release non esiste nessun deployment di produzione: vale la pena saperlo
+  prima di promettere un link a un cliente.
 - Il deploy di produzione è `.github/workflows/deploy.yml`: fa il checkout del **tag** rilasciato
   (non di quello che `main` punta in quel momento), poi `pnpm run check:placeholders` →
   `pnpm run ci` → `vercel pull --prod` → `pnpm run check:placeholders --env` → `vercel build --prod`
@@ -36,8 +43,12 @@ La produzione esce **solo da un tag di release**, mai da un push su `main`:
   locale sotto `.vercel/` (gitignored): da `project.json` dopo un `vercel link` normale, o da
   `repo.json` dopo `vercel link --repo`, dove gli stessi valori sono `projects[].orgId` e
   `projects[].id`.
-- La CLI di Vercel è **fissata a una versione** (`pnpm dlx vercel@58`) nel job `deploy`: Dependabot
-  non guarda dentro `pnpm dlx`, quindi si alza di proposito.
+- La CLI di Vercel è **fissata a una major** (`pnpm dlx vercel@59`) nel job `deploy`, e di quella
+  major `pnpm dlx` prende già da sé l'ultima minor: il buco è il salto di major, che Dependabot non
+  vede perché non guarda dentro `pnpm dlx`. Lo segnala `.github/workflows/vercel-cli.yml`,
+  settimanale e lanciabile a mano, che confronta il pin con la versione pubblicata su npm e fallisce
+  quando quella è più alta; `pnpm run check:vercel-cli` è lo stesso controllo in locale. La CLI
+  installata sulle macchine di lavoro segue la stessa major del pin.
 
 **Perché `RELEASE_PLEASE_TOKEN` è un secret a parte.** Una PR aperta con il `GITHUB_TOKEN` di default
 non fa scattare i workflow — è la protezione anti-ricorsione di GitHub — quindi senza il PAT la
@@ -146,7 +157,8 @@ l'unica eccezione, e va nella direzione opposta: tutto tranne `frame-ancestors` 
 fase di build — vedi § Content-Security-Policy.
 
 Anche `git.deploymentEnabled` vive qui, con `dependabot/**` a `false`: i branch di dependabot non
-ricevono nessun deploy di preview.
+ricevono nessun deploy di preview. E `ignoreCommand`, che è il comando dell'Ignored Build Step —
+vedi § Modello di deploy.
 
 Poiché niente di tutto questo gira in locale, ogni regola è fissata da un test dichiarativo, che è
 l'unico segnale disponibile prima del deploy:
@@ -156,6 +168,7 @@ l'unico segnale disponibile prima del deploy:
 | `src/vercel-headers.test.ts` | le sei intestazioni di sicurezza incondizionate, `frame-ancestors 'none'`, e che nessuna fra `default-src`, `script-src`, `style-src`, `connect-src` e `img-src` stia qui dentro |
 | `src/vercel-robots.test.ts` | la regola di noindex su `*.vercel.app`, e che non corrisponda mai al dominio personalizzato |
 | `src/vercel-botid.test.ts` | i rewrite del proxy BotID e la posizione della sovrascrittura di `X-Frame-Options` |
+| `src/vercel-git.test.ts` | `ignoreCommand` e il suo script, più i branch che non ricevono deploy |
 | `src/lib/csp/csp.test.ts` | ogni altra direttiva CSP — vedi § Content-Security-Policy |
 
 L'ordine delle regole conta e i test lo codificano: **vince l'ultima regola di intestazione che
@@ -234,12 +247,20 @@ La regola che decide se un fornitore tocca la CSP oppure no:
 - BotID **non** ha bisogno di nessuna voce nella CSP: la sua sfida passa da un proxy di stessa
   origine attraverso i rewrite di `vercel.json`, che è anche quello che tiene alla larga i blocca-
   pubblicità.
-- **La Vercel Toolbar vuole il suo permesso, e il template non glielo dà.** `frame-ancestors 'none'`
-  più `X-Frame-Options: DENY` la tengono fuori dai deploy di preview. Un progetto che la vuole
-  aggiunge `https://vercel.live` (script, stili, immagini, `connect-src` più
-  `wss://ws-us3.pusher.com`, e `assets.vercel.com` per i font) e rilassa `frame-ancestors` a
-  `'self' https://vercel.live` — togliendo `X-Frame-Options`, perché `frame-ancestors` lo supera ed è
-  l'unico dei due capace di esprimere quel permesso.
+- **La policy dei preview apre la Vercel Toolbar; quella di produzione no.** Con
+  `VERCEL_ENV === 'preview'` — la variabile che Vercel imposta solo sui deploy di preview —
+  `buildCspContent()` aggiunge `https://vercel.live` alle direttive che la toolbar tocca (script,
+  stili, immagini, font, `frame-src` e `connect-src`), più `wss://ws-us3.pusher.com` per il suo
+  WebSocket e `assets.vercel.com` per i font. In produzione, in CI e in locale non entra niente di
+  tutto questo, e il log del build lo dichiara: la riga `[csp-hashes]` porta «preview hosts» solo
+  quando quel ramo è acceso.
+- **Sempre sui preview, `manifest-src`.** Dietro la protezione del deployment Vercel riscrive il
+  `<link rel="manifest">` verso `vercel.com/sso-api`, e `default-src 'self'` lo blocca: sul preview
+  l'app non è installabile e la console riporta una violazione che in produzione non esiste.
+- `frame-ancestors 'none'` e `X-Frame-Options: DENY` restano come sono: alla toolbar serve
+  `frame-src`, cioè incorniciare la **propria** interfaccia dentro la pagina, non incorniciare la
+  pagina. Un progetto che vuole la toolbar anche in produzione allarga la policy allo stesso modo,
+  e lì la decisione su `frame-ancestors` va presa a parte.
 
 ## Tracciamento e Consent Mode v2
 
@@ -265,7 +286,8 @@ Conseguenze che vale la pena dichiarare apertamente:
   che lo chiede non basta a scavalcare questa regola.
 - GA4 si configura **dentro il container GTM**, non nell'applicazione. Gli eventi nuovi sono push su
   `dataLayer` (`src/lib/analytics/data-layer.ts`) più configurazione lato GTM: aggiungere un tag non
-  è una modifica al codice.
+  è una modifica al codice **finché quel tag non carica un host che la policy non permette** — la
+  tabella è in fondo a questa sezione.
 - La divisione ha un modo di fallire senza sintomi: l'applicazione manda un evento e il container non
   ascolta niente, quindi il tag non scatta mai e la build resta verde. `pnpm run analytics:verify`
   legge il `gtm.js` pubblico del container e segnala ogni evento che
@@ -281,6 +303,20 @@ Conseguenze che vale la pena dichiarare apertamente:
   consenso valido secondo le linee guida sui cookie del Garante del 2021.
   `floatingPreferencesButtonDisplay: false` è accettabile solo perché il consenso resta revocabile
   dal controllo `.iubenda-cs-preferences-link` nel footer. Se tieni il flag, tieni quel controllo.
+- **I due link legali del banner puntano alle pagine del sito**, non ai documenti ospitati da
+  iubenda: `buildCsConfiguration()` riceve `cookiePolicyUrl` e `privacyPolicyUrl` costruiti
+  sull'origine corrente più il percorso che sta in `SITE.legal`, e `cookiePolicyInOtherWindow` li
+  apre in una scheda nuova. Senza, la CMP apre la policy in un **iframe** verso `www.iubenda.com`:
+  `frame-src` non lo permette, il pannello resta vuoto e a dirlo è solo la console (verificato il
+  2026-09-16). iubenda chiede che la pagina collegata non usi cookie non tecnici — quella del
+  template è statica e non ne usa.
+- **Due cose le decide il pannello di iubenda, non questo codice.** Le finalità le porta la cookie
+  policy: se dichiara solo cookie tecnici, `_iub.csPurposes` resta `[1]`, non c'è nessun consenso da
+  chiedere e **non compare nessun banner**, per quanto il sito sia configurato bene. E su un piano
+  senza «full customization» la CMP ignora parte della configurazione: con
+  `csFeatures.full_customization` a `false` il bottone fluttuante delle preferenze resta acceso
+  anche con `floatingPreferencesButtonDisplay: false`, e il testo del banner torna ai default. Su un
+  piano che la comprende il flag funziona. Verificato il 2026-09-16.
 - Si carica solo `iubenda_cs.js`: niente autoblocking, niente stub GPP. L'autoblocking aggiungerebbe
   una richiesta che blocca il parser e una seconda fonte di verità per un gate che l'applicazione già
   possiede.
@@ -289,6 +325,36 @@ Conseguenze che vale la pena dichiarare apertamente:
   il proprio script con `createElement('script').src` (`src/lib/analytics/bootstrap.ts`), che
   l'allowlist degli host copre — nessun hash è coinvolto. Un fornitore *oltre* questo insieme è una
   modifica a `directives.ts`, secondo le regole della § Content-Security-Policy qui sopra.
+
+### Quali host chiede un tag aggiunto nel container
+
+Il container è il punto in cui il cliente aggiunge tag **senza toccare il repository**, e ogni tag si
+porta dietro le sue origini. Se non sono nella policy il tag non spara: nessun errore, nessuna
+conversione, e niente che colleghi la cosa a un file che sta nel repo dello sviluppatore — di solito
+passano settimane. **Quando il cliente chiede un tag nuovo, la CSP è la prima cosa da controllare.**
+
+Le righe Google vengono dalla guida «Use Tag Manager with a Content Security Policy»
+(`developers.google.com/tag-platform/security/guides/csp`, riletta il 2026-09-16); le ultime due sono
+empiriche, da un progetto vivo.
+
+| Tag aggiunto nel container | Host, e la direttiva che li vuole |
+|---|---|
+| GA4, funzioni pubblicitarie comprese | già in `directives.ts`: `*.google-analytics.com` e `*.analytics.google.com`, più `*.g.doubleclick.net` e `*.google.com` fra `img-src` e `connect-src` |
+| Google Ads: conversioni, remarketing, conversion linker | `www.googleadservices.com`, `googleads.g.doubleclick.net` e `pagead2.googlesyndication.com` in `script-src`; gli stessi più `www.google.com` in `img-src` e `connect-src`; `ad.doubleclick.net` in `connect-src` |
+| Floodlight | `ad.doubleclick.net`, `ade.googlesyndication.com` e `adservice.google.com` in `img-src`; `pagead2.googlesyndication.com`, `www.googleadservices.com`, `www.google.com` e `ad.doubleclick.net` in `connect-src`; con i beacon a script personalizzati, `<id>.fls.doubleclick.net` in `frame-src` |
+| Modalità Anteprima del container | già nel ramo preview di `directives.ts`: `tagmanager.google.com`, `ssl.gstatic.com`, `www.gstatic.com`, `fonts.googleapis.com`, `fonts.gstatic.com` |
+| CMP iubenda — non arriva dal container, ma vive nella stessa policy | già in `directives.ts`: `cdn.iubenda.com` serve il loader, il core e il pannello delle preferenze (`script-src`, `style-src`, `img-src`), `cs.iubenda.com` la configurazione del sito (`script-src`), e `*.iubenda.com` in `connect-src` copre la telemetria di `idb.iubenda.com` |
+| Meta Pixel | `connect.facebook.net` in `script-src`; `www.facebook.com` in `img-src` e `connect-src` |
+| Sortlist | `collector.sortlist.com` e `radar.sortlist.com`; quali direttive, lo dice la console al primo giro |
+
+⚠️ **Il TLD nazionale si aggiunge a mano.** Google elenca `www.google.<TLD>` accanto a
+`www.google.com`: è l'host che il browser del visitatore contatta nel suo paese, e in CSP il jolly
+sul dominio di primo livello non esiste. Si aggiungono a uno a uno i TLD del pubblico del progetto
+(`https://www.google.it` e simili).
+
+La tabella copre i tag che si incontrano più spesso, non tutti. Per gli altri vale la procedura di
+§ Content-Security-Policy: un preview, la console aperta sul percorso di accettazione e su quello di
+rifiuto, e i rifiuti che compaiono solo lì.
 
 ## Ricostruire le pagine legali dopo una modifica alle policy
 
@@ -308,6 +374,11 @@ andati alla deriva.
   una degradazione accettabile. Una build rossa per un iubenda instabile è l'esito economico: si
   rilancia il deploy. In sviluppo il ripiego resta, così una connessione ballerina non può fermare
   `astro dev`.
+- **L'API dei documenti è una funzione a pagamento.** Sul piano gratuito
+  `www.iubenda.com/api/privacy-policy/<id>/…/no-markup` risponde `403` con «To access this document
+  via API please upgrade to a higher tier» (verificato il 2026-09-16), quindi con un id di policy
+  impostato la regola qui sopra ferma ogni build di produzione, in locale come su un preview. Su un
+  piano senza API l'id non si imposta e le pagine legali restano il ripiego.
 
 ## Salute e monitoraggio
 
@@ -368,6 +439,10 @@ spedire qualcosa che la strada della release avrebbe preso.
 - `context: 'client'` (e per convenzione il prefisso `PUBLIC_`) significa che il valore viene
   **incorporato nel bundle**, quindi è pubblico per costruzione. Un segreto lì è una fuga di dati, a
   prescindere da come lo etichetta il provider di deploy.
+- **Un `.env.local` con le `PUBLIC_*` del tracciamento fa fallire `pnpm run ci`.** I test dello stato
+  spento leggono quelle chiavi dagli stub registrati in `vitest.config.ts` e si aspettano `null`: con
+  una CMP configurata in locale diventano rossi quattro test fra `src/lib/analytics/tracking.test.ts`
+  e `src/components/layout/footer.test.ts`. Si toglie il file prima di lanciare il gate.
 - Il pattern ricorrente per tutto ciò che si appoggia a un fornitore: si dichiara `optional`, e poi
   quando manca **in sviluppo non fa niente ma lo dice, in produzione rifiuta esplicitamente**
   (`BREVO_API_KEY` è il riferimento). Il silenzio è il modo di fallire da evitare: un form che
@@ -439,7 +514,8 @@ spedire qualcosa che la strada della release avrebbe preso.
    deploy si ferma su ogni segnaposto rimasto in `site.ts`, `company.ts` e nei dizionari.
 2. Dominio aggiunto in Vercel, DNS puntato, HTTPS emesso. Si decide l'host canonico (apice o `www`) e
    si dichiara il redirect in `vercel.json`.
-3. Ignored Build Step impostato su `bash scripts/vercel-ignore-build.sh`.
+3. Ignored Build Step vuoto nella dashboard: il comando lo dichiara `ignoreCommand` in `vercel.json`,
+   e un progetto più vecchio che lo porta anche lì ha due fonti per la stessa regola.
 4. `bash scripts/bootstrap-github.sh` lanciato sul repo (è idempotente).
 5. Secret del repo impostati; la prima PR di release-please mergiata.
 6. DKIM, SPF e DMARC del dominio mittente verificati in Brevo, `CONTACT_*` e `BREVO_API_KEY`
