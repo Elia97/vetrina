@@ -50,3 +50,9 @@ docs/*.pdf
 # Lighthouse CI local reports
 .lighthouseci/
 dist/lh-prod/
+
+# Playwright (traccia, rapporto e artefatti degli scenari)
+test-results/
+playwright-report/
+blob-report/
+.playwright/

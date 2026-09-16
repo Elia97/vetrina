@@ -81,7 +81,7 @@ regione della funzione.
 
 ## La catena dei gate
 
-Cinque gate, e ognuno copre un momento che gli altri non coprono:
+Sei gate, e ognuno copre un momento che gli altri non coprono:
 
 | Gate | Dove | Copre |
 |---|---|---|
@@ -89,7 +89,14 @@ Cinque gate, e ognuno copre un momento che gli altri non coprono:
 | `pnpm run ci` | job `deploy`, sul tag | ciò che parte dal tag |
 | `pnpm run check:placeholders` | job `deploy`, prima di `pnpm run ci` e dopo `vercel pull` | i segnaposto del template nei sorgenti e nell'ambiente di produzione |
 | `pnpm perf:bundle` | `ci.yml`, dopo la build | il JavaScript client per rotta |
+| `pnpm run test:e2e` | `ci.yml`, sulla stessa build | ciò che si rompe solo dentro un browser |
 | `pnpm smoke:prod` | job `deploy`, dopo il deploy | ciò che il bordo serve davvero |
+
+**`test:e2e` sta nel job `ci` e non in un workflow a parte** perché il ruleset di `main` pretende il
+contesto `ci`: altrove i suoi scenari non fermerebbero niente. Sono quattro, tenuti piccoli di
+proposito — home, nav mobile, tema, form di contatto — e girano su `dist/client` servito piatto, che
+è dove la CSP costruita vive in un `<meta>` e una violazione si vede davvero. Il form non chiama mai
+Brevo: `e2e/support.ts` intercetta l'Action e la sfida di BotID.
 
 `pnpm run ci` ne contiene nove in fila, e l'ordine non è casuale: Biome con `--error-on-warnings`
 (un avviso è un errore), il type-check, i confini di `.fallowrc.jsonc`, la lingua, i rimandi fra
