@@ -310,6 +310,13 @@ Conseguenze che vale la pena dichiarare apertamente:
   `frame-src` non lo permette, il pannello resta vuoto e a dirlo è solo la console (verificato il
   2026-09-16). iubenda chiede che la pagina collegata non usi cookie non tecnici — quella del
   template è statica e non ne usa.
+- **Due cose le decide il pannello di iubenda, non questo codice.** Le finalità le porta la cookie
+  policy: se dichiara solo cookie tecnici, `_iub.csPurposes` resta `[1]`, non c'è nessun consenso da
+  chiedere e **non compare nessun banner**, per quanto il sito sia configurato bene. E su un piano
+  senza «full customization» la CMP ignora parte della configurazione: con
+  `csFeatures.full_customization` a `false` il bottone fluttuante delle preferenze resta acceso
+  anche con `floatingPreferencesButtonDisplay: false`, e il testo del banner torna ai default. Su un
+  piano che la comprende il flag funziona. Verificato il 2026-09-16.
 - Si carica solo `iubenda_cs.js`: niente autoblocking, niente stub GPP. L'autoblocking aggiungerebbe
   una richiesta che blocca il parser e una seconda fonte di verità per un gate che l'applicazione già
   possiede.
