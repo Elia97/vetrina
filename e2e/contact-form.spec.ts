@@ -61,14 +61,11 @@ test('reports success on a 204, without ever reaching Brevo', async ({ page }) =
 })
 
 test('carries the BotID header, so the challenge is what gates the request', async ({ page }) => {
-  const headers: string[] = []
-  await page.route(ACTION_PATH, (route) => {
-    headers.push(route.request().headers()['x-is-human'] ?? '')
-    return route.fulfill({ status: 204 })
-  })
+  await page.route(ACTION_PATH, (route) => route.fulfill({ status: 204 }))
   await page.goto('/contatti')
 
+  const sent = page.waitForRequest((request) => request.url().includes('/_actions/contact'))
   await page.locator(SUBMIT).click()
 
-  expect(headers[0]).toContain('"b":1')
+  expect((await sent).headers()['x-is-human']).toContain('"b":1')
 })
