@@ -286,7 +286,8 @@ Conseguenze che vale la pena dichiarare apertamente:
   che lo chiede non basta a scavalcare questa regola.
 - GA4 si configura **dentro il container GTM**, non nell'applicazione. Gli eventi nuovi sono push su
   `dataLayer` (`src/lib/analytics/data-layer.ts`) più configurazione lato GTM: aggiungere un tag non
-  è una modifica al codice.
+  è una modifica al codice **finché quel tag non carica un host che la policy non permette** — la
+  tabella è in fondo a questa sezione.
 - La divisione ha un modo di fallire senza sintomi: l'applicazione manda un evento e il container non
   ascolta niente, quindi il tag non scatta mai e la build resta verde. `pnpm run analytics:verify`
   legge il `gtm.js` pubblico del container e segnala ogni evento che
@@ -310,6 +311,35 @@ Conseguenze che vale la pena dichiarare apertamente:
   il proprio script con `createElement('script').src` (`src/lib/analytics/bootstrap.ts`), che
   l'allowlist degli host copre — nessun hash è coinvolto. Un fornitore *oltre* questo insieme è una
   modifica a `directives.ts`, secondo le regole della § Content-Security-Policy qui sopra.
+
+### Quali host chiede un tag aggiunto nel container
+
+Il container è il punto in cui il cliente aggiunge tag **senza toccare il repository**, e ogni tag si
+porta dietro le sue origini. Se non sono nella policy il tag non spara: nessun errore, nessuna
+conversione, e niente che colleghi la cosa a un file che sta nel repo dello sviluppatore — di solito
+passano settimane. **Quando il cliente chiede un tag nuovo, la CSP è la prima cosa da controllare.**
+
+Le righe Google vengono dalla guida «Use Tag Manager with a Content Security Policy»
+(`developers.google.com/tag-platform/security/guides/csp`, riletta il 2026-09-16); le ultime due sono
+empiriche, da un progetto vivo.
+
+| Tag aggiunto nel container | Host, e la direttiva che li vuole |
+|---|---|
+| GA4, funzioni pubblicitarie comprese | già in `directives.ts`: `*.google-analytics.com` e `*.analytics.google.com`, più `*.g.doubleclick.net` e `*.google.com` fra `img-src` e `connect-src` |
+| Google Ads: conversioni, remarketing, conversion linker | `www.googleadservices.com`, `googleads.g.doubleclick.net` e `pagead2.googlesyndication.com` in `script-src`; gli stessi più `www.google.com` in `img-src` e `connect-src`; `ad.doubleclick.net` in `connect-src` |
+| Floodlight | `ad.doubleclick.net`, `ade.googlesyndication.com` e `adservice.google.com` in `img-src`; `pagead2.googlesyndication.com`, `www.googleadservices.com`, `www.google.com` e `ad.doubleclick.net` in `connect-src`; con i beacon a script personalizzati, `<id>.fls.doubleclick.net` in `frame-src` |
+| Modalità Anteprima del container | già nel ramo preview di `directives.ts`: `tagmanager.google.com`, `ssl.gstatic.com`, `www.gstatic.com`, `fonts.googleapis.com`, `fonts.gstatic.com` |
+| Meta Pixel | `connect.facebook.net` in `script-src`; `www.facebook.com` in `img-src` e `connect-src` |
+| Sortlist | `collector.sortlist.com` e `radar.sortlist.com`; quali direttive, lo dice la console al primo giro |
+
+⚠️ **Il TLD nazionale si aggiunge a mano.** Google elenca `www.google.<TLD>` accanto a
+`www.google.com`: è l'host che il browser del visitatore contatta nel suo paese, e in CSP il jolly
+sul dominio di primo livello non esiste. Si aggiungono a uno a uno i TLD del pubblico del progetto
+(`https://www.google.it` e simili).
+
+La tabella copre i tag che si incontrano più spesso, non tutti. Per gli altri vale la procedura di
+§ Content-Security-Policy: un preview, la console aperta sul percorso di accettazione e su quello di
+rifiuto, e i rifiuti che compaiono solo lì.
 
 ## Ricostruire le pagine legali dopo una modifica alle policy
 

@@ -1,5 +1,5 @@
-// Ogni origine di terze parti va qui, mai in `vercel.json`: una policy che blocca il CMP non
-// solleva nessun errore, semplicemente in produzione non rende nessun banner dei cookie.
+// Ogni origine di terze parti va qui, mai in `vercel.json`: una voce mancante non solleva nessun
+// errore. Quale host serve a quale tag: docs/guides/deploy-ops.md § Tracciamento e Consent Mode v2.
 
 type Sources = Record<string, readonly string[]>
 
@@ -12,6 +12,8 @@ const BASE: Sources = {
     'data:',
     'https://www.googletagmanager.com',
     'https://*.google-analytics.com',
+    'https://*.g.doubleclick.net',
+    'https://*.google.com',
     'https://cdn.iubenda.com',
   ],
   'font-src': ["'self'", 'data:'],
@@ -21,6 +23,9 @@ const BASE: Sources = {
     'https://www.googletagmanager.com',
     'https://*.google-analytics.com',
     'https://*.analytics.google.com',
+    'https://*.g.doubleclick.net',
+    'https://*.google.com',
+    'https://pagead2.googlesyndication.com',
     'https://*.iubenda.com',
   ],
   'frame-src': ['https://www.googletagmanager.com'],
@@ -28,13 +33,24 @@ const BASE: Sources = {
   'form-action': ["'self'"],
 }
 
-// Host della Vercel Toolbar, dalla documentazione Vercel `vercel-toolbar/managing-toolbar`.
-// `manifest-src`: dietro la protezione del deployment il manifest passa da `vercel.com/sso-api`.
+// Solo sui preview: Vercel Toolbar (`vercel-toolbar/managing-toolbar`) e Anteprima di GTM (guida CSP
+// di Google); `manifest-src` perché la protezione del deployment riscrive il manifest su vercel.com.
 const PREVIEW: Sources = {
-  'script-src': ['https://vercel.live'],
-  'style-src': ['https://vercel.live'],
-  'img-src': ['https://vercel.live', 'https://vercel.com', 'blob:'],
-  'font-src': ['https://vercel.live', 'https://assets.vercel.com'],
+  'script-src': ['https://vercel.live', 'https://tagmanager.google.com'],
+  'style-src': [
+    'https://vercel.live',
+    'https://www.googletagmanager.com',
+    'https://tagmanager.google.com',
+    'https://fonts.googleapis.com',
+  ],
+  'img-src': [
+    'https://vercel.live',
+    'https://vercel.com',
+    'blob:',
+    'https://ssl.gstatic.com',
+    'https://www.gstatic.com',
+  ],
+  'font-src': ['https://vercel.live', 'https://assets.vercel.com', 'https://fonts.gstatic.com'],
   'connect-src': ['https://vercel.live', 'wss://ws-us3.pusher.com'],
   'frame-src': ['https://vercel.live'],
   'manifest-src': ["'self'", 'https://vercel.com'],

@@ -122,6 +122,13 @@ describe('buildCspContent on a preview deploy', () => {
     expect(directive('frame-src')).toContain('https://vercel.live')
   })
 
+  it('lets GTM Preview mode load its own interface', () => {
+    expect(directive('script-src')).toContain('https://tagmanager.google.com')
+    expect(directive('style-src')).toContain('https://fonts.googleapis.com')
+    expect(directive('img-src')).toContain('https://www.gstatic.com')
+    expect(directive('font-src')).toContain('https://fonts.gstatic.com')
+  })
+
   it('declares manifest-src, which the deployment protection routes through vercel.com', () => {
     expect(directive('manifest-src')).toContain('https://vercel.com')
     expect(directive('manifest-src')).toContain("'self'")
