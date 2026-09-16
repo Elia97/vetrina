@@ -71,25 +71,12 @@ echo "✓ server ready"
 
 rm -rf "${REPORT_DIR}"
 
-RC_TMP="$(mktemp -t lhci-local-XXXXXX.json)"
-LH_PORT="${PORT}" LH_RUNS="${LHCI_RUNS:-1}" LH_OUT="${REPORT_DIR}" node -e '
-const fs = require("fs")
-const port = process.env.LH_PORT
-const rc = JSON.parse(fs.readFileSync(".lighthouserc.json", "utf8"))
-delete rc.ci.collect.startServerCommand
-delete rc.ci.collect.startServerReadyPattern
-delete rc.ci.collect.startServerReadyTimeout
-rc.ci.collect.url = ["/", "/contatti", "/privacy"].map(
-  (p) => `http://localhost:${port}${p}`,
-)
-rc.ci.collect.numberOfRuns = Number(process.env.LH_RUNS)
-rc.ci.collect.settings = { ...rc.ci.collect.settings, chromeFlags: "--no-sandbox --disable-dev-shm-usage" }
-rc.ci.upload = { target: "filesystem", outputDir: process.env.LH_OUT }
-fs.writeFileSync(process.argv[1], JSON.stringify(rc, null, 2))
-' "${RC_TMP}"
-
-pnpm dlx @lhci/cli autorun --config="${RC_TMP}"
-rm -f "${RC_TMP}"
+LH_PORT="${PORT}" \
+LH_RUNS="${LHCI_RUNS:-1}" \
+LH_OUT="${REPORT_DIR}" \
+LH_EXTERNAL_SERVER=1 \
+LH_CHROME_FLAGS='--no-sandbox --disable-dev-shm-usage' \
+  node scripts/lighthouse.mjs
 
 echo
 echo "→ score per URL (median over ${LHCI_RUNS:-1} run(s), the way LHCI asserts)"

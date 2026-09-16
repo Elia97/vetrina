@@ -1,4 +1,5 @@
 import { always, context, SITE_URL, secureHeaders, statuses } from '@test/helpers/smoke-fetch'
+import { PAGES } from '@test/helpers/smoke-pages'
 import { describe, expect, it, vi } from 'vitest'
 
 import {
@@ -6,7 +7,6 @@ import {
   checkBotIdChallenge,
   checkCanonicalHost,
   checkTrailingSlash,
-  PAGES,
   runChecks,
   SECURITY_HEADERS,
 } from './smoke-production'
@@ -74,7 +74,7 @@ describe('checkTrailingSlash', () => {
   it('passes on a 308 whose location drops the slash', async () => {
     const get = vi.fn(always({ status: 308, headers: { location: `${SITE_URL}${probed}` } }))
 
-    expect(statuses(await checkTrailingSlash(context(get)))).toEqual(['pass'])
+    expect(statuses(await checkTrailingSlash(context(get), PAGES))).toEqual(['pass'])
     expect(get).toHaveBeenCalledWith(`${SITE_URL}${probed}/`)
   })
 
@@ -83,16 +83,28 @@ describe('checkTrailingSlash', () => {
     [{ status: 308, headers: { location: `${SITE_URL}/altrove` } }, /does not point at/],
     [{ status: 308, headers: {} }, /location ""/],
   ])('fails on %o', async (init, detail) => {
-    const [result] = await checkTrailingSlash(context(always(init)))
+    const [result] = await checkTrailingSlash(context(always(init)), PAGES)
 
     expect(result?.status).toBe('fail')
     expect(result?.detail).toMatch(detail)
   })
 
   it('reports a network error', async () => {
-    const [result] = await checkTrailingSlash(context(() => Promise.reject(new Error('ECONNRESET'))))
+    const [result] = await checkTrailingSlash(
+      context(() => Promise.reject(new Error('ECONNRESET'))),
+      PAGES,
+    )
 
     expect(result).toMatchObject({ status: 'fail', detail: 'ECONNRESET' })
+  })
+
+  it('skips on a site whose only HTML route is the root, where no slash can be dropped', async () => {
+    const get = vi.fn(always({}))
+
+    const [result] = await checkTrailingSlash(context(get), [{ path: '/', type: 'text/html' }])
+
+    expect(result).toMatchObject({ status: 'skip' })
+    expect(get).not.toHaveBeenCalled()
   })
 })
 
@@ -100,7 +112,7 @@ describe('runChecks', () => {
   it('runs every check, in order', async () => {
     const headers = { ...secureHeaders(), 'content-type': 'text/html' }
 
-    const results = await runChecks(context(always({ headers })))
+    const results = await runChecks(context(always({ headers })), PAGES)
 
     expect(results.map(({ check }) => check)).toEqual([
       ...PAGES.map(({ path }) => `GET ${path}`),

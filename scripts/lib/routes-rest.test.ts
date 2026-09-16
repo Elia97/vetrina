@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { expectedRoutes } from './bundle-budget'
+import { expectedRoutes } from './routes'
 
 describe('rest routes', () => {
   const patternsOf = (file: string) =>

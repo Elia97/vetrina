@@ -4,7 +4,10 @@
 import process from 'node:process'
 
 import { SITE } from '../src/lib/site.ts'
+import { expectedRoutes, readPageFiles, smokeRoutes } from './lib/routes.ts'
 import { runChecks, waitForAlias } from './lib/smoke-production.ts'
+
+const PAGES_DIR = 'src/pages'
 
 // L'apice, non l'URL *.vercel.app che stampa `vercel deploy`: lì la regola `has: host` di vercel.json mette noindex.
 const baseUrl = (process.argv[2] ?? SITE.url).replace(/\/+$/, '')
@@ -20,10 +23,12 @@ const context = {
   siteUrl: SITE.url,
 }
 
+const pages = smokeRoutes(expectedRoutes(readPageFiles(PAGES_DIR), PAGES_DIR))
+
 console.log(`\nProduction smoke — ${baseUrl}\n`)
 
 await waitForAlias(context, (ms) => new Promise((resolve) => setTimeout(resolve, ms)))
-const results = await runChecks(context)
+const results = await runChecks(context, pages)
 
 for (const { check, status, detail } of results) {
   if (status === 'pass') console.log(`✓ ${check}`)

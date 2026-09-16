@@ -1,3 +1,5 @@
+import type { VerifiedRoute } from './routes'
+
 export interface SmokeResponse {
   ok: boolean
   status: number
@@ -23,14 +25,6 @@ const fail = (check: string, detail: string): CheckResult => ({ check, status: '
 const skip = (check: string, detail: string): CheckResult => ({ check, status: 'skip', detail })
 
 const messageOf = (error: unknown) => (error instanceof Error ? error.message : String(error))
-
-export const PAGES = [
-  { path: '/', type: 'text/html' },
-  { path: '/contatti', type: 'text/html' },
-  { path: '/robots.txt', type: 'text/plain' },
-  { path: '/sitemap-index.xml', type: 'xml' },
-  { path: '/api/health', type: 'application/json' },
-] as const
 
 // Dalla regola globale `/(.*)` di vercel.json. `null` = verifica solo la presenza; src/vercel-headers.test.ts fissa i valori.
 export const SECURITY_HEADERS: Record<string, string | null> = {
@@ -59,9 +53,12 @@ export async function waitForAlias(
   }
 }
 
-export async function checkPages({ get, baseUrl }: SmokeContext): Promise<CheckResult[]> {
+export async function checkPages(
+  { get, baseUrl }: SmokeContext,
+  pages: readonly VerifiedRoute[],
+): Promise<CheckResult[]> {
   const results: CheckResult[] = []
-  for (const { path, type } of PAGES) {
+  for (const { path, type } of pages) {
     const check = `GET ${path}`
     try {
       const response = await get(`${baseUrl}${path}`)
@@ -126,10 +123,12 @@ export async function checkCanonicalHost({ get, baseUrl, siteUrl }: SmokeContext
   }
 }
 
-export async function checkTrailingSlash({ get, baseUrl }: SmokeContext): Promise<CheckResult[]> {
-  const page = PAGES.find(({ path, type }) => type === 'text/html' && path !== '/')
+export async function checkTrailingSlash(
+  { get, baseUrl }: SmokeContext,
+  pages: readonly VerifiedRoute[],
+): Promise<CheckResult[]> {
+  const page = pages.find(({ path, type }) => type === 'text/html' && path !== '/')
   const check = 'trailing slash → 308'
-  /* v8 ignore next -- PAGES porta sempre una pagina HTML diversa da /, ma find() la tipizza facoltativa */
   if (page === undefined) return [skip(check, 'no HTML page other than / to probe')]
   try {
     const response = await get(`${baseUrl}${page.path}/`)
@@ -142,12 +141,12 @@ export async function checkTrailingSlash({ get, baseUrl }: SmokeContext): Promis
   }
 }
 
-export async function runChecks(context: SmokeContext): Promise<CheckResult[]> {
+export async function runChecks(context: SmokeContext, pages: readonly VerifiedRoute[]): Promise<CheckResult[]> {
   return [
-    ...(await checkPages(context)),
+    ...(await checkPages(context, pages)),
     ...(await checkSecurityHeaders(context)),
     ...(await checkBotIdChallenge(context)),
     ...(await checkCanonicalHost(context)),
-    ...(await checkTrailingSlash(context)),
+    ...(await checkTrailingSlash(context, pages)),
   ]
 }
