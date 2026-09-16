@@ -10,28 +10,18 @@ import {
   CSS_BUDGET_GZIP,
   cssBudgetFailure,
   deferredClosure,
-  expectedRoutes,
   heaviestStylesheet,
   htmlEntries,
-  missingRouteFailures,
   parseEdges,
-  routeOf,
   staticClosure,
 } from './lib/bundle-budget.ts'
+import { expectedRoutes, filesWithExtension, missingRouteFailures, readPageFiles, routeOf } from './lib/routes.ts'
 
 const DIST = 'dist/client'
 const ASSETS = join(DIST, '_astro')
 const PAGES = 'src/pages'
 
 const gz = (bytes) => `${(bytes / 1024).toFixed(1)} KB`
-
-function walk(dir, extension) {
-  return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
-    const path = join(dir, entry.name)
-    if (entry.isDirectory()) return walk(path, extension)
-    return entry.name.endsWith(extension) ? [path] : []
-  })
-}
 
 function readStylesheets() {
   return readdirSync(ASSETS)
@@ -49,7 +39,7 @@ function readChunks() {
 }
 
 const chunks = readChunks()
-const pages = walk(DIST, '.html')
+const pages = filesWithExtension(DIST, '.html')
   .map((htmlPath) => {
     const route = routeOf(htmlPath, DIST)
     const reached = staticClosure(htmlEntries(readFileSync(htmlPath, 'utf8')), chunks)
@@ -63,10 +53,7 @@ const pages = walk(DIST, '.html')
   })
   .sort((a, b) => b.gzip - a.gzip)
 
-const expected = expectedRoutes(
-  walk(PAGES, '.astro').map((file) => ({ file, source: readFileSync(file, 'utf8') })),
-  PAGES,
-)
+const expected = expectedRoutes(readPageFiles(PAGES), PAGES)
 
 const failures = missingRouteFailures(
   expected,

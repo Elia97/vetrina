@@ -1,8 +1,6 @@
 {
   "$schema": "https://raw.githubusercontent.com/fallow-rs/fallow/main/schema.json",
 
-  // Gli hook di Claude Code hanno i loro test e non fanno parte dell'applicazione.
-  "ignorePatterns": [".claude/**"],
   "entry": ["src/components/ui/**", "src/lib/motion/index.ts"],
   "ignoreDependencies": [
     // fallow non conta gli import di astro.config.mjs come uso in produzione.

@@ -8,7 +8,6 @@ function git(args: string[], { allowFailure = false }: GitOptions = {}): string 
   const result = spawnSync('git', args, { encoding: 'utf8' })
   if (result.status !== 0) {
     if (allowFailure) return ''
-    /* v8 ignore next -- il ripiego copre un git che esce diverso da zero senza scrivere su stderr: nessuna delle chiamate qui sotto lo fa */
     throw new Error(result.stderr.trim() || `git ${args.join(' ')} fallito`)
   }
   return result.stdout

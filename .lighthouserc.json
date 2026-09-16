@@ -4,7 +4,6 @@
       "startServerCommand": "pnpm dlx serve@14 dist/client --listen 4321 --no-clipboard",
       "startServerReadyPattern": "Accepting connections",
       "startServerReadyTimeout": 120000,
-      "url": ["http://localhost:4321/", "http://localhost:4321/contatti", "http://localhost:4321/privacy"],
       "numberOfRuns": 3
     },
     "assert": {

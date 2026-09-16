@@ -47,6 +47,18 @@ jobs:
       # Legge dist/client, quindi deve seguire la build.
       - run: pnpm run perf:bundle
 
+      - name: Cache del browser di Playwright
+        uses: actions/cache@v6
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('pnpm-lock.yaml') }}
+
+      # Solo chromium: gli scenari provano il nostro codice, non le differenze fra motori.
+      - run: pnpm exec playwright install --with-deps chromium
+
+      # Serve la stessa dist/client che perf:bundle ha appena misurato.
+      - run: pnpm run test:e2e
+
   # Altrimenti `fallow review` gira solo a mano: una PR aperta a mano o da Dependabot non lo
   # vedrebbe mai. I confini stanno invece dentro `pnpm run ci`, che gira nel job qui sopra.
   fallow:

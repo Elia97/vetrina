@@ -1,13 +1,15 @@
 import { always, context, response, secureHeaders, statuses } from '@test/helpers/smoke-fetch'
+import { PAGES } from '@test/helpers/smoke-pages'
 import { describe, expect, it, vi } from 'vitest'
 
-import { checkPages, checkSecurityHeaders, type Fetcher, PAGES, waitForAlias } from './smoke-production'
+import { checkPages, checkSecurityHeaders, type Fetcher, waitForAlias } from './smoke-production'
 
-// Il content-type che il bordo serve davvero per ogni `type` dichiarato da PAGES.
+// Il content-type che il bordo serve davvero per ogni `type` che smokeRoutes() dichiara.
 const SERVED_CONTENT_TYPE: Record<string, string> = {
   'text/html': 'text/html; charset=utf-8',
   'text/plain': 'text/plain; charset=utf-8',
   xml: 'application/xml',
+  json: 'application/manifest+json; charset=utf-8',
   'application/json': 'application/json',
 }
 
@@ -50,7 +52,7 @@ describe('checkPages', () => {
   it('passes every declared page when the status and content-type line up', async () => {
     const get: Fetcher = (url) => Promise.resolve(response({ headers: { 'content-type': contentTypeFor(url) } }))
 
-    expect(statuses(await checkPages(context(get)))).toEqual(PAGES.map(() => 'pass'))
+    expect(statuses(await checkPages(context(get), PAGES))).toEqual(PAGES.map(() => 'pass'))
   })
 
   it.each([
@@ -58,20 +60,26 @@ describe('checkPages', () => {
     [{ headers: { 'content-type': 'application/json' } }, /expected a text\/html content-type/],
     [{ headers: {} }, /got ""/],
   ])('fails the root page on %o', async (init, detail) => {
-    const [root] = await checkPages(context(always(init)))
+    const [root] = await checkPages(context(always(init)), PAGES)
 
     expect(root?.status).toBe('fail')
     expect(root?.detail).toMatch(detail)
   })
 
   it('reports a network error as the failure detail', async () => {
-    const [root] = await checkPages(context(() => Promise.reject(new Error('ECONNREFUSED'))))
+    const [root] = await checkPages(
+      context(() => Promise.reject(new Error('ECONNREFUSED'))),
+      PAGES,
+    )
 
     expect(root).toMatchObject({ status: 'fail', detail: 'ECONNREFUSED' })
   })
 
   it('stringifies a thrown non-Error', async () => {
-    const [root] = await checkPages(context(() => Promise.reject('socket hang up')))
+    const [root] = await checkPages(
+      context(() => Promise.reject('socket hang up')),
+      PAGES,
+    )
 
     expect(root?.detail).toBe('socket hang up')
   })

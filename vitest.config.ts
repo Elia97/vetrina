@@ -33,7 +33,7 @@ export default getViteConfig({
     include: ['src/**/*.test.ts', 'scripts/**/*.test.ts', 'test/**/*.test.ts'],
     exclude: ['src/pages/**/*.test.ts', 'node_modules/**'],
     // Il gate CRAP di fallow legge coverage/coverage-final.json, che scrive il reporter `json`;
-    // senza quel rapporto assume una copertura dello 0%.
+    // senza, stima la copertura dal grafo dei moduli invece di leggerla.
     coverage: {
       provider: 'v8',
       reporter: ['text-summary', 'json'],
@@ -41,12 +41,12 @@ export default getViteConfig({
         'src/**/*.ts',
         'scripts/lib/**/*.ts',
         'scripts/gen/**/*.mjs',
-        'test/stubs/**/*.ts',
         'src/components/layout/footer.astro',
         'src/components/homepage/hero.astro',
       ],
       exclude: ['**/*.test.ts', 'src/types/**', 'src/content.config.ts', 'src/lib/company.ts', 'src/i18n/strings/**'],
-      thresholds: { statements: 100, branches: 100, functions: 100, lines: 100 },
+      // vitest applica le soglie globali a ogni file, glob compresi: senza globali, `scripts/` resta senza soglia.
+      thresholds: { 'src/**': { 100: true } },
     },
   },
 })

@@ -81,7 +81,7 @@ regione della funzione.
 
 ## La catena dei gate
 
-Cinque gate, e ognuno copre un momento che gli altri non coprono:
+Sei gate, e ognuno copre un momento che gli altri non coprono:
 
 | Gate | Dove | Copre |
 |---|---|---|
@@ -89,7 +89,14 @@ Cinque gate, e ognuno copre un momento che gli altri non coprono:
 | `pnpm run ci` | job `deploy`, sul tag | ciò che parte dal tag |
 | `pnpm run check:placeholders` | job `deploy`, prima di `pnpm run ci` e dopo `vercel pull` | i segnaposto del template nei sorgenti e nell'ambiente di produzione |
 | `pnpm perf:bundle` | `ci.yml`, dopo la build | il JavaScript client per rotta |
+| `pnpm run test:e2e` | `ci.yml`, sulla stessa build | ciò che si rompe solo dentro un browser |
 | `pnpm smoke:prod` | job `deploy`, dopo il deploy | ciò che il bordo serve davvero |
+
+**`test:e2e` sta nel job `ci` e non in un workflow a parte** perché il ruleset di `main` pretende il
+contesto `ci`: altrove i suoi scenari non fermerebbero niente. Sono quattro, tenuti piccoli di
+proposito — home, nav mobile, tema, form di contatto — e girano su `dist/client` servito piatto, che
+è dove la CSP costruita vive in un `<meta>` e una violazione si vede davvero. Il form non chiama mai
+Brevo: `e2e/support.ts` intercetta l'Action e la sfida di BotID.
 
 `pnpm run ci` ne contiene nove in fila, e l'ordine non è casuale: Biome con `--error-on-warnings`
 (un avviso è un errore), il type-check, i confini di `.fallowrc.jsonc`, la lingua, i rimandi fra
@@ -140,7 +147,11 @@ CI per assenza, che è il modo peggiore di passare.
   più vecchio atterrano entrambe e lasciano `main` rosso sulla loro combinazione. Il costo è un
   rebase per PR aperta ogni volta che `main` si muove, ed è il motivo per cui
   `.github/dependabot.yml` raggruppa ogni ecosistema in un'unica PR.
-- `perf:bundle` resta fuori dal job `deploy`: legge `dist/client`, che `vercel build` non emette mai.
+- **`perf:bundle` resta fuori dal job `deploy` per scelta, non per impossibilità.** `vercel build`
+  emette `dist/client` come ogni `astro build` — il log di un deploy lo mostra: `[build] directory:
+  /vercel/path0/dist/`, poi `[@astrojs/vercel] Copying static files to .vercel/output/static`.
+  Misurare lì sarebbe però tardi: il budget di bundle è un gate di PR, e `ci.yml` lo lancia sulla
+  build che ha appena fatto, dove una rotta fuori budget si ferma prima di diventare un tag.
 
 **[HARD]** Su un progetto cliente il ruleset non lo scavalca nessuno: `bypass_actors` è vuoto,
 amministratori compresi, e l'uscita d'emergenza è disattivarlo in Settings → Rules, cosa che il log
@@ -394,9 +405,16 @@ serve.
 
 ## Dopo ogni release
 
-`pnpm smoke:prod` gira da solo nel job `deploy` e lo fa fallire. Verifica le rotte servite
-(`/api/health` compreso), le intestazioni di sicurezza, l'assenza di `X-Robots-Tag` sull'host di
-produzione, e che la sfida di BotID passi davvero dal proxy.
+`pnpm smoke:prod` gira da solo nel job `deploy` e lo fa fallire. Verifica le rotte servite, le
+intestazioni di sicurezza, l'assenza di `X-Robots-Tag` sull'host di produzione, e che la sfida di
+BotID passi davvero dal proxy.
+
+**Le rotte non le elenca: le deriva.** `scripts/lib/routes.ts` legge `src/pages`, tiene le pagine
+prerenderizzate e ci toglie le due eccezioni dichiarate — `/404` e `/500`, che rispondono con il
+proprio stato e non 200. Alle pagine aggiunge le uscite che non nascono da un `.astro` e che nessuna
+derivazione produrrebbe: `/robots.txt`, `/sitemap-index.xml`, `/site.webmanifest` e `/api/health`,
+ognuna col content-type atteso. Una pagina nuova entra quindi da sola sia qui sia nell'audit
+Lighthouse, e un'eccezione rimasta senza pagina fa fallire `scripts/lib/routes.test.ts`.
 
 Interroga l'**apice**, non l'URL `*.vercel.app` che `vercel deploy` stampa. Per verificare altro si
 passa un URL esplicito: `pnpm smoke:prod https://…`.

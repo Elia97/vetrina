@@ -115,6 +115,11 @@ condiviso da entrambe le parti, si divide il file, non il nome.
   proseguire se `robots.txt` non dice `Allow: /`, serve `dist/lh-prod/client` piatto, trova un
   Chrome per Linux e stampa il punteggio mediano per URL. Non aggiunge niente alle dipendenze:
   `@lhci/cli` e `serve` passano da `pnpm dlx`.
+- **Quali pagine misura non sta in `.lighthouserc.json`**: `scripts/lighthouse.mjs` le deriva da
+  `src/pages` con `auditRoutes()`, la stessa fonte che alimenta `pnpm smoke:prod`, e le inietta in
+  una copia temporanea del file di configurazione. Restano nel file le soglie, il server e il
+  numero di run. Una pagina nuova entra nell'audit senza che nessuno se ne ricordi; le pagine di
+  errore ne restano fuori, dichiarate in `ERROR_PAGES`.
 - In CI, `.github/workflows/lighthouse.yml` afferma quello che dice `.lighthouserc.json`:
   settimanale sul branch di default, e su una PR solo quando porta la label `lighthouse`.
   `continue-on-error: true` di proposito — è informativo, mai un gate, perché i numeri di un runner
