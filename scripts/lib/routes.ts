@@ -94,7 +94,6 @@ export function missingRouteFailures(expected: Expectations, emitted: readonly s
   const failures: string[] = []
   const routes = new Set(emitted)
   for (const { route, file } of expected.exact) {
-    /* v8 ignore next -- una rotta esatta assente da un dist non vuoto la copre il ramo a pattern qui sotto */
     if (!routes.has(route)) failures.push(`missing route ${route} — ${file} is prerendered but emitted no HTML`)
   }
   for (const { pattern, label, file } of expected.patterns) {

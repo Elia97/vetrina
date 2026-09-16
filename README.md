@@ -145,17 +145,20 @@ produzione si ferma finché ce n'è uno.
   sotto).
 - **Unit test** (vitest e happy-dom): `pnpm test`, collegato a `pnpm run ci`. I moduli virtuali di
   Astro sono stubbati in `test/stubs/` (env, config, i18n), così la logica pura (head e seo, i18n,
-  rate-limit, email, fornitori) si testa in fretta. La copertura di quella logica è tenuta al
-  **100%** — il denominatore sono solo i `.ts`, perché il markup `.astro` non porta rami che valga
-  la pena testare, e ogni buco voluto porta un `v8 ignore` con la sua ragione. Esiste per dare un
-  senso al gate CRAP di `fallow audit`, non come numero da inseguire.
+  rate-limit, email, fornitori) si testa in fretta. **La soglia del 100% vale su `src/`**, che è la
+  logica del prodotto: sotto ci sono i `.ts` più i due `.astro` che portano rami veri, elencati
+  nell'`include` di `vitest.config.ts`. `scripts/` resta misurato ma senza soglia — è utility, e una
+  riga difensiva lì non vale la cerimonia di zittire il gate. Ogni buco voluto in `src/` porta un
+  `v8 ignore` con la sua ragione. La soglia esiste per dare un senso al gate CRAP di `fallow audit`,
+  non come numero da inseguire.
 - **Analisi di codice morto e architettura** (fallow, solo in sviluppo): `pnpm run check:deadcode`
   e `pnpm run check:health` stanno dentro `pnpm run ci` — `.fallowrc.jsonc` documenta ogni
   esclusione voluta, e il suo blocco `boundaries` trasforma `docs/ARCHITECTURE.md` § Stratificazione
   dei sorgenti in un controllo. `pnpm audit:diff` mette le stesse analisi a gate **limitandole al
   diff di un branch**, ed è quello che lancia `/metodo:pr`; legge la copertura che `pnpm test`
-  scrive, senza la quale la sua soglia CRAP giudicherebbe una funzione ben testata e piena di rami
-  come se non fosse testata affatto. `pnpm run review` non blocca ed esce sempre 0: va letto.
+  scrive, e senza quel rapporto la stima dal grafo dei moduli — una funzione che nessun test tocca
+  direttamente scende al 40%, e a quel punto basta una complessità di 10 per sforare la soglia CRAP.
+  `pnpm run review` non blocca ed esce sempre 0: va letto.
 
 Il perché e il dettaglio stanno in `docs/guides/*.md` e in `docs/ARCHITECTURE.md`.
 

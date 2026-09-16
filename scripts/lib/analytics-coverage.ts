@@ -9,7 +9,6 @@ const LINK_EVENT = /startsWith\('([^']+)'\)\)\s*return\s*'([^']+)'/g
 // Letto dal sorgente di src/lib/analytics/link-tracking.ts invece di essere riscritto qui: le
 // due liste divergono il giorno in cui qualcuno aggiunge uno schema, e non fallirebbe niente.
 export function extractLinkEvents(source: string): LinkEvent[] {
-  /* v8 ignore next 2 -- se LINK_EVENT fa match, entrambi i gruppi partecipano sempre */
   return [...source.matchAll(LINK_EVENT)].map(([, prefix, event]) => ({
     prefix: prefix ?? '',
     event: event ?? '',

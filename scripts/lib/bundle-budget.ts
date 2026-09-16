@@ -8,14 +8,11 @@ const DEFAULT_BUDGET: Budget = { label: 'default', matches: () => true, maxGzip:
 const BUDGETS: readonly Budget[] = [DEFAULT_BUDGET]
 
 export function budgetFor(route: string): Budget {
-  /* v8 ignore next -- DEFAULT_BUDGET fa match su ogni rotta, quindi find() non restituisce mai undefined */
   return BUDGETS.find((budget) => budget.matches(route)) ?? DEFAULT_BUDGET
 }
 
-/* v8 ignore start -- entrambi i chiamanti usano pattern il cui gruppo partecipa sempre */
 const captured = (source: string, pattern: RegExp, group: number): Set<string> =>
   new Set([...source.matchAll(pattern)].flatMap((match) => (match[group] === undefined ? [] : [match[group]])))
-/* v8 ignore stop */
 
 /** Rollup racchiude gli specificatori statici con `"` e i dinamici in un template literal. */
 export function parseEdges(source: string): Pick<Chunk, 'static' | 'dynamic'> {
@@ -44,7 +41,6 @@ export function staticClosure(entries: Iterable<string>, chunks: Map<string, Chu
 }
 
 export function deferredClosure(reached: Set<string>, chunks: Map<string, Chunk>): Set<string> {
-  /* v8 ignore next -- ogni nome raggiunto viene dalla stessa mappa dei chunk */
   const entries = [...reached].flatMap((name) => [...(chunks.get(name)?.dynamic ?? [])])
   return new Set([...staticClosure(entries, chunks)].filter((name) => !reached.has(name)))
 }
