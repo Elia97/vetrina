@@ -109,6 +109,17 @@ describe('buildCspContent', () => {
   })
 })
 
+describe('buildCspContent and the iubenda CMP', () => {
+  it('needs no iubenda host in frame-src, because the CMP links the policies in a new tab', () => {
+    const frameSrc =
+      buildCspContent([])
+        .split('; ')
+        .find((d) => d.startsWith('frame-src')) ?? ''
+
+    expect(frameSrc).not.toContain('iubenda')
+  })
+})
+
 describe('buildCspContent on a preview deploy', () => {
   const csp = buildCspContent([sha('a=1')], 'preview')
   const directive = (name: string) => csp.split('; ').find((d) => d.startsWith(name)) ?? ''

@@ -7,7 +7,13 @@ declare global {
     gtag: GtagFn
     _iub?: { csConfiguration?: unknown }
     // Scritto da src/components/head/tracking.astro, letto da src/lib/consent/iubenda.ts.
-    __consentConfig?: { siteId: string; cookiePolicyId: string; lang: string }
+    __consentConfig?: {
+      siteId: string
+      cookiePolicyId: string
+      lang: string
+      cookiePolicyPath: string
+      privacyPolicyPath: string
+    }
     __consent?: {
       onConsent: (category: ConsentCategory, callback: () => void) => void
     }

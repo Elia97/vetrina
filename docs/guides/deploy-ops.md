@@ -303,6 +303,13 @@ Conseguenze che vale la pena dichiarare apertamente:
   consenso valido secondo le linee guida sui cookie del Garante del 2021.
   `floatingPreferencesButtonDisplay: false` è accettabile solo perché il consenso resta revocabile
   dal controllo `.iubenda-cs-preferences-link` nel footer. Se tieni il flag, tieni quel controllo.
+- **I due link legali del banner puntano alle pagine del sito**, non ai documenti ospitati da
+  iubenda: `buildCsConfiguration()` riceve `cookiePolicyUrl` e `privacyPolicyUrl` costruiti
+  sull'origine corrente più il percorso che sta in `SITE.legal`, e `cookiePolicyInOtherWindow` li
+  apre in una scheda nuova. Senza, la CMP apre la policy in un **iframe** verso `www.iubenda.com`:
+  `frame-src` non lo permette, il pannello resta vuoto e a dirlo è solo la console (verificato il
+  2026-09-16). iubenda chiede che la pagina collegata non usi cookie non tecnici — quella del
+  template è statica e non ne usa.
 - Si carica solo `iubenda_cs.js`: niente autoblocking, niente stub GPP. L'autoblocking aggiungerebbe
   una richiesta che blocca il parser e una seconda fonte di verità per un gate che l'applicazione già
   possiede.
@@ -329,6 +336,7 @@ empiriche, da un progetto vivo.
 | Google Ads: conversioni, remarketing, conversion linker | `www.googleadservices.com`, `googleads.g.doubleclick.net` e `pagead2.googlesyndication.com` in `script-src`; gli stessi più `www.google.com` in `img-src` e `connect-src`; `ad.doubleclick.net` in `connect-src` |
 | Floodlight | `ad.doubleclick.net`, `ade.googlesyndication.com` e `adservice.google.com` in `img-src`; `pagead2.googlesyndication.com`, `www.googleadservices.com`, `www.google.com` e `ad.doubleclick.net` in `connect-src`; con i beacon a script personalizzati, `<id>.fls.doubleclick.net` in `frame-src` |
 | Modalità Anteprima del container | già nel ramo preview di `directives.ts`: `tagmanager.google.com`, `ssl.gstatic.com`, `www.gstatic.com`, `fonts.googleapis.com`, `fonts.gstatic.com` |
+| CMP iubenda — non arriva dal container, ma vive nella stessa policy | già in `directives.ts`: `cdn.iubenda.com` serve il loader, il core e il pannello delle preferenze (`script-src`, `style-src`, `img-src`), `cs.iubenda.com` la configurazione del sito (`script-src`), e `*.iubenda.com` in `connect-src` copre la telemetria di `idb.iubenda.com` |
 | Meta Pixel | `connect.facebook.net` in `script-src`; `www.facebook.com` in `img-src` e `connect-src` |
 | Sortlist | `collector.sortlist.com` e `radar.sortlist.com`; quali direttive, lo dice la console al primo giro |
 
@@ -359,6 +367,11 @@ andati alla deriva.
   una degradazione accettabile. Una build rossa per un iubenda instabile è l'esito economico: si
   rilancia il deploy. In sviluppo il ripiego resta, così una connessione ballerina non può fermare
   `astro dev`.
+- **L'API dei documenti è una funzione a pagamento.** Sul piano gratuito
+  `www.iubenda.com/api/privacy-policy/<id>/…/no-markup` risponde `403` con «To access this document
+  via API please upgrade to a higher tier» (verificato il 2026-09-16), quindi con un id di policy
+  impostato la regola qui sopra ferma ogni build di produzione, in locale come su un preview. Su un
+  piano senza API l'id non si imposta e le pagine legali restano il ripiego.
 
 ## Salute e monitoraggio
 
@@ -419,6 +432,10 @@ spedire qualcosa che la strada della release avrebbe preso.
 - `context: 'client'` (e per convenzione il prefisso `PUBLIC_`) significa che il valore viene
   **incorporato nel bundle**, quindi è pubblico per costruzione. Un segreto lì è una fuga di dati, a
   prescindere da come lo etichetta il provider di deploy.
+- **Un `.env.local` con le `PUBLIC_*` del tracciamento fa fallire `pnpm run ci`.** I test dello stato
+  spento leggono quelle chiavi dagli stub registrati in `vitest.config.ts` e si aspettano `null`: con
+  una CMP configurata in locale diventano rossi quattro test fra `src/lib/analytics/tracking.test.ts`
+  e `src/components/layout/footer.test.ts`. Si toglie il file prima di lanciare il gate.
 - Il pattern ricorrente per tutto ciò che si appoggia a un fornitore: si dichiara `optional`, e poi
   quando manca **in sviluppo non fa niente ma lo dice, in produzione rifiuta esplicitamente**
   (`BREVO_API_KEY` è il riferimento). Il silenzio è il modo di fallire da evitare: un form che
