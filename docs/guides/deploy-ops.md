@@ -247,12 +247,20 @@ La regola che decide se un fornitore tocca la CSP oppure no:
 - BotID **non** ha bisogno di nessuna voce nella CSP: la sua sfida passa da un proxy di stessa
   origine attraverso i rewrite di `vercel.json`, che è anche quello che tiene alla larga i blocca-
   pubblicità.
-- **La Vercel Toolbar vuole il suo permesso, e il template non glielo dà.** `frame-ancestors 'none'`
-  più `X-Frame-Options: DENY` la tengono fuori dai deploy di preview. Un progetto che la vuole
-  aggiunge `https://vercel.live` (script, stili, immagini, `connect-src` più
-  `wss://ws-us3.pusher.com`, e `assets.vercel.com` per i font) e rilassa `frame-ancestors` a
-  `'self' https://vercel.live` — togliendo `X-Frame-Options`, perché `frame-ancestors` lo supera ed è
-  l'unico dei due capace di esprimere quel permesso.
+- **La policy dei preview apre la Vercel Toolbar; quella di produzione no.** Con
+  `VERCEL_ENV === 'preview'` — la variabile che Vercel imposta solo sui deploy di preview —
+  `buildCspContent()` aggiunge `https://vercel.live` alle direttive che la toolbar tocca (script,
+  stili, immagini, font, `frame-src` e `connect-src`), più `wss://ws-us3.pusher.com` per il suo
+  WebSocket e `assets.vercel.com` per i font. In produzione, in CI e in locale non entra niente di
+  tutto questo, e il log del build lo dichiara: la riga `[csp-hashes]` porta «preview hosts» solo
+  quando quel ramo è acceso.
+- **Sempre sui preview, `manifest-src`.** Dietro la protezione del deployment Vercel riscrive il
+  `<link rel="manifest">` verso `vercel.com/sso-api`, e `default-src 'self'` lo blocca: sul preview
+  l'app non è installabile e la console riporta una violazione che in produzione non esiste.
+- `frame-ancestors 'none'` e `X-Frame-Options: DENY` restano come sono: alla toolbar serve
+  `frame-src`, cioè incorniciare la **propria** interfaccia dentro la pagina, non incorniciare la
+  pagina. Un progetto che vuole la toolbar anche in produzione allarga la policy allo stesso modo,
+  e lì la decisione su `frame-ancestors` va presa a parte.
 
 ## Tracciamento e Consent Mode v2
 

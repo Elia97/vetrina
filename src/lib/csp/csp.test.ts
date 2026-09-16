@@ -99,4 +99,37 @@ describe('buildCspContent', () => {
     expect(csp).toContain("base-uri 'self'")
     expect(csp).toContain("form-action 'self'")
   })
+
+  it('carries no toolbar host outside a preview deploy', () => {
+    for (const env of [undefined, 'production', 'development']) {
+      const outside = buildCspContent([sha('a=1')], env)
+      expect(outside, `VERCEL_ENV=${env ?? 'unset'}`).not.toContain('vercel.live')
+      expect(outside, `VERCEL_ENV=${env ?? 'unset'}`).not.toContain('manifest-src')
+    }
+  })
+})
+
+describe('buildCspContent on a preview deploy', () => {
+  const csp = buildCspContent([sha('a=1')], 'preview')
+  const directive = (name: string) => csp.split('; ').find((d) => d.startsWith(name)) ?? ''
+
+  it('lets the Vercel toolbar through on every directive it touches', () => {
+    expect(directive('script-src')).toContain('https://vercel.live')
+    expect(directive('style-src')).toContain('https://vercel.live')
+    expect(directive('img-src')).toContain('https://vercel.live')
+    expect(directive('font-src')).toContain('https://assets.vercel.com')
+    expect(directive('connect-src')).toContain('wss://ws-us3.pusher.com')
+    expect(directive('frame-src')).toContain('https://vercel.live')
+  })
+
+  it('declares manifest-src, which the deployment protection routes through vercel.com', () => {
+    expect(directive('manifest-src')).toContain('https://vercel.com')
+    expect(directive('manifest-src')).toContain("'self'")
+  })
+
+  it('keeps the production sources and the inline hashes', () => {
+    expect(directive('script-src')).toContain(`'${sha('a=1')}'`)
+    expect(directive('script-src')).toContain('https://cdn.iubenda.com')
+    expect(directive('default-src')).toBe("default-src 'self'")
+  })
 })

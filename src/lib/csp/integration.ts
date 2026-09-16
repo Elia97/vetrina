@@ -1,9 +1,10 @@
 import { readdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
+import process from 'node:process'
 import { fileURLToPath } from 'node:url'
 import type { AstroIntegration } from 'astro'
 
-import { buildCspContent } from './directives'
+import { buildCspContent, isPreviewDeploy } from './directives'
 import { collectInlineScriptHashes, injectCspMeta } from './html'
 
 function walkHtml(dir: string): string[] {
@@ -33,7 +34,8 @@ export function cspIntegration(): AstroIntegration {
           sources.set(file, html)
           for (const hash of collectInlineScriptHashes(html)) union.add(hash)
         }
-        const csp = buildCspContent([...union].sort())
+        const { VERCEL_ENV } = process.env
+        const csp = buildCspContent([...union].sort(), VERCEL_ENV)
         let injected = 0
         for (const [file, html] of sources) {
           const next = injectCspMeta(html, csp)
@@ -42,7 +44,8 @@ export function cspIntegration(): AstroIntegration {
             injected += 1
           }
         }
-        logger.info(`CSP: ${union.size} inline hashes on ${injected}/${files.length} pages`)
+        const scope = isPreviewDeploy(VERCEL_ENV) ? ', preview hosts' : ''
+        logger.info(`CSP: ${union.size} inline hashes on ${injected}/${files.length} pages${scope}`)
       },
     },
   }
