@@ -18,8 +18,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+
+      - run: corepack enable
+
       - uses: actions/setup-node@v7
         with:
           node-version-file: '.nvmrc'
+          cache: 'pnpm'
 
-      - run: node scripts/check-vercel-cli.ts
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm run check:vercel-cli
