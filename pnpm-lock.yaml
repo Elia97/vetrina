@@ -55,6 +55,9 @@ importers:
       '@commitlint/config-conventional':
         specifier: ^21.2.2
         version: 21.2.2
+      '@elia97/officina':
+        specifier: ^0.1.0
+        version: 0.1.0
       '@playwright/test':
         specifier: ^1.63.0
         version: 1.63.0
@@ -429,6 +432,11 @@ packages:
   '@conventional-changelog/template@1.4.0':
     resolution: {integrity: sha512-aalGyl7dbB5PArRebDIX43ZvBlXrYm9uWzGJ26t+4SzJVPsOuvfILGGbw5X4yX7i50YEmJ8zvbiWnqH/AAnZqg==}
     engines: {node: '>=22'}
+
+  '@elia97/officina@0.1.0':
+    resolution: {integrity: sha512-i+UabkoEdAWaSm/nJ4W9GRaPy2F1eDqpNLElTxIYZTBqtfvnW6t18S7Gc3t7s36P863ctwSqS9KJubhQr4gKaQ==}
+    engines: {node: '>=24.0.0'}
+    hasBin: true
 
   '@emmetio/abbreviation@2.3.3':
     resolution: {integrity: sha512-mgv58UrU3rh4YgbE/TzgLQwJ3pFsHHhCLqY20aJq+9comytTXUDNGG/SMtSeMJdkpxgXSXunBGLD8Boka3JyVA==}
@@ -3837,6 +3845,8 @@ snapshots:
       conventional-commits-parser: 7.1.2
 
   '@conventional-changelog/template@1.4.0': {}
+
+  '@elia97/officina@0.1.0': {}
 
   '@emmetio/abbreviation@2.3.3':
     dependencies:
