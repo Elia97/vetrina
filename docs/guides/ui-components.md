@@ -157,8 +157,9 @@ apre il pannello della CMP, non porta a una pagina.
 - **La voce della pagina corrente porta `aria-current`** nelle tre `<nav>` dell'arredo (header,
   nav mobile, link legali del footer): `page` sulla voce della pagina aperta, `true` su quella
   della sezione quando si è in una sua sottopagina, e `/` non è mai una sezione. È lo schema del
-  Service navigation di GOV.UK. Il valore lo calcola `ariaCurrent()` in `src/i18n/path.ts`,
-  confrontando l'`href` della voce con il percorso corrente riportato alla lingua di default.
+  Service navigation di GOV.UK. Le tre rendono ogni voce con `src/components/layout/nav-link.astro`,
+  che localizza l'`href` e calcola il valore con `ariaCurrent()` in `src/i18n/path.ts`, confrontando
+  l'`href` della voce con il percorso corrente riportato alla lingua di default.
 - **Lo stile della voce corrente sta sull'attributo**, non su una classe calcolata nel markup: la
   variante `aria-[current]:` di Tailwind v4 genera il selettore `[aria-current]`, che copre `page` e
   `true`, e dà sottolineatura e colore pieno del testo. Sulle altre voci `ariaCurrent()` restituisce

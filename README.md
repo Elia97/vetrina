@@ -228,6 +228,11 @@ già a quegli agganci.
   di esempio, registrata in `content.config.ts`; oppure una pagina a sezioni completa di barrel,
   strato dati, pagina e prima sezione.
 
+I generatori e i loro template arrivano da `@elia97/officina`: i comandi qui sopra chiamano
+`officina gen`. Un generatore proprio del progetto va in `officina.generators.mjs`, nella radice, con
+la firma di un plopfile (`export default function (plop)`), e compare nel menu accanto a quelli del
+pacchetto.
+
 Contratti che vale la pena conoscere (il dettaglio è in `docs/guides/content-collections.md`):
 
 - i generatori **falliscono rumorosamente**: gli input si validano sui valori trasformati, ogni
@@ -240,6 +245,8 @@ Contratti che vale la pena conoscere (il dettaglio è in `docs/guides/content-co
 - non rinominare gli ancoraggi dell'iniezione (`export const collections`, `<nome>CollectionSchema`,
   `get<Nome>Sections`, i marcatori `@gen:<nome>-*` di ogni pagina a sezioni, la costante esportata
   di ogni dizionario): i generatori li verificano e si fermano con l'errore di contratto.
+  `pnpm run doctor`, dentro `pnpm run ci`, fra questi controlla solo `export const collections`:
+  una rinomina degli altri passa il gate e ferma il generatore al lancio.
 
 ## Aggiungere una lingua
 

@@ -12,7 +12,7 @@ Closes #<!-- N -->
 
 <!-- Spunta solo ciò che hai verificato. [HARD] = blocca. -->
 
-- [ ] **[HARD]** `pnpm run ci` verde (Biome, typecheck, confini, lingua, rimandi, roadmap, commenti, test, complessità)
+- [ ] **[HARD]** `pnpm run ci` verde (Biome, typecheck, confini, lingua, rimandi, roadmap, commenti, agganci dei generatori, test, complessità)
 - [ ] **[HARD]** `pnpm run build` verde
 - [ ] **[HARD]** Preview Vercel verde
 - [ ] **[HARD]** Nessun segreto committato (diff verificato)

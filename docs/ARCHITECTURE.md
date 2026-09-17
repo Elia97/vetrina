@@ -7,7 +7,7 @@
 - **Deploy**: Vercel. La produzione esce solo da un tag di release, mai da un push su `main`: `ignoreCommand` in `vercel.json` lancia `scripts/vercel-ignore-build.sh`, quindi l'integrazione git produce soltanto preview. Vedi `docs/guides/deploy-ops.md` § Modello di deploy.
 - **Immagini**: gli asset locali vanno sotto `src/assets/**` e passano da `astro:assets`, con `sharp` in `dependencies`. La cartella porta solo `src/assets/placeholder.jpg`, il segnaposto del contenuto che `pnpm gen:section` scrive con l'opzione immagine. `biome.json` esclude già `src/assets/**/*.svg` dalla formattazione. Vedi `docs/guides/rendering-performance.md` § Immagini.
 - **Gate di qualità**: cinque, e ognuno copre un momento che gli altri non coprono; niente arriva in produzione senza passarli tutti. Vedi `docs/guides/deploy-ops.md` § La catena dei gate.
-- **I gate `check:*` vengono da `@elia97/officina`**, una devDependency con sorgenti e test in `Elia97/officina`: un gate si corregge lì e arriva qui aggiornando la dipendenza, mai con una copia in `scripts/`, che divergerebbe alla prima modifica.
+- **I gate `check:*`, i generatori di `pnpm gen` e `doctor` vengono da `@elia97/officina`**, una devDependency con sorgenti e test in `Elia97/officina`: si correggono lì e arrivano qui aggiornando la dipendenza, mai con una copia in `scripts/`, che divergerebbe alla prima modifica. Cosa verifica `doctor` e cosa resta al pre-volo dei generatori sta in `docs/guides/content-collections.md` § Punti di iniezione dei generatori.
 - **Protezione dagli abusi**: tre livelli sull'azione pubblica, dal più economico — honeypot applicativo, rate limit in memoria e Vercel BotID Basic (in sola osservazione finché `BOTID_ENFORCE=true`). Vedi `docs/guides/forms-email.md` § Protezione dagli abusi.
 - **Politica di scansione**: `src/lib/seo/crawl-policy.ts` è la fonte unica di verità su cosa resta fuori dalla ricerca, letta dal filtro della sitemap, da `robots.txt` e dal middleware. Vedi `docs/guides/seo.md` § Sitemap e robots.
 - **Consenso e analytics**: spenti se non configurati — senza **entrambi** un id di container GTM e un id di sito iubenda il layout non rende nessun CMP, nessun tag e nessun cookie. Accenderli non richiede nessuna modifica alla CSP: gli host di GTM, GA4 e iubenda stanno già in `src/lib/csp/directives.ts`. Un tag che il cliente aggiunge dopo, dal pannello GTM, può invece caricare host che lì non ci sono: la tabella tag → host sta nella guida. Vedi `docs/guides/deploy-ops.md` § Tracciamento e Consent Mode v2.
@@ -82,9 +82,6 @@ docs/          # i documenti tecnici del progetto: ROADMAP (milestone, sotto-tas
   guides/      # riferimenti di pattern per dominio, consultati dagli agenti verticali (sotto)
 scripts/       # strumenti operativi — mai importati da src/
   lib/         # logica pura estratta da uno script, così vitest la copre
-  gen/         # generatori plop (page, component, collection, section) e iniezione ts-morph
-  templates/   # i template .hbs che i generatori rendono
-plopfile.mjs   # aggancio da riga di comando: `pnpm gen` / `pnpm gen:<nome>`
 .claude/
   agents/      # definizioni dei sottoagenti verticali
   commands/    # /metodo:decisions (i bivi) · /metodo:milestone (l'insieme) · /metodo:pr (una issue)
@@ -120,7 +117,7 @@ Cosa resta piatto, e perché non è una svista:
   cartella aggiungerebbe un salto ai file più letti del repo;
 - `utils.ts` è `cn()`, importato da quasi ogni componente;
 - `contact.ts`, gli strati dati delle pagine a sezioni come `homepage.ts` e `schemas/` restano piatti
-  perché sono `seed`, non perché spostarli costerebbe: i generatori plop li raggiungono per percorso,
+  perché sono `seed`, non perché spostarli costerebbe: i generatori li raggiungono per percorso,
   derivato dal nome della collection, e quei percorsi sono dove atterrano le sezioni di un progetto
   vero. Metterli sotto qualcosa tipo `example/` farebbe scrivere a `pnpm gen:section` del codice di
   progetto dentro una cartella che si chiama come una demo.

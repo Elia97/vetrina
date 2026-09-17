@@ -56,8 +56,8 @@ importers:
         specifier: ^21.2.2
         version: 21.2.2
       '@elia97/officina':
-        specifier: ^0.1.0
-        version: 0.1.0
+        specifier: ^0.2.0
+        version: 0.2.0(@types/node@26.3.0)
       '@playwright/test':
         specifier: ^1.63.0
         version: 1.63.0
@@ -79,15 +79,9 @@ importers:
       lefthook:
         specifier: ^2.1.10
         version: 2.1.10
-      plop:
-        specifier: ^4.0.5
-        version: 4.0.5(@types/node@26.3.0)
       tailwindcss:
         specifier: ^4.3.3
         version: 4.3.3
-      ts-morph:
-        specifier: ^28.0.0
-        version: 28.0.0
       vitest:
         specifier: ^4.1.11
         version: 4.1.11(@types/node@26.3.0)(@vitest/coverage-v8@4.1.11)(happy-dom@20.11.6)(vite@8.2.2(@types/node@26.3.0)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.0))
@@ -433,8 +427,8 @@ packages:
     resolution: {integrity: sha512-aalGyl7dbB5PArRebDIX43ZvBlXrYm9uWzGJ26t+4SzJVPsOuvfILGGbw5X4yX7i50YEmJ8zvbiWnqH/AAnZqg==}
     engines: {node: '>=22'}
 
-  '@elia97/officina@0.1.0':
-    resolution: {integrity: sha512-i+UabkoEdAWaSm/nJ4W9GRaPy2F1eDqpNLElTxIYZTBqtfvnW6t18S7Gc3t7s36P863ctwSqS9KJubhQr4gKaQ==}
+  '@elia97/officina@0.2.0':
+    resolution: {integrity: sha512-65Qx5uAdyqugA79hO7SHAIHLwj9/Cy4s/Vs/MjzUK9ApMQVsPnqp5u+f2RxP9kyjoved2ZZ0Gp9uCCi+JkKl/A==}
     engines: {node: '>=24.0.0'}
     hasBin: true
 
@@ -2512,10 +2506,6 @@ packages:
     resolution: {integrity: sha512-OqbOk5oEQeAZ8WXWydlu9HJjz9WVdEIvamMCcXmuqUYjTknH/sqsWvhQ3vgwKFRR1HpjvNBKQ37nbJgYzGqGcg==}
     engines: {node: '>=6'}
 
-  minimatch@10.2.5:
-    resolution: {integrity: sha512-MULkVLfKGYDFYejP07QOurDLLQpcjk7Fw+7jXS2R2czRQzR56yHRveU5NDJEOviH+hETZKSkIk5c+T23GjFUMg==}
-    engines: {node: 18 || 20 || >=22}
-
   minimatch@10.2.6:
     resolution: {integrity: sha512-vpLQEs+VLCr1nU0BXS07maYoFwlDAH0gngQuuttxIwutDFEMHq2blX+8vpgxDdK3J1PwjCJiep77OitTZ4Ll1A==}
     engines: {node: 18 || 20 || >=22}
@@ -3846,7 +3836,12 @@ snapshots:
 
   '@conventional-changelog/template@1.4.0': {}
 
-  '@elia97/officina@0.1.0': {}
+  '@elia97/officina@0.2.0(@types/node@26.3.0)':
+    dependencies:
+      plop: 4.0.5(@types/node@26.3.0)
+      ts-morph: 28.0.0
+    transitivePeerDependencies:
+      - '@types/node'
 
   '@emmetio/abbreviation@2.3.3':
     dependencies:
@@ -4342,7 +4337,7 @@ snapshots:
 
   '@ts-morph/common@0.29.0':
     dependencies:
-      minimatch: 10.2.5
+      minimatch: 10.2.6
       path-browserify: 1.0.1
       tinyglobby: 0.2.17
 
@@ -5680,10 +5675,6 @@ snapshots:
       picomatch: 2.3.2
 
   mimic-fn@2.1.0: {}
-
-  minimatch@10.2.5:
-    dependencies:
-      brace-expansion: 5.0.9
 
   minimatch@10.2.6:
     dependencies:

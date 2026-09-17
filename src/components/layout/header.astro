@@ -3,6 +3,7 @@ import { Menu } from '@lucide/astro'
 
 import LanguageSwitcher from '@/components/layout/language-switcher.astro'
 import MobileNav from '@/components/layout/mobile-nav.astro'
+import NavLink from '@/components/layout/nav-link.astro'
 import Button from '@/components/ui/button.astro'
 import Container from '@/components/ui/container.astro'
 import ThemeToggle from '@/components/ui/theme-toggle.astro'
@@ -11,7 +12,6 @@ import { SITE } from '@/lib/site'
 import { cn } from '@/lib/utils'
 
 import { localizedHref } from '@/i18n/href'
-import { ariaCurrent } from '@/i18n/path'
 import { useTranslations } from '@/i18n/translate'
 
 interface Props {
@@ -25,7 +25,6 @@ const lightChrome = heroOverlay && overlayChrome === 'light'
 
 const t = useTranslations(Astro.currentLocale)
 const href = (path: string) => localizedHref(Astro.currentLocale, path)
-const current = (path: string) => ariaCurrent(path, Astro.url.pathname, Astro.currentLocale)
 
 const headerClass = heroOverlay
   ? 'absolute inset-x-0 top-0 z-header'
@@ -49,16 +48,15 @@ const controlClass = lightChrome ? 'text-white hover:text-white/80' : 'text-mute
     <nav aria-label={t('a11y.primaryNav')} class="hidden items-center gap-6 md:flex">
       {
         SITE.nav.map((link) => (
-          <a
-            href={href(link.href)}
-            aria-current={current(link.href)}
+          <NavLink
+            href={link.href}
             class={cn(
               'font-medium text-sm underline-offset-4 transition-colors aria-[current]:underline',
               navLinkClass,
             )}
           >
             {t(link.key)}
-          </a>
+          </NavLink>
         ))
       }
     </nav>
