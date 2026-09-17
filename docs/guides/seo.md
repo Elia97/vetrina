@@ -162,9 +162,9 @@ del browser — e viene reso una volta sola da `head.astro`.
 - **Non tutte le pagine hanno `lastmod`, e non sempre.** `/privacy` e `/cookie-policy` ne restano
   senza: il testo arriva da iubenda durante il build, e git non ne conosce la data. In un clone
   shallow `git log` attribuisce ogni file al commit di confine, quindi lì `lastmod` si omette, con un
-  avviso nel log del build. La data giusta vuole `fetch-depth: 0`, che `deploy.yml` ha, mentre
-  `ci.yml`, `lighthouse.yml` e i preview dell'integrazione git di Vercel costruiscono senza la
-  storia completa.
+  avviso nel log del build. La data giusta vuole `fetch-depth: 0`, che il deploy ha perché glielo
+  dà l'action di officina, mentre `ci.yml`, `lighthouse.yml` e i preview dell'integrazione git di
+  Vercel costruiscono senza la storia completa.
 - **Una sitemap di media vuole un endpoint suo.** L'hook `serialize` dell'integrazione non può
   emettere un namespace `<video:…>` o `<image:…>`: il suo tipo `SitemapItem` è un `Pick` di
   `url|lastmod|changefreq|priority|links` e nient'altro. Quella sitemap si emette da una rotta

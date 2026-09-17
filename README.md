@@ -245,7 +245,9 @@ Contratti che vale la pena conoscere (il dettaglio è in `docs/guides/content-co
   `get<Nome>Sections`, i marcatori `@gen:<nome>-*` di ogni pagina a sezioni, la costante esportata
   di ogni dizionario): i generatori li verificano e si fermano con l'errore di contratto.
   `pnpm run doctor`, dentro `pnpm run ci`, fra questi controlla solo `export const collections`:
-  una rinomina degli altri passa il gate e ferma il generatore al lancio.
+  una rinomina degli altri passa il gate e ferma il generatore al lancio. Gli ancoraggi sono solo
+  una delle sei sezioni che misura — le altre cinque guardano script e dipendenze, residui di ciò
+  che è uscito, preset, workflow e `officina.config.ts`, e stanno in `docs/ARCHITECTURE.md`.
 
 ## Aggiungere una lingua
 

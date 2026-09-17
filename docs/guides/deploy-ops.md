@@ -43,12 +43,12 @@ La produzione esce **solo da un tag di release**, mai da un push su `main`:
   locale sotto `.vercel/` (gitignored): da `project.json` dopo un `vercel link` normale, o da
   `repo.json` dopo `vercel link --repo`, dove gli stessi valori sono `projects[].orgId` e
   `projects[].id`.
-- La CLI di Vercel è **fissata a una major** (`pnpm dlx vercel@59`) nel job `deploy`, e di quella
-  major `pnpm dlx` prende già da sé l'ultima minor: il buco è il salto di major, che Dependabot non
-  vede perché non guarda dentro `pnpm dlx`. Lo segnala `.github/workflows/vercel-cli.yml`,
-  settimanale e lanciabile a mano, che confronta il pin con la versione pubblicata su npm e fallisce
-  quando quella è più alta; `pnpm run check:vercel-cli` è lo stesso controllo in locale. La CLI
-  installata sulle macchine di lavoro segue la stessa major del pin.
+- La CLI di Vercel è **fissata a una major** (`vercel@59`), e di quella major `pnpm dlx` prende già
+  da sé l'ultima minor: il buco è il salto di major, che Dependabot non vede perché non guarda
+  dentro `pnpm dlx`. Il pin non sta più in questo repository: sta nell'action `deploy` di officina,
+  che è anche dove si alza, e a confrontarlo ogni lunedì con la versione pubblicata su npm è un
+  workflow di quel repository. La CLI installata sulle macchine di lavoro segue la stessa major
+  del pin.
 
 **Perché `RELEASE_PLEASE_TOKEN` è un secret a parte.** Una PR aperta con il `GITHUB_TOKEN` di default
 non fa scattare i workflow — è la protezione anti-ricorsione di GitHub — quindi senza il PAT la
@@ -57,7 +57,8 @@ comunque: solo che la release PR si merge senza essere stata verificata.
 
 ### Cosa fa il job di deploy, e perché
 
-Ogni riga di `deploy.yml` si guadagna il suo posto:
+I passi non stanno più qui: sono l'action `deploy` di officina, che gira dentro questo job. Il
+posto è cambiato, le ragioni no, e ognuna vale ancora una riga:
 
 - **`fetch-depth: 0`** sul checkout. Alla profondità di default `actions/checkout` non scarica nessun
   tag, e la risoluzione del tag qui sotto ne ha bisogno. La storia completa serve anche al sitemap:
@@ -71,7 +72,8 @@ Ogni riga di `deploy.yml` si guadagna il suo posto:
   `package.json#packageManager` e quella di Node da `.nvmrc`. Non fissarle mai nel file del workflow,
   o il repo avrà due fonti di verità.
 - **`environment: production`**, così GitHub registra i deployment e più avanti si possono aggiungere
-  revisori obbligatori senza toccare il workflow.
+  revisori obbligatori senza toccare il workflow. Resta nel workflow, come i tre segreti di Vercel:
+  l'action non li riceve come `secrets`, li legge dall'`env` del job che la chiama.
 
 `regions` in `vercel.json` è `fra1`, e merita una decisione consapevole per progetto: una build
 emette una sola funzione `_render` raggiunta da `/_actions`, `/_image` e `/_server-islands`, quindi
@@ -100,7 +102,7 @@ Brevo: `e2e/support.ts` intercetta l'Action e la sfida di BotID.
 
 `pnpm run ci` ne contiene dieci in fila, e l'ordine non è casuale: Biome con `--error-on-warnings`
 (un avviso è un errore), il type-check, i confini di `.fallowrc.jsonc`, la lingua, i rimandi fra
-documenti, la roadmap, i commenti, gli agganci dei generatori (`doctor`), i test, e da ultimo la
+documenti, la roadmap, i commenti, l'allineamento a officina (`doctor`), i test, e da ultimo la
 complessità — che gira per ultima perché il suo punteggio CRAP legge la copertura che i test hanno
 appena scritto.
 
@@ -139,7 +141,11 @@ CI per assenza, che è il modo peggiore di passare.
   tipo e non esegue nessun test.
 - **I confini sono dentro `pnpm run ci`, non solo in CI.** Erano un gate remoto che falliva su un
   branch verde in locale: adesso spostare codice fra le zone di `.fallowrc.jsonc` si scopre subito.
-  In `ci.yml` resta `fallow review`, che è informativo ed esce sempre 0.
+  In `ci.yml` resta `fallow review`, che è informativo ed esce sempre 0, e sta in un job suo:
+  come passo di un workflow lo vede anche una PR aperta da Dependabot, che a mano nessuno lancia.
+- **`permissions` è dichiarato in `ci.yml`, non ereditato.** È il workflow che gira su ogni pull
+  request, quindi quello più esposto, e il default del repository vale solo finché nessuno lo
+  cambia dalle impostazioni: la riga nel file no.
 - **`ci.yml` non salta niente su `pull_request`.** Il suo `paths-ignore` riguarda solo i push su
   `main`: il ruleset pretende il check, e un job saltato non riporta *nessuno* stato — quindi una PR
   che l'ha saltato resta appesa per sempre su «Expected — Waiting for status» invece di fallire.

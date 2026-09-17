@@ -233,8 +233,8 @@ silenzioso nulla di fatto):
   `const <lingua> = { … } as const` e che nessuno abbia già le chiavi.
 
 I generatori stanno in `@elia97/officina`, e le verifiche qui sopra le fa il loro pre-volo, cioè
-solo quando li lanci. Dentro `pnpm run ci` gira `pnpm run doctor` (`officina doctor`), che controlla
-che esistano i moduli e le cartelle su cui i generatori contano e, fra gli ancoraggi, solo
-`export const collections`. `<nome>CollectionSchema`, `get<Nome>Sections`, i marcatori
+solo quando li lanci. Dentro `pnpm run ci` gira `pnpm run doctor` (`officina doctor`), che di questa
+sezione controlla che esistano i moduli e le cartelle su cui i generatori contano e, fra gli
+ancoraggi, solo `export const collections`. `<nome>CollectionSchema`, `get<Nome>Sections`, i marcatori
 `@gen:<nome>-*` e la forma dei dizionari restano al pre-volo: una loro rinomina passa il gate e ferma
 il generatore al lancio successivo.
