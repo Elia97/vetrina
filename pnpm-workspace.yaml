@@ -5,7 +5,7 @@ allowBuilds:
   sharp: true
 minimumReleaseAgeExclude:
   - '@astrojs/vercel@11.0.1'
-  - '@elia97/officina@0.2.0'
+  - '@elia97/officina@0.3.0'
 
 # TODO: togliere ogni override quando il pacchetto che lo tira dentro pubblica una release che
 # risolve l'avviso da sé — `pnpm why <pkg>` dice quando.

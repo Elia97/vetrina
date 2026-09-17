@@ -1,6 +1,7 @@
 import { existsSync } from 'node:fs'
 import { join } from 'node:path'
 import process from 'node:process'
+import { ICON_SPECS } from '@elia97/officina'
 import { describe, expect, it } from 'vitest'
 
 import { buildWebManifest } from '@/lib/seo/manifest'
@@ -47,5 +48,26 @@ describe('SITE.themeColor', () => {
   it('is hex on both themes', () => {
     expect(SITE.themeColor.light).toMatch(/^#[0-9a-f]{6}$/)
     expect(SITE.themeColor.dark).toMatch(/^#[0-9a-f]{6}$/)
+  })
+})
+
+describe('le specifiche e il manifest', () => {
+  const declared = manifest.icons
+
+  it('ogni icona generata è dichiarata in ICONS, con misure, tipo e purpose', () => {
+    for (const spec of ICON_SPECS) {
+      expect(declared).toContainEqual({
+        src: `/${spec.file}`,
+        sizes: `${spec.size}x${spec.size}`,
+        type: 'image/png',
+        purpose: spec.purpose,
+      })
+    }
+  })
+
+  it('ogni PNG dichiarato in ICONS ha la sua specifica', () => {
+    const generated = ICON_SPECS.map((spec) => `/${spec.file}`)
+
+    for (const icon of declared.filter(({ type }) => type === 'image/png')) expect(generated).toContain(icon.src)
   })
 })

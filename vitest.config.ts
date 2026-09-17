@@ -29,21 +29,15 @@ export default getViteConfig({
     environment: 'node',
     // [HARD] Astro instrada ogni file in `src/pages/**`, quindi un test lì si costruisce come
     // pagina e fa esplodere il prerender su `vi.mock`: quelli stanno in `test/pages/`.
-    include: ['src/**/*.test.ts', 'scripts/**/*.test.ts', 'test/**/*.test.ts'],
+    include: ['src/**/*.test.ts', 'test/**/*.test.ts'],
     exclude: ['src/pages/**/*.test.ts', 'node_modules/**'],
     // Il gate CRAP di fallow legge coverage/coverage-final.json, che scrive il reporter `json`;
     // senza, stima la copertura dal grafo dei moduli invece di leggerla.
     coverage: {
       provider: 'v8',
       reporter: ['text-summary', 'json'],
-      include: [
-        'src/**/*.ts',
-        'scripts/lib/**/*.ts',
-        'src/components/layout/footer.astro',
-        'src/components/homepage/hero.astro',
-      ],
+      include: ['src/**/*.ts', 'src/components/layout/footer.astro', 'src/components/homepage/hero.astro'],
       exclude: ['**/*.test.ts', 'src/types/**', 'src/content.config.ts', 'src/lib/company.ts', 'src/i18n/strings/**'],
-      // vitest applica le soglie globali a ogni file, glob compresi: senza globali, `scripts/` resta senza soglia.
       thresholds: { 'src/**': { 100: true } },
     },
   },

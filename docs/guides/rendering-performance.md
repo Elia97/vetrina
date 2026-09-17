@@ -18,7 +18,7 @@
 ### Il costo di `<ClientRouter />`
 
 Misure sul build del template con Astro 7.2.7, in byte gzip come li conta
-`scripts/bundle-budget.mjs`:
+`pnpm perf:bundle`:
 
 - **Il chunk del router pesa 4.762 byte**, 13.922 non compressi: circa due terzi della chiusura
   statica di `/`, 7.104 byte, che `pnpm run perf:bundle` stampa come 6,9 KB. Il resto sono
@@ -44,7 +44,7 @@ porta `[HARD]`:
   `src/components/head/js-flag.astro` e `src/components/head/theme-script.astro`, e la voce sulle
   view transition qui sopra.
 
-## Budget di bundle (`scripts/bundle-budget.mjs`)
+## Budget di bundle (`officina check bundle`)
 
 `pnpm perf:bundle`, che la CI lancia subito dopo la build. Attraversa `dist/client` e per ogni rotta
 emessa misura la **chiusura statica** — i chunk che la pagina raggiunge seguendo solo gli archi
@@ -58,10 +58,10 @@ job.
 - **Il default è 20 KB gzip**, circa una volta e mezza la rotta più pesante di partenza
   (`/contatti`, 13,4 KB: router, prefetch, nav mobile e form di contatto). È tarato per prendere
   una *dipendenza* che entra nel percorso critico, non i singoli KB.
-- **Una classe di rotte più pesante** si mette prima del default in `BUDGETS`
-  (`scripts/lib/bundle-budget.ts`) con il suo `matches`: vince la prima corrispondenza. Una pagina
-  che monta una libreria di animazione sta lì, e non in un default globale alzato, così il resto del
-  sito tiene il budget stretto.
+- **Una classe di rotte più pesante** si dichiara in `bundle.budgets` di `officina.config.ts` con
+  il suo `matches`: i budget del progetto vengono prima del default, nell'ordine in cui sono
+  scritti, e vince la prima corrispondenza. Una pagina che monta una libreria di animazione sta lì,
+  e non in un default globale alzato, così il resto del sito tiene il budget stretto.
 - **Le rotte attese si leggono da `src/pages`**, non si elencano a mano: una pagina prerenderizzata
   che non emette HTML fa fallire il gate, e anche un `dist/client` vuoto lo fa fallire. Senza quello
   i controlli per rotta fallirebbero verso l'aperto — iterano sulle pagine emesse, quindi non
@@ -70,7 +70,7 @@ job.
   condiviso, e addebitarlo a ogni pagina farebbe sembrare che ciascuna lo paghi. Sta nel gate perché
   è insieme l'asset più pesante consegnato e l'unico che blocca il rendering: l'output di Tailwind
   cresce una utility alla volta, quindi un progetto scivola verso l'alto senza che nessuna singola
-  modifica sembri costosa.
+  modifica sembri costosa. Il suo tetto si alza in `bundle.cssMaxGzip` di `officina.config.ts`.
 - **Le pagine che si sfilano con `prerender = false`** sono fuori dal budget per costruzione (non
   c'è HTML da misurare) e compaiono in una `NOTE`, non fra i fallimenti. È il prerendering come
   default a tenere piccolo quel buco: una pagina che semplicemente si dimentica di dichiarare
@@ -115,7 +115,7 @@ condiviso da entrambe le parti, si divide il file, non il nome.
   proseguire se `robots.txt` non dice `Allow: /`, serve `dist/lh-prod/client` piatto, trova un
   Chrome per Linux e stampa il punteggio mediano per URL. Non aggiunge niente alle dipendenze:
   `@lhci/cli` e `serve` passano da `pnpm dlx`.
-- **Quali pagine misura non sta in `.lighthouserc.json`**: `scripts/lighthouse.mjs` le deriva da
+- **Quali pagine misura non sta in `.lighthouserc.json`**: `officina check lighthouse` le deriva da
   `src/pages` con `auditRoutes()`, la stessa fonte che alimenta `pnpm smoke:prod`, e le inietta in
   una copia temporanea del file di configurazione. Restano nel file le soglie, il server e il
   numero di run. Una pagina nuova entra nell'audit senza che nessuno se ne ricordi; le pagine di

@@ -130,9 +130,9 @@ voci della seconda pagina, e con loro tutto quello che sta oltre la prima esce d
 
 - **La prima pagina non ha segmento di pagina.** `[...page].astro` emette `/news`, mai `/news/1`, e
   il canonical deve seguirlo (`currentPage === 1` → il percorso nudo). Qualunque cosa legga le rotte
-  come pattern deve ammettere il segmento finale **vuoto**: `scripts/lib/bundle-budget.ts` lo fa, e
-  un test lo fissa, perché senza quello un archivio di una pagina sola verrebbe riportato come una
-  rotta che non ha emesso niente.
+  come pattern deve ammettere il segmento finale **vuoto**: il budget di bundle di
+  `@elia97/officina` lo fa, e un test del pacchetto lo fissa, perché senza quello un archivio di una
+  pagina sola verrebbe riportato come una rotta che non ha emesso niente.
 - **Non annotare il tipo di ritorno.** Restituisci `paginate(...)` così com'è: `PaginateFunction`
   porta `page: Page<T>` più le tue prop fino ad `Astro.props`, e un'annotazione
   `GetStaticPathsResult` cancella entrambe — a quel punto la rotta vede `unknown`.

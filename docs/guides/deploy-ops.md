@@ -410,12 +410,17 @@ serve.
 intestazioni di sicurezza, l'assenza di `X-Robots-Tag` sull'host di produzione, e che la sfida di
 BotID passi davvero dal proxy.
 
-**Le rotte non le elenca: le deriva.** `scripts/lib/routes.ts` legge `src/pages`, tiene le pagine
+**Le rotte non le elenca: le deriva.** `@elia97/officina` legge `src/pages`, tiene le pagine
 prerenderizzate e ci toglie le due eccezioni dichiarate — `/404` e `/500`, che rispondono con il
 proprio stato e non 200. Alle pagine aggiunge le uscite che non nascono da un `.astro` e che nessuna
 derivazione produrrebbe: `/robots.txt`, `/sitemap-index.xml`, `/site.webmanifest` e `/api/health`,
 ognuna col content-type atteso. Una pagina nuova entra quindi da sola sia qui sia nell'audit
-Lighthouse, e un'eccezione rimasta senza pagina fa fallire `scripts/lib/routes.test.ts`.
+Lighthouse, e un'eccezione rimasta senza pagina fa fallire un test del pacchetto.
+
+Un progetto che ha rotte non HTML sue, intestazioni diverse o un controllo in più le dichiara in
+`smoke.nonHtmlRoutes`, `smoke.securityHeaders` e `smoke.checks` di `officina.config.ts`; `checks`
+sostituisce la lista del pacchetto, quindi chi non ha BotID la ricompone senza `checkBotIdChallenge`
+invece di toglierlo.
 
 Interroga l'**apice**, non l'URL `*.vercel.app` che `vercel deploy` stampa. Per verificare altro si
 passa un URL esplicito: `pnpm smoke:prod https://…`.
