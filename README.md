@@ -147,8 +147,7 @@ produzione si ferma finché ce n'è uno.
   Astro sono stubbati in `test/stubs/` (env, config, i18n), così la logica pura (head e seo, i18n,
   rate-limit, email, fornitori) si testa in fretta. **La soglia del 100% vale su `src/`**, che è la
   logica del prodotto: sotto ci sono i `.ts` più i due `.astro` che portano rami veri, elencati
-  nell'`include` di `vitest.config.ts`. `scripts/` resta misurato ma senza soglia — è utility, e una
-  riga difensiva lì non vale la cerimonia di zittire il gate. Ogni buco voluto in `src/` porta un
+  nell'`include` di `vitest.config.ts`, e la copertura non guarda altro. Ogni buco voluto porta un
   `v8 ignore` con la sua ragione. La soglia esiste per dare un senso al gate CRAP di `fallow audit`,
   non come numero da inseguire.
 - **Analisi di codice morto e architettura** (fallow, solo in sviluppo): `pnpm run check:deadcode`
