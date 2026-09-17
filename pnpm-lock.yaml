@@ -56,8 +56,8 @@ importers:
         specifier: ^21.2.2
         version: 21.2.2
       '@elia97/officina':
-        specifier: ^0.2.0
-        version: 0.2.0(@types/node@26.3.0)
+        specifier: ^0.3.0
+        version: 0.3.0(@types/node@26.3.0)(sharp@0.35.4(@types/node@26.3.0))
       '@playwright/test':
         specifier: ^1.63.0
         version: 1.63.0
@@ -427,10 +427,15 @@ packages:
     resolution: {integrity: sha512-aalGyl7dbB5PArRebDIX43ZvBlXrYm9uWzGJ26t+4SzJVPsOuvfILGGbw5X4yX7i50YEmJ8zvbiWnqH/AAnZqg==}
     engines: {node: '>=22'}
 
-  '@elia97/officina@0.2.0':
-    resolution: {integrity: sha512-65Qx5uAdyqugA79hO7SHAIHLwj9/Cy4s/Vs/MjzUK9ApMQVsPnqp5u+f2RxP9kyjoved2ZZ0Gp9uCCi+JkKl/A==}
+  '@elia97/officina@0.3.0':
+    resolution: {integrity: sha512-MLUzraPo21MmE7icZKaplc7qkM2mOV9Dx420NRTV1sPWBUtw6CrFrjUA4At9zz1SY/jaa6oB6feeTXmj5aOsFA==}
     engines: {node: '>=24.0.0'}
     hasBin: true
+    peerDependencies:
+      sharp: '>=0.34.0'
+    peerDependenciesMeta:
+      sharp:
+        optional: true
 
   '@emmetio/abbreviation@2.3.3':
     resolution: {integrity: sha512-mgv58UrU3rh4YgbE/TzgLQwJ3pFsHHhCLqY20aJq+9comytTXUDNGG/SMtSeMJdkpxgXSXunBGLD8Boka3JyVA==}
@@ -3836,10 +3841,12 @@ snapshots:
 
   '@conventional-changelog/template@1.4.0': {}
 
-  '@elia97/officina@0.2.0(@types/node@26.3.0)':
+  '@elia97/officina@0.3.0(@types/node@26.3.0)(sharp@0.35.4(@types/node@26.3.0))':
     dependencies:
       plop: 4.0.5(@types/node@26.3.0)
       ts-morph: 28.0.0
+    optionalDependencies:
+      sharp: 0.35.4(@types/node@26.3.0)
     transitivePeerDependencies:
       - '@types/node'
 

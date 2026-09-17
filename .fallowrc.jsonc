@@ -1,7 +1,12 @@
 {
   "$schema": "https://raw.githubusercontent.com/fallow-rs/fallow/main/schema.json",
 
-  "entry": ["src/components/ui/**", "src/lib/motion/index.ts"],
+  "entry": [
+    "src/components/ui/**",
+    "src/lib/motion/index.ts",
+    // `officina` lo cerca per nome nella radice e lo importa a runtime: nessun import lo raggiunge.
+    "officina.config.ts"
+  ],
   "ignoreDependencies": [
     // fallow non conta gli import di astro.config.mjs come uso in produzione.
     "@astrojs/vercel",
