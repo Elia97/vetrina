@@ -50,70 +50,13 @@ jobs:
     environment:
       name: production
       url: ${{ steps.deploy.outputs.url }}
+    # [HARD] `actions/deploy` di officina non riceve i segreti come `secrets`: li legge da questo `env`.
     env:
       VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
       VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
       VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
     steps:
-      # Alla profondità di default actions/checkout non scarica tag, e il `git describe` sotto li vuole.
-      - uses: actions/checkout@v7
-        with:
-          fetch-depth: 0
-
-      # `inputs.ref` arriva alla shell tramite env: infilare `${{ }}` dentro un `run:` è
-      # iniezione di script (linee guida di sicurezza di GitHub Actions).
-      - name: Resolve the tag to deploy
-        id: target
-        env:
-          REQUESTED_REF: ${{ inputs.ref }}
-        run: |
-          ref="$REQUESTED_REF"
-          if [ -z "$ref" ]; then
-            ref=$(git describe --tags --abbrev=0) || {
-              echo "::error::no tag in this repository — production ships from a release tag, so there is nothing to deploy yet"
-              exit 1
-            }
-            echo "::notice::No ref given — deploying the most recent tag ($ref)."
-          fi
-          if ! git rev-parse -q --verify "refs/tags/$ref" > /dev/null; then
-            echo "::error::$ref is not a tag — production ships from release tags only"
-            exit 1
-          fi
-          echo "ref=$ref" >> "$GITHUB_OUTPUT"
-
-      - name: Check out the tag
-        env:
-          TARGET_REF: ${{ steps.target.outputs.ref }}
-        run: git checkout --detach "refs/tags/$TARGET_REF"
-
-      - run: corepack enable
-
-      - uses: actions/setup-node@v7
-        with:
-          node-version-file: '.nvmrc'
-          cache: 'pnpm'
-
-      - run: pnpm install --frozen-lockfile
-
-      - run: pnpm run check:placeholders
-
-      # Il `vercel build` qui sotto esegue solo `astro build`: niente Biome, niente astro check, niente vitest.
-      - run: pnpm run ci
-
-      # Dependabot non guarda dentro `pnpm dlx`: la major la segnala .github/workflows/vercel-cli.yml.
-      - run: pnpm dlx vercel@59 pull --yes --environment=production
-
-      - run: pnpm run check:placeholders --env .vercel/.env.production.local
-
-      - run: pnpm dlx vercel@59 build --prod
-
-      - name: Deploy to Vercel production
+      - uses: Elia97/officina/actions/deploy@v0.4.0
         id: deploy
-        run: |
-          url=$(pnpm dlx vercel@59 deploy --prebuilt --prod)
-          echo "url=$url" >> "$GITHUB_OUTPUT"
-          echo "Deployed to: $url"
-
-      # `astro dev` non legge mai vercel.json: intestazioni e rewrite si provano davvero solo qui.
-      - name: Smoke test production
-        run: pnpm run smoke:prod
+        with:
+          ref: ${{ inputs.ref }}

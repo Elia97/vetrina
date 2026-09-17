@@ -12,8 +12,6 @@ on:
       - '.github/**/*.md'
       - '.claude/**/*.md'
 
-# Dichiarati invece che ereditati: girando sulle PR, è questo il workflow su cui entrerebbe
-# un'action di terze parti.
 permissions:
   contents: read
 
@@ -27,54 +25,12 @@ jobs:
   ci:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
-
-      - run: corepack enable
-
-      - uses: actions/setup-node@v7
+      - uses: Elia97/officina/actions/ci@v0.4.0
         with:
-          node-version-file: '.nvmrc'
-          cache: 'pnpm'
+          e2e: 'true'
 
-      - run: pnpm install --frozen-lockfile
-
-      - run: pnpm run ci
-
-      - run: pnpm run build
-
-      # Legge dist/client, quindi deve seguire la build.
-      - run: pnpm run perf:bundle
-
-      - name: Cache del browser di Playwright
-        uses: actions/cache@v6
-        with:
-          path: ~/.cache/ms-playwright
-          key: ${{ runner.os }}-playwright-${{ hashFiles('pnpm-lock.yaml') }}
-
-      # Solo chromium: gli scenari provano il nostro codice, non le differenze fra motori.
-      - run: pnpm exec playwright install --with-deps chromium
-
-      # Serve la stessa dist/client che perf:bundle ha appena misurato.
-      - run: pnpm run test:e2e
-
-  # Altrimenti `fallow review` gira solo a mano: una PR aperta a mano o da Dependabot non lo
-  # vedrebbe mai. I confini stanno invece dentro `pnpm run ci`, che gira nel job qui sopra.
   fallow:
     name: fallow (review informativa)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
-        with:
-          fetch-depth: 0 # il riepilogo di review fa il diff contro il merge-base
-
-      - run: corepack enable
-
-      - uses: actions/setup-node@v7
-        with:
-          node-version-file: '.nvmrc'
-          cache: 'pnpm'
-
-      - run: pnpm install --frozen-lockfile
-
-      - name: fallow review (informativa, esce sempre 0)
-        run: pnpm exec fallow review
+      - uses: Elia97/officina/actions/review@v0.4.0
