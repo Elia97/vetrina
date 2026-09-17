@@ -98,10 +98,11 @@ proposito — home, nav mobile, tema, form di contatto — e girano su `dist/cli
 è dove la CSP costruita vive in un `<meta>` e una violazione si vede davvero. Il form non chiama mai
 Brevo: `e2e/support.ts` intercetta l'Action e la sfida di BotID.
 
-`pnpm run ci` ne contiene nove in fila, e l'ordine non è casuale: Biome con `--error-on-warnings`
+`pnpm run ci` ne contiene dieci in fila, e l'ordine non è casuale: Biome con `--error-on-warnings`
 (un avviso è un errore), il type-check, i confini di `.fallowrc.jsonc`, la lingua, i rimandi fra
-documenti, la roadmap, i commenti, i test, e da ultimo la complessità — che gira per ultima perché
-il suo punteggio CRAP legge la copertura che i test hanno appena scritto.
+documenti, la roadmap, i commenti, gli agganci dei generatori (`doctor`), i test, e da ultimo la
+complessità — che gira per ultima perché il suo punteggio CRAP legge la copertura che i test hanno
+appena scritto.
 
 Due presidiano la documentazione invece del codice. **`check:routes`** verifica che ogni percorso e
 ogni `§ Sezione` citati in un documento risolvano: un rimando morto non rompe niente, lo si scopre

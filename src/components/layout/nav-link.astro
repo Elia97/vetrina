@@ -1,0 +1,16 @@
+---
+import type { HTMLAttributes } from 'astro/types'
+
+import { localizedHref } from '@/i18n/href'
+import { ariaCurrent } from '@/i18n/path'
+
+interface Props extends HTMLAttributes<'a'> {
+  href: string
+}
+
+const { href: path, ...rest } = Astro.props
+const href = localizedHref(Astro.currentLocale, path)
+const current = ariaCurrent(path, Astro.url.pathname, Astro.currentLocale)
+---
+
+<a href={href} aria-current={current} {...rest}><slot /></a>

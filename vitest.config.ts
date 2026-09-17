@@ -39,7 +39,6 @@ export default getViteConfig({
       include: [
         'src/**/*.ts',
         'scripts/lib/**/*.ts',
-        'scripts/gen/**/*.mjs',
         'src/components/layout/footer.astro',
         'src/components/homepage/hero.astro',
       ],

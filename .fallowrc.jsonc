@@ -58,11 +58,6 @@
     ]
   },
 
-  "duplicates": {
-    // 3 invece di 2: a 2 l'unica segnalazione sono scripts/gen/collection.mjs e section.mjs,
-    // che condividono lo scheletro del generatore per scelta.
-    "minOccurrences": 3
-  },
   "rules": {
     "unused-dependencies": "warn"
   }
