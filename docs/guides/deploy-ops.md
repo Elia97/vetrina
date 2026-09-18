@@ -73,7 +73,9 @@ posto è cambiato, le ragioni no, e ognuna vale ancora una riga:
   o il repo avrà due fonti di verità.
 - **`environment: production`**, così GitHub registra i deployment e più avanti si possono aggiungere
   revisori obbligatori senza toccare il workflow. Resta nel workflow, come i tre segreti di Vercel:
-  l'action non li riceve come `secrets`, li legge dall'`env` del job che la chiama.
+  l'action li riceve come input in `with:`, e li mette nell'`env` dei soli passi che chiamano
+  `vercel`. Nell'`env` del job li vedrebbero anche `pnpm install` e gli script di installazione di
+  ogni dipendenza, che girano codice di terzi con in mano un token di deploy.
 
 `regions` in `vercel.json` è `fra1`, e merita una decisione consapevole per progetto: una build
 emette una sola funzione `_render` raggiunta da `/_actions`, `/_image` e `/_server-islands`, quindi

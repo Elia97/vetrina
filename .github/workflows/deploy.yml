@@ -50,13 +50,13 @@ jobs:
     environment:
       name: production
       url: ${{ steps.deploy.outputs.url }}
-    # [HARD] `actions/deploy` di officina non riceve i segreti come `secrets`: li legge da questo `env`.
-    env:
-      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
     steps:
-      - uses: Elia97/officina/actions/deploy@v0.4.0
+      # [HARD] Nell'`env` del job, i segreti sarebbero visibili anche a `pnpm install` e agli script
+      # di installazione di ogni dipendenza, che girano codice di terzi.
+      - uses: Elia97/officina/actions/deploy@v0.5.0
         id: deploy
         with:
           ref: ${{ inputs.ref }}
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}

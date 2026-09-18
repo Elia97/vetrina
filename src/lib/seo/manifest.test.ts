@@ -1,7 +1,7 @@
 import { existsSync } from 'node:fs'
 import { join } from 'node:path'
 import process from 'node:process'
-import { ICON_SPECS } from '@elia97/officina'
+import { ICON_SPECS } from '@elia97/officina/icons'
 import { describe, expect, it } from 'vitest'
 
 import { buildWebManifest } from '@/lib/seo/manifest'

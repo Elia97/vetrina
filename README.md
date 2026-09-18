@@ -243,11 +243,12 @@ Contratti che vale la pena conoscere (il dettaglio è in `docs/guides/content-co
   `gen:page` e la pagina a sezioni di `gen:collection` i dizionari, da riportare con `git checkout`);
 - non rinominare gli ancoraggi dell'iniezione (`export const collections`, `<nome>CollectionSchema`,
   `get<Nome>Sections`, i marcatori `@gen:<nome>-*` di ogni pagina a sezioni, la costante esportata
-  di ogni dizionario): i generatori li verificano e si fermano con l'errore di contratto.
-  `pnpm run doctor`, dentro `pnpm run ci`, fra questi controlla solo `export const collections`:
-  una rinomina degli altri passa il gate e ferma il generatore al lancio. Gli ancoraggi sono solo
-  una delle sei sezioni che misura — le altre cinque guardano script e dipendenze, residui di ciò
-  che è uscito, preset, workflow e `officina.config.ts`, e stanno in `docs/ARCHITECTURE.md`.
+  di ogni dizionario): i generatori li verificano e si fermano con l'errore di contratto, e
+  `pnpm run doctor`, dentro `pnpm run ci`, li verifica tutti, quindi una rinomina si ferma al gate
+  invece che al lancio del generatore. Gli ancoraggi sono una delle sette sezioni che misura — le
+  altre guardano i punti di aggancio dei generatori, script, dipendenze e strumenti, residui di ciò
+  che è uscito, preset, workflow e Dependabot, e `officina.config.ts`, e stanno in
+  `docs/ARCHITECTURE.md`.
 
 ## Aggiungere una lingua
 
