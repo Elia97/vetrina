@@ -1,7 +1,19 @@
 version: 2
+
+# [HARD] `doctor` pretende che il riferimento delle action sia la versione del pacchetto installato.
+multi-ecosystem-groups:
+  officina:
+    schedule:
+      interval: 'weekly'
+    labels:
+      - 'dependencies'
+
 updates:
   - package-ecosystem: 'npm'
     directory: '/'
+    patterns:
+      - '@elia97/officina'
+    multi-ecosystem-group: 'officina'
     schedule:
       interval: 'weekly'
     labels:
@@ -26,9 +38,14 @@ updates:
       npm:
         patterns:
           - '*'
+        exclude-patterns:
+          - '@elia97/officina'
 
   - package-ecosystem: 'github-actions'
     directory: '/'
+    patterns:
+      - 'Elia97/officina/*'
+    multi-ecosystem-group: 'officina'
     schedule:
       interval: 'weekly'
     labels:
@@ -39,3 +56,5 @@ updates:
       github-actions:
         patterns:
           - '*'
+        exclude-patterns:
+          - 'Elia97/officina/*'

@@ -141,7 +141,7 @@ del browser — e viene reso una volta sola da `head.astro`.
   192px. La maskable tiene il glifo nel quadrato inscritto nella zona sicura, il cerchio centrale di
   diametro pari all'80% del lato che la maschera adattiva di Android non taglia. Le icone si
   committano e si rigenerano dopo aver sostituito il favicon; `src/lib/seo/manifest.test.ts` lega le
-  loro specifiche alle voci di `ICONS`, leggendo `ICON_SPECS` da `@elia97/officina`.
+  loro specifiche alle voci di `ICONS`, leggendo `ICON_SPECS` da `@elia97/officina/icons`.
 - **`SITE.themeColor` deve essere uguale a `--background`** in `light.css` e `dark.css`, altrimenti
   la chrome del browser e la pagina non concordano sulla giuntura — lo verifica
   `src/styles/theme-color.test.ts`, che risolve i token e converte oklch in esadecimale. È in

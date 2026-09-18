@@ -234,7 +234,9 @@ silenzioso nulla di fatto):
 
 I generatori stanno in `@elia97/officina`, e le verifiche qui sopra le fa il loro pre-volo, cioè
 solo quando li lanci. Dentro `pnpm run ci` gira `pnpm run doctor` (`officina doctor`), che di questa
-sezione controlla che esistano i moduli e le cartelle su cui i generatori contano e, fra gli
-ancoraggi, solo `export const collections`. `<nome>CollectionSchema`, `get<Nome>Sections`, i marcatori
-`@gen:<nome>-*` e la forma dei dizionari restano al pre-volo: una loro rinomina passa il gate e ferma
-il generatore al lancio successivo.
+sezione controlla i moduli e le cartelle su cui i generatori contano, e gli ancoraggi su cui
+l'iniezione conta: `<nome>CollectionSchema` con la sua unione discriminata, il `return` di primo
+livello di `get<Nome>Sections`, i marcatori `@gen:<nome>-*` della pagina a sezioni e la forma dei
+dizionari. Una loro rinomina si ferma al gate. Al pre-volo resta ciò che dipende dal nome di quello
+che sta per nascere — la sezione già nell'unione, l'identificatore già preso, la chiave già nel
+dizionario, il file che esiste già — e che quindi si può chiedere solo al lancio.
