@@ -14,6 +14,8 @@ concurrency:
 
 jobs:
   release-please:
+    # «Use this template» copia manifest, versione e CHANGELOG.md in ogni progetto: qui non si rilascia.
+    if: ${{ !github.event.repository.is_template }}
     runs-on: ubuntu-latest
     outputs:
       release_created: ${{ steps.release.outputs.release_created }}

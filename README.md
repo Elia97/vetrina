@@ -77,7 +77,10 @@ commerciale: brief, decisioni, stima e verbali stanno nel sistema; qui si scrive
 12. `.release-please-manifest.json` parte da `{".": "0.0.0"}`, che release-please interpreta come
     «non è ancora stato rilasciato niente» e non come una versione precedente vera: la prima PR di
     release propone quindi `1.0.0` direttamente, da sola, e resta aperta aggiornandosi a ogni `feat`
-    e `fix` finché non la si merge, una volta finito il primo blocco di milestone.
+    e `fix` finché non la si merge, una volta finito il primo blocco di milestone. Il manifest arriva
+    a `0.0.0` perché il template non si rilascia: in `release-please.yml` il job salta dove il
+    repository è un template, altrimenti manifest, versione e `CHANGELOG.md` del template
+    passerebbero al progetto. Nel progetto la condizione è sempre vera e non va toccata.
 
 ## Cosa tocca il rebranding
 
