@@ -32,9 +32,10 @@ commerciale: brief, decisioni, stima e verbali stanno nel sistema; qui si scrive
    git e i tag di release di questo repo).
 2. Clonalo nella cartella del progetto del sistema (`progetti/<id>/repo/`), poi `corepack enable &&
    pnpm install`: installa dipendenze e hook git (lefthook).
-3. **Metti dependabot in pausa**: `open-pull-requests-limit: 0` sotto entrambi gli ecosistemi in
-   `.github/dependabot.yml`, e poi **committa e pusha**, perché GitHub legge quel file dal branch di
-   default e una pausa che resta in locale non mette in pausa niente. Su uno scaffold non
+3. **Metti dependabot in pausa**: in `.github/dependabot.yml`, `open-pull-requests-limit: 0` sul
+   gruppo `officina` e sulle due voci che non ne fanno parte (sulle voci del gruppo Dependabot lo
+   rifiuta e scarta l'intero file). Poi **committa e pusha**, perché GitHub legge quel file dal
+   branch di default e una pausa che resta in locale non mette in pausa niente. Su uno scaffold non
    personalizzato e senza secret di CI, le sue PR sono rumore da chiudere a mano. La milestone
    `foundations` lo riattiva.
 4. **Sospendi release-please**, lato GitHub e non nel file, così l'allineamento al template al
