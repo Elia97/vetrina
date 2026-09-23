@@ -7,13 +7,23 @@ multi-ecosystem-groups:
       interval: 'weekly'
     labels:
       - 'dependencies'
+    # Solo qui: su una voce con `multi-ecosystem-group` Dependabot rifiuta l'intero file.
+    commit-message:
+      prefix: 'chore(deps)'
 
 updates:
+  # `patterns` limita l'aggiornamento ai soli pacchetti elencati: senza una seconda voce,
+  # il resto dell'ecosistema smette di aggiornarsi senza nessun errore (dependabot-core#12437).
   - package-ecosystem: 'npm'
     directory: '/'
     patterns:
       - '@elia97/officina'
     multi-ecosystem-group: 'officina'
+    schedule:
+      interval: 'weekly'
+
+  - package-ecosystem: 'npm'
+    directory: '/'
     schedule:
       interval: 'weekly'
     labels:
@@ -27,6 +37,7 @@ updates:
       default-days: 7
       semver-major-days: 14
     ignore:
+      - dependency-name: '@elia97/officina'
       - dependency-name: '*'
         update-types: ['version-update:semver-major']
       # `astro check` usa l'API programmatica di TypeScript, che il compilatore nativo 7.x
@@ -38,8 +49,6 @@ updates:
       npm:
         patterns:
           - '*'
-        exclude-patterns:
-          - '@elia97/officina'
 
   - package-ecosystem: 'github-actions'
     directory: '/'
@@ -48,13 +57,18 @@ updates:
     multi-ecosystem-group: 'officina'
     schedule:
       interval: 'weekly'
+
+  - package-ecosystem: 'github-actions'
+    directory: '/'
+    schedule:
+      interval: 'weekly'
     labels:
       - 'github-actions'
     commit-message:
       prefix: 'chore(deps)'
+    ignore:
+      - dependency-name: 'Elia97/officina/*'
     groups:
       github-actions:
         patterns:
           - '*'
-        exclude-patterns:
-          - 'Elia97/officina/*'
