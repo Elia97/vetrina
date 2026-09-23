@@ -20,13 +20,13 @@ importers:
         version: 3.7.3
       '@astrojs/vercel':
         specifier: ^11.0.8
-        version: 11.0.8(astro@7.2.7(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.3)(@types/node@26.3.0)(@vercel/functions@3.9.5(ws@8.21.3))(jiti@2.7.0)(yaml@2.9.0))(supports-color@7.2.0)(ws@8.21.3)
+        version: 11.0.8(astro@7.2.7(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.3)(@types/node@26.3.0)(@vercel/functions@3.9.5(ws@8.21.3))(jiti@2.7.0)(yaml@2.9.1))(supports-color@7.2.0)(ws@8.21.3)
       '@lucide/astro':
         specifier: ^1.34.0
-        version: 1.34.0(astro@7.2.7(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.3)(@types/node@26.3.0)(@vercel/functions@3.9.5(ws@8.21.3))(jiti@2.7.0)(yaml@2.9.0))
+        version: 1.34.0(astro@7.2.7(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.3)(@types/node@26.3.0)(@vercel/functions@3.9.5(ws@8.21.3))(jiti@2.7.0)(yaml@2.9.1))
       astro:
         specifier: ^7.2.7
-        version: 7.2.7(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.3)(@types/node@26.3.0)(@vercel/functions@3.9.5(ws@8.21.3))(jiti@2.7.0)(yaml@2.9.0)
+        version: 7.2.7(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.3)(@types/node@26.3.0)(@vercel/functions@3.9.5(ws@8.21.3))(jiti@2.7.0)(yaml@2.9.1)
       botid:
         specifier: ^1.5.11
         version: 1.5.11
@@ -56,14 +56,14 @@ importers:
         specifier: ^21.2.2
         version: 21.2.2
       '@elia97/officina':
-        specifier: ^0.5.0
-        version: 0.5.0(@biomejs/biome@2.5.10)(@types/node@26.3.0)(sharp@0.35.4(@types/node@26.3.0))
+        specifier: ^0.9.0
+        version: 0.9.0(@biomejs/biome@2.5.10)(@types/node@26.3.0)(sharp@0.35.4(@types/node@26.3.0))
       '@playwright/test':
         specifier: ^1.63.0
         version: 1.63.0
       '@tailwindcss/vite':
         specifier: ^4.3.3
-        version: 4.3.3(vite@8.2.2(@types/node@26.3.0)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.0))
+        version: 4.3.3(vite@8.2.2(@types/node@26.3.0)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1))
       '@types/node':
         specifier: ^26.3.0
         version: 26.3.0
@@ -84,7 +84,7 @@ importers:
         version: 4.3.3
       vitest:
         specifier: ^4.1.11
-        version: 4.1.11(@types/node@26.3.0)(@vitest/coverage-v8@4.1.11)(happy-dom@20.11.6)(vite@8.2.2(@types/node@26.3.0)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.0))
+        version: 4.1.11(@types/node@26.3.0)(@vitest/coverage-v8@4.1.11)(happy-dom@20.11.6)(vite@8.2.2(@types/node@26.3.0)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1))
 
 packages:
 
@@ -427,8 +427,8 @@ packages:
     resolution: {integrity: sha512-aalGyl7dbB5PArRebDIX43ZvBlXrYm9uWzGJ26t+4SzJVPsOuvfILGGbw5X4yX7i50YEmJ8zvbiWnqH/AAnZqg==}
     engines: {node: '>=22'}
 
-  '@elia97/officina@0.5.0':
-    resolution: {integrity: sha512-PdiyuD5KhF27MiJ+KIrR+4YTFj5fTnb9H52bWSwstL+2V23XxDU25xaa3C6mBGcMosSg2yzVblo8vtRC2O0I6A==}
+  '@elia97/officina@0.9.0':
+    resolution: {integrity: sha512-KRHLsKjtqirbv8n3h5CKZ4jQtL1xs2OmU8rCvZTPElu7Wnsq5OtxATYBVwYe/o9iaI5Wc6fRsGbIp5FGnq/urA==}
     engines: {node: '>=24.2.0'}
     hasBin: true
     peerDependencies:
@@ -3438,6 +3438,11 @@ packages:
     engines: {node: '>= 14.6'}
     hasBin: true
 
+  yaml@2.9.1:
+    resolution: {integrity: sha512-3NxN8+78OdzbT7C/WjGsyfPAtJaN3FNDsWxv7Y7mcDsT/oOmgW8BpyQQFFBnvZE3j9Y2Sdz1ULFLezL7Eb2yFw==}
+    engines: {node: '>= 14.6'}
+    hasBin: true
+
   yargs-parser@22.0.0:
     resolution: {integrity: sha512-rwu/ClNdSMpkSrUb+d6BRsSkLUq1fmfsY6TOpYzTwvwkg1/NRG85KBy3kq++A8LKQwX6lsu+aWad+2khvuXrqw==}
     engines: {node: ^20.19.0 || ^22.12.0 || >=23}
@@ -3592,14 +3597,14 @@ snapshots:
       is-docker: 4.0.0
       package-manager-detector: 1.8.0
 
-  '@astrojs/vercel@11.0.8(astro@7.2.7(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.3)(@types/node@26.3.0)(@vercel/functions@3.9.5(ws@8.21.3))(jiti@2.7.0)(yaml@2.9.0))(supports-color@7.2.0)(ws@8.21.3)':
+  '@astrojs/vercel@11.0.8(astro@7.2.7(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.3)(@types/node@26.3.0)(@vercel/functions@3.9.5(ws@8.21.3))(jiti@2.7.0)(yaml@2.9.1))(supports-color@7.2.0)(ws@8.21.3)':
     dependencies:
       '@astrojs/internal-helpers': 0.10.4
       '@vercel/analytics': 1.6.1
       '@vercel/functions': 3.9.5(ws@8.21.3)
       '@vercel/nft': 1.11.0(supports-color@7.2.0)
       '@vercel/routing-utils': 5.3.3
-      astro: 7.2.7(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.3)(@types/node@26.3.0)(@vercel/functions@3.9.5(ws@8.21.3))(jiti@2.7.0)(yaml@2.9.0)
+      astro: 7.2.7(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.3)(@types/node@26.3.0)(@vercel/functions@3.9.5(ws@8.21.3))(jiti@2.7.0)(yaml@2.9.1)
       esbuild: 0.28.2
       tinyglobby: 0.2.17
     transitivePeerDependencies:
@@ -3842,11 +3847,12 @@ snapshots:
 
   '@conventional-changelog/template@1.4.0': {}
 
-  '@elia97/officina@0.5.0(@biomejs/biome@2.5.10)(@types/node@26.3.0)(sharp@0.35.4(@types/node@26.3.0))':
+  '@elia97/officina@0.9.0(@biomejs/biome@2.5.10)(@types/node@26.3.0)(sharp@0.35.4(@types/node@26.3.0))':
     dependencies:
       '@biomejs/biome': 2.5.10
       plop: 4.0.5(@types/node@26.3.0)
       ts-morph: 28.0.0
+      yaml: 2.9.1
     optionalDependencies:
       sharp: 0.35.4(@types/node@26.3.0)
     transitivePeerDependencies:
@@ -4136,9 +4142,9 @@ snapshots:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.5.5
 
-  '@lucide/astro@1.34.0(astro@7.2.7(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.3)(@types/node@26.3.0)(@vercel/functions@3.9.5(ws@8.21.3))(jiti@2.7.0)(yaml@2.9.0))':
+  '@lucide/astro@1.34.0(astro@7.2.7(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.3)(@types/node@26.3.0)(@vercel/functions@3.9.5(ws@8.21.3))(jiti@2.7.0)(yaml@2.9.1))':
     dependencies:
-      astro: 7.2.7(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.3)(@types/node@26.3.0)(@vercel/functions@3.9.5(ws@8.21.3))(jiti@2.7.0)(yaml@2.9.0)
+      astro: 7.2.7(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.3)(@types/node@26.3.0)(@vercel/functions@3.9.5(ws@8.21.3))(jiti@2.7.0)(yaml@2.9.1)
 
   '@mapbox/node-pre-gyp@2.0.3(supports-color@7.2.0)':
     dependencies:
@@ -4337,12 +4343,12 @@ snapshots:
       '@tailwindcss/oxide-win32-arm64-msvc': 4.3.3
       '@tailwindcss/oxide-win32-x64-msvc': 4.3.3
 
-  '@tailwindcss/vite@4.3.3(vite@8.2.2(@types/node@26.3.0)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.0))':
+  '@tailwindcss/vite@4.3.3(vite@8.2.2(@types/node@26.3.0)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1))':
     dependencies:
       '@tailwindcss/node': 4.3.3
       '@tailwindcss/oxide': 4.3.3
       tailwindcss: 4.3.3
-      vite: 8.2.2(@types/node@26.3.0)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.0)
+      vite: 8.2.2(@types/node@26.3.0)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1)
 
   '@ts-morph/common@0.29.0':
     dependencies:
@@ -4541,7 +4547,7 @@ snapshots:
       obug: 2.1.4
       std-env: 4.2.0
       tinyrainbow: 3.1.1
-      vitest: 4.1.11(@types/node@26.3.0)(@vitest/coverage-v8@4.1.11)(happy-dom@20.11.6)(vite@8.2.2(@types/node@26.3.0)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.0))
+      vitest: 4.1.11(@types/node@26.3.0)(@vitest/coverage-v8@4.1.11)(happy-dom@20.11.6)(vite@8.2.2(@types/node@26.3.0)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1))
 
   '@vitest/expect@4.1.11':
     dependencies:
@@ -4552,13 +4558,13 @@ snapshots:
       chai: 6.2.2
       tinyrainbow: 3.1.1
 
-  '@vitest/mocker@4.1.11(vite@8.2.2(@types/node@26.3.0)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.0))':
+  '@vitest/mocker@4.1.11(vite@8.2.2(@types/node@26.3.0)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1))':
     dependencies:
       '@vitest/spy': 4.1.11
       estree-walker: 3.0.3
       magic-string: 0.30.21
     optionalDependencies:
-      vite: 8.2.2(@types/node@26.3.0)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.0)
+      vite: 8.2.2(@types/node@26.3.0)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1)
 
   '@vitest/pretty-format@4.1.11':
     dependencies:
@@ -4716,7 +4722,7 @@ snapshots:
       estree-walker: 3.0.3
       js-tokens: 10.0.0
 
-  astro@7.2.7(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.3)(@types/node@26.3.0)(@vercel/functions@3.9.5(ws@8.21.3))(jiti@2.7.0)(yaml@2.9.0):
+  astro@7.2.7(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.3)(@types/node@26.3.0)(@vercel/functions@3.9.5(ws@8.21.3))(jiti@2.7.0)(yaml@2.9.1):
     dependencies:
       '@astrojs/compiler-rs': 0.4.0(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.3)
       '@astrojs/internal-helpers': 0.10.4
@@ -4766,8 +4772,8 @@ snapshots:
       ultrahtml: 1.7.0
       unifont: 0.7.5
       unstorage: 1.17.5(@vercel/functions@3.9.5(ws@8.21.3))
-      vite: 8.2.2(@types/node@26.3.0)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.0)
-      vitefu: 1.1.3(vite@8.2.2(@types/node@26.3.0)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.0))
+      vite: 8.2.2(@types/node@26.3.0)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1)
+      vitefu: 1.1.3(vite@8.2.2(@types/node@26.3.0)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1))
       xxhash-wasm: 1.1.0
       yargs-parser: 22.0.0
       zod: 4.4.3
@@ -6317,7 +6323,7 @@ snapshots:
       '@types/unist': 3.0.3
       vfile-message: 4.0.3
 
-  vite@8.2.2(@types/node@26.3.0)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.0):
+  vite@8.2.2(@types/node@26.3.0)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1):
     dependencies:
       lightningcss: 1.33.0
       picomatch: 4.0.7
@@ -6329,16 +6335,16 @@ snapshots:
       esbuild: 0.28.2
       fsevents: 2.3.3
       jiti: 2.7.0
-      yaml: 2.9.0
+      yaml: 2.9.1
 
-  vitefu@1.1.3(vite@8.2.2(@types/node@26.3.0)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.0)):
+  vitefu@1.1.3(vite@8.2.2(@types/node@26.3.0)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1)):
     optionalDependencies:
-      vite: 8.2.2(@types/node@26.3.0)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.0)
+      vite: 8.2.2(@types/node@26.3.0)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1)
 
-  vitest@4.1.11(@types/node@26.3.0)(@vitest/coverage-v8@4.1.11)(happy-dom@20.11.6)(vite@8.2.2(@types/node@26.3.0)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.0)):
+  vitest@4.1.11(@types/node@26.3.0)(@vitest/coverage-v8@4.1.11)(happy-dom@20.11.6)(vite@8.2.2(@types/node@26.3.0)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1)):
     dependencies:
       '@vitest/expect': 4.1.11
-      '@vitest/mocker': 4.1.11(vite@8.2.2(@types/node@26.3.0)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.0))
+      '@vitest/mocker': 4.1.11(vite@8.2.2(@types/node@26.3.0)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1))
       '@vitest/pretty-format': 4.1.11
       '@vitest/runner': 4.1.11
       '@vitest/snapshot': 4.1.11
@@ -6355,7 +6361,7 @@ snapshots:
       tinyexec: 1.3.0
       tinyglobby: 0.2.17
       tinyrainbow: 3.1.1
-      vite: 8.2.2(@types/node@26.3.0)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.0)
+      vite: 8.2.2(@types/node@26.3.0)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1)
       why-is-node-running: 2.3.0
     optionalDependencies:
       '@types/node': 26.3.0
@@ -6547,6 +6553,8 @@ snapshots:
   yaml@2.8.3: {}
 
   yaml@2.9.0: {}
+
+  yaml@2.9.1: {}
 
   yargs-parser@22.0.0: {}
 

@@ -53,7 +53,7 @@ jobs:
     steps:
       # [HARD] Nell'`env` del job, i segreti sarebbero visibili anche a `pnpm install` e agli script
       # di installazione di ogni dipendenza, che girano codice di terzi.
-      - uses: Elia97/officina/actions/deploy@v0.5.0
+      - uses: Elia97/officina/actions/deploy@v0.9.0
         id: deploy
         with:
           ref: ${{ inputs.ref }}
