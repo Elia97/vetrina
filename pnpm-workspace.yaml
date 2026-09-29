@@ -12,7 +12,7 @@ minimumReleaseAgeExclude:
 overrides:
   # GHSA-9wv6-86v2-598j — regex con backtracking, transitiva da
   # @astrojs/vercel > @vercel/routing-utils e inclusa nella funzione deployata.
-  path-to-regexp@<6.3.0: '>=6.3.0'
+  path-to-regexp@<6.3.0: '^6.3.0'
   # GHSA-mh99-v99m-4gvg e GHSA-rgw5-rvv9-x895 — espansione senza limiti. Solo in sviluppo
   # (ts-morph > @ts-morph/common > minimatch), mai nel bundle consegnato.
   brace-expansion@<5.0.9: '>=5.0.9'
