@@ -32,16 +32,23 @@ commerciale: brief, decisioni, stima e verbali stanno nel sistema; qui si scrive
    git e i tag di release di questo repo).
 2. Clonalo nella cartella del progetto del sistema (`progetti/<id>/repo/`), poi `corepack enable &&
    pnpm install`: installa dipendenze e hook git (lefthook).
-3. **Metti dependabot in pausa**: in `.github/dependabot.yml`, `open-pull-requests-limit: 0` sul
-   gruppo `officina` e sulle due voci che non ne fanno parte (sulle voci del gruppo Dependabot lo
-   rifiuta e scarta l'intero file). Poi **committa e pusha**, perché GitHub legge quel file dal
-   branch di default e una pausa che resta in locale non mette in pausa niente. Su uno scaffold non
-   personalizzato e senza secret di CI, le sue PR sono rumore da chiudere a mano. La milestone
-   `foundations` lo riattiva.
-4. **Sospendi release-please**, lato GitHub e non nel file, così l'allineamento al template al
-   cancello non trova una differenza spuria: `gh workflow disable release-please.yml`. Prima del
-   cancello non c'è niente da rilasciare, e senza `RELEASE_PLEASE_TOKEN` la workflow fallirebbe a
-   ogni push.
+3. **Metti dependabot in pausa**. Il primo giro è già partito: «Use this template» crea il commit
+   iniziale con un push su `main`, e GitHub lancia subito Dependabot, un giro per voce di
+   `.github/dependabot.yml`, che può aprire una PR prima che la pausa esista. Il template lo tiene
+   attivo, quindi la pausa arriva sempre dopo: `open-pull-requests-limit: 0` sul gruppo `officina` e
+   sulle due voci che non ne fanno parte (sulle voci del gruppo Dependabot lo rifiuta e scarta
+   l'intero file). Poi **committa e pusha**, con release-please già sospeso (passo 4), perché GitHub
+   legge quel file dal branch di default e una pausa che resta in locale non mette in pausa niente.
+   Pushata la pausa, chiudi le PR del primo giro con `gh pr close <n> --delete-branch`: su uno
+   scaffold non personalizzato e senza secret di CI sono rumore. La milestone `foundations` lo
+   riattiva.
+4. **Sospendi release-please prima del primo push**, cioè prima di pushare la pausa del passo 3. Sul
+   commit iniziale è già girato, perché il progetto non è un repository template e il job non salta,
+   e non ha aperto niente solo perché «Initial commit» non ha un tipo rilasciabile. Si sospende lato
+   GitHub e non nel file, così l'allineamento al template al cancello non trova una differenza
+   spuria: `gh workflow disable release-please.yml`. Prima del cancello non c'è niente da
+   rilasciare, e fino al passo 8 le Actions non hanno il permesso di aprire la release PR: al primo
+   commit rilasciabile la workflow fallirebbe.
 5. Nessuna riga di codice applicativo e niente `bootstrap-github.sh`: lo scaffold resta com'è, e il
    ruleset che quello script installa rifiuterebbe i commit diretti su `main` della fase di piano.
 
