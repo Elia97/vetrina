@@ -53,7 +53,7 @@ updates:
   - package-ecosystem: 'github-actions'
     directory: '/'
     patterns:
-      - 'Elia97/officina/*'
+      - 'Elia97/officina'
     multi-ecosystem-group: 'officina'
     schedule:
       interval: 'weekly'
@@ -67,7 +67,7 @@ updates:
     commit-message:
       prefix: 'chore(deps)'
     ignore:
-      - dependency-name: 'Elia97/officina/*'
+      - dependency-name: 'Elia97/officina'
     groups:
       github-actions:
         patterns:

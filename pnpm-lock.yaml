@@ -56,8 +56,8 @@ importers:
         specifier: ^21.2.2
         version: 21.2.2
       '@elia97/officina':
-        specifier: ^0.9.0
-        version: 0.9.0(@biomejs/biome@2.5.14)(@types/node@26.6.1)(sharp@0.35.4(@types/node@26.6.1))
+        specifier: ^0.10.0
+        version: 0.10.0(@biomejs/biome@2.5.14)(@types/node@26.6.1)(sharp@0.35.4(@types/node@26.6.1))
       '@playwright/test':
         specifier: ^1.63.0
         version: 1.63.0
@@ -433,8 +433,8 @@ packages:
     resolution: {integrity: sha512-aalGyl7dbB5PArRebDIX43ZvBlXrYm9uWzGJ26t+4SzJVPsOuvfILGGbw5X4yX7i50YEmJ8zvbiWnqH/AAnZqg==}
     engines: {node: '>=22'}
 
-  '@elia97/officina@0.9.0':
-    resolution: {integrity: sha512-KRHLsKjtqirbv8n3h5CKZ4jQtL1xs2OmU8rCvZTPElu7Wnsq5OtxATYBVwYe/o9iaI5Wc6fRsGbIp5FGnq/urA==}
+  '@elia97/officina@0.10.0':
+    resolution: {integrity: sha512-5NVPmqkakjlVXPa1pSuWyctIrILH5lO+OFWGIUjk/VuydXkyZNPObVswPvYcDRxHTaEV4Tj2dD0gu8AfC0Ky3w==}
     engines: {node: '>=24.2.0'}
     hasBin: true
     peerDependencies:
@@ -3445,11 +3445,6 @@ packages:
     engines: {node: '>= 14.6'}
     hasBin: true
 
-  yaml@2.9.0:
-    resolution: {integrity: sha512-2AvhNX3mb8zd6Zy7INTtSpl1F15HW6Wnqj0srWlkKLcpYl/gMIMJiyuGq2KeI2YFxUPjdlB+3Lc10seMLtL4cA==}
-    engines: {node: '>= 14.6'}
-    hasBin: true
-
   yaml@2.9.1:
     resolution: {integrity: sha512-3NxN8+78OdzbT7C/WjGsyfPAtJaN3FNDsWxv7Y7mcDsT/oOmgW8BpyQQFFBnvZE3j9Y2Sdz1ULFLezL7Eb2yFw==}
     engines: {node: '>= 14.6'}
@@ -3639,7 +3634,7 @@ snapshots:
 
   '@astrojs/yaml2ts@0.2.4':
     dependencies:
-      yaml: 2.9.0
+      yaml: 2.9.1
 
   '@babel/code-frame@7.29.7':
     dependencies:
@@ -3863,7 +3858,7 @@ snapshots:
 
   '@conventional-changelog/template@1.4.0': {}
 
-  '@elia97/officina@0.9.0(@biomejs/biome@2.5.14)(@types/node@26.6.1)(sharp@0.35.4(@types/node@26.6.1))':
+  '@elia97/officina@0.10.0(@biomejs/biome@2.5.14)(@types/node@26.6.1)(sharp@0.35.4(@types/node@26.6.1))':
     dependencies:
       '@biomejs/biome': 2.5.14
       plop: 4.0.5(@types/node@26.6.1)
@@ -6569,8 +6564,6 @@ snapshots:
       yaml: 2.8.3
 
   yaml@2.8.3: {}
-
-  yaml@2.9.0: {}
 
   yaml@2.9.1: {}
 
