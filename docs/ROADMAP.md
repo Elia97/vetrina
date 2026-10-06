@@ -22,7 +22,7 @@
 
 | # | Milestone | Fase | gg | Status |
 |---|---|:-:|:-:|---|
-| 2 | I punti di aggancio per ecommerce | 1 | 3,5 | 🔲 planned |
+| 2 | I punti di aggancio per ecommerce | 1 | 3,5 | 🟡 seeded |
 | | **TOTALE** | | **3,5** | |
 
 <!-- Legenda: 🔲 planned (non ancora seminata) · 🟡 seeded (issue aperte su GitHub) · 🟢 done (Milestone GitHub chiusa) -->
@@ -48,7 +48,7 @@ Dentro la milestone, la 2.7 viene dopo la 2.4, perché toccano entrambe
 ## Milestone 2 — I punti di aggancio per ecommerce
 
 **Fonte:** bespoke
-**GitHub Milestone:** non ancora seminata
+**GitHub Milestone:** #2 (https://github.com/Elia97/vetrina/milestone/2)
 **Fase 1** · **3,5 gg**
 
 Un template derivato come `ecommerce` estende vetrina senza toccarne la base fuori dai punti di
@@ -58,16 +58,16 @@ configurazione hanno un posto in cui si aggiunge in coda, e `docs/ARCHITECTURE.m
 | Sotto-task | Issue |
 |---|---|
 | fix(content): i segnaposto # del template e check links di officina 0.11.0 | #97 |
-| docs: il metodo sta in Elia97/metodo, non in metodo-astro | — |
-| feat(ops): la CSP anche sulle pagine HTML rese a richiesta | — |
-| refactor(forms): il layout delle email in un modulo condiviso | — |
-| feat(ui): ui/select con un valore iniziale e sulle righe aggiunte dopo il caricamento | — |
-| refactor(layout): il guscio del documento separato dall'arredo del sito | — |
-| refactor(actions): src/actions/index.ts diventa il solo registro delle azioni | — |
-| refactor(i18n): dizionari di dominio accanto a quello del sito | — |
-| refactor(config): le liste che un template derivato allunga, una voce per riga | — |
-| docs(architecture): i punti di aggancio dei template derivati | — |
-| docs(roadmap): riporta docs/ROADMAP.md all'impalcatura vuota | — |
+| docs: il metodo sta in Elia97/metodo, non in metodo-astro | #99 |
+| feat(ops): la CSP anche sulle pagine HTML rese a richiesta | #100 |
+| refactor(forms): il layout delle email in un modulo condiviso | #101 |
+| feat(ui): ui/select con un valore iniziale e sulle righe aggiunte dopo il caricamento | #102 |
+| refactor(layout): il guscio del documento separato dall'arredo del sito | #103 |
+| refactor(actions): src/actions/index.ts diventa il solo registro delle azioni | #104 |
+| refactor(i18n): dizionari di dominio accanto a quello del sito | #105 |
+| refactor(config): le liste che un template derivato allunga, una voce per riga | #106 |
+| docs(architecture): i punti di aggancio dei template derivati | #107 |
+| docs(roadmap): riporta docs/ROADMAP.md all'impalcatura vuota | #108 |
 
 ### 2.1 fix(content): i segnaposto # del template e check links di officina 0.11.0
 
@@ -191,6 +191,8 @@ Checklist:
 - [ ] la sezione nomina ogni punto di aggancio con il suo file: azioni, dizionari di dominio, layout
   delle email, guscio del documento, CSP a richiesta, liste di configurazione
 - [ ] `CLAUDE.md` rimanda alla sezione
+- [ ] la tabella di § I domini copre i percorsi che oggi non nomina: `src/layouts/**`,
+  `src/i18n/**`, `src/lib/csp/**` e `src/middleware.ts`
 
 ### 2.11 docs(roadmap): riporta docs/ROADMAP.md all'impalcatura vuota
 
