@@ -6,6 +6,4 @@ subtitle: >-
   Sostituiscilo con il copy reale.
 buttons:
   - label: Azione primaria
-    url: '#'
-  - label: Azione secondaria
-    url: '#'
+    url: /contatti
