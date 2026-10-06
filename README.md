@@ -96,8 +96,8 @@ La superficie completa, in un posto solo — la milestone `foundations` la distr
 - `package.json#name` (e `release-please-config.json`): trapela nel changelog che release-please
   genera, quindi deve corrispondere al progetto nuovo e non restare `vetrina`;
 - `src/lib/site.ts`: nome, url, descrizione, voci di nav, CTA e legali (la chrome si rende da qui, e
-  le voci portano chiavi i18n, non testo), più i profili di `SITE.social`, che arrivano con
-  `href: '#'` e finiscono nel footer e nel `sameAs` del JSON-LD;
+  le voci portano chiavi i18n, non testo), più i profili di `SITE.social`, che arriva vuoto: ogni
+  profilo aggiunto finisce nel footer e nel `sameAs` del JSON-LD;
 - `src/lib/company.ts`: il soggetto giuridico — ragione sociale, telefono (`phone` in E.164 e
   `phoneDisplay` nella forma che si legge), email, indirizzo e partita IVA, più il `logo`
   facoltativo, un file di `public/` su fondo chiaro. Si vedono nella riga legale del footer e nei
@@ -123,7 +123,8 @@ La superficie completa, in un posto solo — la milestone `foundations` la distr
 
 Quello che resta lo trova il deploy: `pnpm run check:placeholders` elenca, con file e riga, i
 segnaposto rimasti in `src/lib/site.ts`, `src/lib/company.ts` e nei dizionari, e il deploy di
-produzione si ferma finché ce n'è uno.
+produzione si ferma finché ce n'è uno. Un link a `#`, o a una pagina che non esiste, lo ferma prima
+la CI, con `pnpm run check:links` sulla build.
 
 ## Cosa ti dà lo scaffold
 

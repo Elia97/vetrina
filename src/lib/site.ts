@@ -23,7 +23,7 @@ export const SITE = {
     { key: 'legal.privacy', href: '/privacy' },
     { key: 'legal.cookies', href: '/cookie-policy' },
   ],
-  social: [{ label: 'LinkedIn', href: '#' }],
+  social: [] as readonly { label: string; href: string }[],
 } as const
 
 /** @public */

@@ -1,11 +1,12 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { COMPANY } from '@/lib/company'
-import { SITE } from '@/lib/site'
+import { SITE, type Site } from '@/lib/site'
 
 import { it as dictionary } from '@/i18n/strings/it'
 
 const CMP_ENV = { PUBLIC_GTM_ID: 'GTM-TEST', PUBLIC_IUBENDA_SITE_ID: '1234567' }
+const PROFILE = { label: 'LinkedIn', href: 'https://www.linkedin.com/company/acme' }
 
 // vi.resetModules() dà un registro nuovo: il container va importato da lì e non da quello
 // esterno, altrimenti rende un componente compilato da un'altra istanza.
@@ -19,10 +20,18 @@ async function renderFooter(env: Record<string, string> = {}, pathname = '/') {
   return renderToFragment(Footer, { request: new Request(`https://example.com${pathname}`) })
 }
 
+function mockSocial(social: Site['social']) {
+  vi.doMock('@/lib/site', async (importOriginal) => {
+    const actual = await importOriginal<typeof import('@/lib/site')>()
+    return { ...actual, SITE: { ...actual.SITE, social } }
+  })
+}
+
 const cmpControl = (document: Awaited<ReturnType<typeof renderFooter>>) =>
   document.querySelector('.iubenda-cs-preferences-link')
 
 afterEach(() => {
+  vi.doUnmock('@/lib/site')
   vi.unstubAllEnvs()
   vi.resetModules()
 })
@@ -35,11 +44,19 @@ describe('footer.astro', () => {
     for (const { href } of SITE.legal) expect(hrefs).toContain(href)
   })
 
-  it('links each social profile SITE declares', async () => {
+  it('collega ogni profilo social che SITE dichiara', async () => {
+    mockSocial([PROFILE])
     const document = await renderFooter()
 
     const hrefs = [...document.querySelectorAll('ul a')].map((link) => link.getAttribute('href'))
-    expect(hrefs).toEqual(SITE.social.map(({ href }) => href))
+    expect(hrefs).toEqual([PROFILE.href])
+  })
+
+  it('senza profili social non rende la lista', async () => {
+    mockSocial([])
+    const document = await renderFooter()
+
+    expect(document.querySelector('ul')).toBeNull()
   })
 
   it('marca come pagina corrente solo il documento legale aperto', async () => {
