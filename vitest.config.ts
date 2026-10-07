@@ -36,7 +36,12 @@ export default getViteConfig({
     coverage: {
       provider: 'v8',
       reporter: ['text-summary', 'json'],
-      include: ['src/**/*.ts', 'src/components/layout/footer.astro', 'src/components/homepage/hero.astro'],
+      // biome-ignore format: una voce per riga, così i cherry-pick da vetrina non confliggono
+      include: [
+        'src/**/*.ts',
+        'src/components/layout/footer.astro',
+        'src/components/homepage/hero.astro',
+      ],
       exclude: ['**/*.test.ts', 'src/types/**', 'src/content.config.ts', 'src/lib/company.ts', 'src/i18n/strings/**'],
       thresholds: { 'src/**': { 100: true } },
     },
