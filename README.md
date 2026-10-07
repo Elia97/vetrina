@@ -13,7 +13,7 @@ su un altro host non è una riga di configurazione.
 `docs/guides/deploy-ops.md` § La catena dei gate.
 
 Il metodo di lavoro — commit e PR, commenti, lingua, pianificazione, agenti verticali — non sta in
-questo repository: è il plugin `metodo` e `metodo.md` del repository `metodo-astro`, che il sistema
+questo repository: è il plugin `metodo` e `metodo.md` del repository `Elia97/metodo`, che il sistema
 di lavoro importa in ogni progetto. Questo file copre quello che succede *dentro* il repo.
 
 ## Come nasce un progetto
@@ -176,7 +176,7 @@ Il perché e il dettaglio stanno in `docs/guides/*.md` e in `docs/ARCHITECTURE.m
 ## Strumenti di Claude Code
 
 Questo repo non porta agenti, comandi né hook: li fornisce il plugin `metodo` (repository
-`metodo-astro`, con le istruzioni di installazione nel suo README), attivo a livello utente in ogni
+`Elia97/metodo`, con le istruzioni di installazione nel suo README), attivo a livello utente in ogni
 cartella. Il `.claude/settings.json` tiene solo i permessi per chi apre la sessione qui dentro.
 
 ## Configurare il form di contatto
