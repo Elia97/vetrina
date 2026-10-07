@@ -35,11 +35,11 @@ export interface Env {
 
 // Un grafo di moduli fresco azzera anche la finestra scorrevole: lo stato a livello di modulo in
 // src/lib/forms/rate-limit.ts.
-export async function importActions(env: Env = {}) {
+export async function importContactAction(env: Env = {}) {
   vi.stubEnv('PROD', env.prod ?? false)
   vi.stubEnv('BOTID_ENFORCE', env.botidEnforce ? 'true' : 'false')
   vi.resetModules()
-  return import('@/actions')
+  return import('@/actions/contact')
 }
 
 interface BrevoAnswers {
@@ -48,8 +48,8 @@ interface BrevoAnswers {
   upsert?: BrevoResult
 }
 
-// src/actions/index.ts lancia i tre invii dentro un solo Promise.all, quindi le risposte si
-// smistano sul tag e non sull'ordine di chiamata.
+// `sendContactEmails` in src/actions/contact.ts lancia i tre invii dentro un solo Promise.all,
+// quindi le risposte si smistano sul tag e non sull'ordine di chiamata.
 export function brevoAnswers({ notify = OK, autoreply = OK, upsert = OK }: BrevoAnswers = {}) {
   brevoMock.sendTransactionalEmail.mockImplementation((params) =>
     Promise.resolve(params.tags?.includes('autoreply') ? autoreply : notify),

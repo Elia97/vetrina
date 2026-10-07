@@ -40,7 +40,7 @@
     { "file": "test/stubs/astro-content.ts", "exports": ["getCollection"] },
     { "file": "test/container.ts", "exports": ["renderToString"] },
     // I test ci arrivano con un import dinamico che fallow non traccia.
-    { "file": "src/actions/index.ts", "exports": ["handleContact"] },
+    { "file": "src/actions/contact.ts", "exports": ["handleContact"] },
     { "file": "src/lib/schemas/common.ts", "exports": ["Cta"] },
     { "file": "src/lib/schemas/homepage/hero.ts", "exports": ["HeroSection"] }
   ],
