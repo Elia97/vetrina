@@ -3,7 +3,7 @@ import {
   brevoMock,
   CLIENT,
   CONTACT_INPUT,
-  importActions,
+  importContactAction,
   KO,
   KO_ERROR,
   rejectionOf,
@@ -23,7 +23,7 @@ afterEach(restoreActionEnv)
 
 describe('contact handler', () => {
   it('notifies the owner, answers the sender and upserts the contact', async () => {
-    const { handleContact } = await importActions()
+    const { handleContact } = await importContactAction()
 
     await expect(handleContact(CONTACT_INPUT, CLIENT)).resolves.toEqual({ ok: true })
 
@@ -32,7 +32,7 @@ describe('contact handler', () => {
   })
 
   it('replies to the sender, so answering the notification reaches them', async () => {
-    const { handleContact } = await importActions()
+    const { handleContact } = await importContactAction()
 
     await handleContact(CONTACT_INPUT, CLIENT)
 
@@ -43,7 +43,7 @@ describe('contact handler', () => {
   it('fails loud when the owner notification fails — the lead would be lost', async () => {
     const consoleError = spyOnConsoleError()
     brevoAnswers({ notify: KO })
-    const { handleContact } = await importActions()
+    const { handleContact } = await importContactAction()
 
     const error = await rejectionOf(handleContact(CONTACT_INPUT, CLIENT))
 
@@ -55,7 +55,7 @@ describe('contact handler', () => {
   it('swallows an autoreply failure', async () => {
     const consoleError = spyOnConsoleError()
     brevoAnswers({ autoreply: KO })
-    const { handleContact } = await importActions()
+    const { handleContact } = await importContactAction()
 
     await expect(handleContact(CONTACT_INPUT, CLIENT)).resolves.toEqual({ ok: true })
     expect(consoleError).toHaveBeenCalledWith('[contact] autoreply failed:', KO_ERROR)
@@ -64,7 +64,7 @@ describe('contact handler', () => {
   it('swallows a CRM upsert failure', async () => {
     const consoleError = spyOnConsoleError()
     brevoAnswers({ upsert: KO })
-    const { handleContact } = await importActions()
+    const { handleContact } = await importContactAction()
 
     await expect(handleContact(CONTACT_INPUT, CLIENT)).resolves.toEqual({ ok: true })
     expect(consoleError).toHaveBeenCalledWith('[contact] contact upsert failed:', KO_ERROR)
@@ -75,7 +75,7 @@ describe('lead recovery', () => {
   it('quando la notifica fallisce registra chi ha scritto e la lunghezza del messaggio, mai il testo', async () => {
     const consoleError = spyOnConsoleError()
     brevoAnswers({ notify: KO })
-    const { handleContact } = await importActions()
+    const { handleContact } = await importContactAction()
 
     await rejectionOf(handleContact(CONTACT_INPUT, CLIENT))
 
@@ -96,7 +96,7 @@ describe('reply-to without a name', () => {
   // Un nome visualizzato vuoto in un'intestazione reply-to si rende come `<>` in certi client di posta.
   it('sends a bare address when the submission carries no name', async () => {
     brevoAnswers({})
-    const { handleContact } = await importActions()
+    const { handleContact } = await importContactAction()
 
     await handleContact({ ...CONTACT_INPUT, firstName: '', lastName: '' }, CLIENT)
 

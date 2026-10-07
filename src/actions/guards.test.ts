@@ -3,7 +3,7 @@ import {
   brevoMock,
   CLIENT,
   CONTACT_INPUT,
-  importActions,
+  importContactAction,
   rejectionOf,
   resetActionMocks,
   restoreActionEnv,
@@ -27,7 +27,7 @@ afterEach(restoreActionEnv)
 describe('honeypot', () => {
   it('drops a filled decoy with the success shape, before any Brevo call', async () => {
     const consoleWarn = spyOnConsoleWarn()
-    const { handleContact } = await importActions()
+    const { handleContact } = await importContactAction()
 
     const result = await handleContact(TRAPPED, CLIENT)
 
@@ -39,7 +39,7 @@ describe('honeypot', () => {
 
   it('runs before the rate limit, so trapped traffic never burns a human window', async () => {
     spyOnConsoleWarn()
-    const { handleContact } = await importActions()
+    const { handleContact } = await importContactAction()
     for (let i = 0; i < 6; i++) await handleContact(TRAPPED, CLIENT)
 
     await expect(handleContact(CONTACT_INPUT, CLIENT)).resolves.toEqual({ ok: true })
@@ -48,7 +48,7 @@ describe('honeypot', () => {
 
 describe('rate limit', () => {
   it('rejects the sixth submission from the same address without calling Brevo', async () => {
-    const { handleContact } = await importActions()
+    const { handleContact } = await importContactAction()
     for (let i = 0; i < 5; i++) await handleContact(CONTACT_INPUT, CLIENT)
     brevoMock.sendTransactionalEmail.mockClear()
 
@@ -60,7 +60,7 @@ describe('rate limit', () => {
   })
 
   it('keeps a separate window per address', async () => {
-    const { handleContact } = await importActions()
+    const { handleContact } = await importContactAction()
     for (let i = 0; i < 5; i++) await handleContact(CONTACT_INPUT, CLIENT)
 
     await expect(handleContact(CONTACT_INPUT, { clientAddress: '198.51.100.7' })).resolves.toEqual({ ok: true })
@@ -69,7 +69,7 @@ describe('rate limit', () => {
 
 describe('bot check', () => {
   it('never runs outside production', async () => {
-    const { handleContact } = await importActions()
+    const { handleContact } = await importContactAction()
 
     await handleContact(CONTACT_INPUT, CLIENT)
 
@@ -79,7 +79,7 @@ describe('bot check', () => {
   it('observes a bot verdict by default — the submission goes through', async () => {
     const consoleWarn = spyOnConsoleWarn()
     botidMock.checkBotId.mockResolvedValue({ isBot: true })
-    const { handleContact } = await importActions({ prod: true })
+    const { handleContact } = await importContactAction({ prod: true })
 
     await expect(handleContact(CONTACT_INPUT, CLIENT)).resolves.toEqual({ ok: true })
     expect(brevoMock.sendTransactionalEmail).toHaveBeenCalledTimes(2)
@@ -91,7 +91,7 @@ describe('bot check', () => {
   it('rejects a bot verdict when enforcing, without calling Brevo', async () => {
     spyOnConsoleWarn()
     botidMock.checkBotId.mockResolvedValue({ isBot: true })
-    const { handleContact } = await importActions({ prod: true, botidEnforce: true })
+    const { handleContact } = await importContactAction({ prod: true, botidEnforce: true })
 
     const error = await rejectionOf(handleContact(CONTACT_INPUT, CLIENT))
 
@@ -103,7 +103,7 @@ describe('bot check', () => {
   it('fails open when the check itself throws — a broken guard never costs a lead', async () => {
     const consoleError = spyOnConsoleError()
     botidMock.checkBotId.mockRejectedValue(new Error('botid down'))
-    const { handleContact } = await importActions({ prod: true, botidEnforce: true })
+    const { handleContact } = await importContactAction({ prod: true, botidEnforce: true })
 
     await expect(handleContact(CONTACT_INPUT, CLIENT)).resolves.toEqual({ ok: true })
     expect(consoleError).toHaveBeenCalledWith('[contact] bot check failed:', expect.any(Error))

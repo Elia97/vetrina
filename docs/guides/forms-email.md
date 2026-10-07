@@ -8,7 +8,8 @@ Rimandi: `ui-components.md` (le primitive Field e Select), `seo.md` (i meta a li
 | Strato | File | Possiede |
 |---|---|---|
 | Schema | `src/lib/contact.ts` | il contratto zod, condiviso client e server |
-| Azione | `src/actions/index.ts` | orchestrazione, guardie anti-abuso, politica d'errore |
+| Azione | `src/actions/contact.ts` | orchestrazione, guardie anti-abuso, politica d'errore |
+| Registro | `src/actions/index.ts` | `server`, l'elenco delle azioni che Astro espone (condiviso) |
 | Fornitore | `src/lib/vendor/brevo.ts` | client HTTP, risultato come valore, gestione della chiave (condiviso) |
 | Email | `src/emails/contact.ts` | le due email del contatto, testi |
 | Layout delle email | `src/lib/emails/layout.ts` | cornice a tabella, `escapeHtml`, `detailRow` (condiviso) |
@@ -51,7 +52,7 @@ campi si costruiscono da `src/lib/forms/form-fields.ts` (`requiredText`, `emailF
 `consentField`), che portano messaggi `error:` risolti tramite `useTranslations()`;
 `form-fields.test.ts` verifica ciascuno contro il dizionario, così un campo non può ricadere in
 silenzio sul messaggio di default. Lo stesso vale per i messaggi delle `ActionError` di
-`src/actions/index.ts` (chiavi `forms.action.*`), che `messageOf()` mostra all'utente, e per le
+`src/actions/contact.ts` (chiavi `forms.action.*`), che `messageOf()` mostra all'utente, e per le
 email di `src/emails/contact.ts` (chiavi `email.*`): `guards.test.ts`, `contact.test.ts` ed
 `emails/contact.test.ts` li confrontano con il dizionario.
 
@@ -271,10 +272,11 @@ fixture condivise e i mock di fornitore e BotID stanno in `test/helpers/actions.
   `Promise.all`.
 - **L'ambiente si guida dagli stub**: `test/stubs/astro-env-server.ts` rispecchia lo schema di
   `astro.config.mjs` leggendo da `process.env` al momento dell'import — da cui la sequenza `stubEnv`
-  → `resetModules` → nuovo import, incapsulata in `importActions()`. `vi.stubEnv('PROD', true)`
-  arriva a `import.meta.env.PROD` dentro il modulo importato, ed è quello che rende testabili i rami
-  che esistono solo in produzione. Il nuovo import consegna anche a ogni test una finestra di rate
-  limit pulita, dato che la finestra scorrevole è stato a livello di modulo.
+  → `resetModules` → nuovo import, incapsulata in `importContactAction()`.
+  `vi.stubEnv('PROD', true)` arriva a `import.meta.env.PROD` dentro il modulo importato, ed è quello
+  che rende testabili i rami che esistono solo in produzione. Il nuovo import consegna anche a ogni
+  test una finestra di rate limit pulita, dato che la finestra scorrevole è stato a livello di
+  modulo.
 - **`test/stubs/astro-actions.ts`** porta `isInputError` (preso parola per parola da Astro, per il
   binder lato client) più un `ActionError` rispecchiato e un `defineAction` identità. Poiché
   `resetModules` ricrea quello stub, la classe sollevata non è mai quella che un file di test aveva
@@ -304,13 +306,14 @@ fixture condivise e i mock di fornitore e BotID stanno in `test/helpers/actions.
    `honeypotShape`. Un campo nascosto che il visitatore non vede prende `.catch(<ripiego>)`, non
    `.default()`: un valore inatteso si converte invece di far rifiutare l'invio, così un visitatore
    su un bundle vecchio in cache passa comunque.
-2. **Azione** in `src/actions/index.ts`: un handler esportato `handle<Nome>` passato a
-   `defineAction({ accept: 'json', input, handler })`; le guardie girano nello stesso ordine
-   (honeypot → rate limit sotto il **proprio prefisso di ambito** → `assertNotBot`); la politica
-   d'errore si sceglie dalla forma — una chiamata fatale → si fallisce rumorosamente sul suo
-   risultato; a ventaglio → si fallisce solo sulla chiamata che perderebbe il dato. Registra
-   `/_actions/<nome>` in `PROTECTED_ACTIONS` (`src/components/forms/botid.ts`), altrimenti il
-   controllo legge ogni invio come un bot.
+2. **Azione** in un suo `src/actions/<nome>.ts`: un handler esportato `handle<Nome>` passato a
+   `defineAction({ accept: 'json', input, handler })`, e l'azione registrata in coda a `server` in
+   `src/actions/index.ts`, una voce per riga. Le guardie girano nello stesso ordine (honeypot →
+   rate limit sotto il **proprio prefisso di ambito** → `assertNotBot`); la politica d'errore si
+   sceglie dalla forma — una chiamata fatale → si fallisce rumorosamente sul suo risultato; a
+   ventaglio → si fallisce solo sulla chiamata che perderebbe il dato. Registra `/_actions/<nome>`
+   in `PROTECTED_ACTIONS` (`src/components/forms/botid.ts`), altrimenti il controllo legge ogni
+   invio come un bot.
 3. **Fornitore**: riusa una funzione di `src/lib/vendor/brevo.ts` (risultato come valore) o aggiungi
    un modulo fornitore fratello, tenendo la politica «in sviluppo non fa niente ma lo dice, in
    produzione rifiuta» quando manca la configurazione — chiave API e id facoltativi allo stesso
