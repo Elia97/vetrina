@@ -1,4 +1,4 @@
-Template Astro riutilizzabile (uso personale e freelance). Il metodo di lavoro — commenti, commit e PR, lingua, pianificazione, agenti verticali, orchestrazione — sta nel plugin `metodo` e in `metodo.md` del repository `metodo-astro`, che il sistema di lavoro importa nel `CLAUDE.md` di ogni progetto: le sue regole `[HARD]` valgono anche qui. Questo file porta solo lo stack e le convenzioni del codice.
+Template Astro riutilizzabile (uso personale e freelance). Il metodo di lavoro — commenti, commit e PR, lingua, pianificazione, agenti verticali, orchestrazione — sta nel plugin `metodo` e in `metodo.md` del repository `Elia97/metodo`, che il sistema di lavoro importa nel `CLAUDE.md` di ogni progetto: le sue regole `[HARD]` valgono anche qui. Questo file porta solo lo stack e le convenzioni del codice.
 
 ## Stack e convenzioni
 
