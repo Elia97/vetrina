@@ -5,10 +5,11 @@
 - **`client:idle`, non `client:visible`, per tutto ciò che monta dentro un portale.** Un dialog
   chiuso rende un portale vuoto — un nodo di dimensione zero — e l'IntersectionObserver di
   `client:visible` può non scattare mai su di lui.
-- Le view transition sono attive: `<ClientRouter />` nell'`<head>` del layout, che è la posizione
-  documentata perché emette dei meta tag. Conseguenze per gli script: quelli inline non rigirano
-  alla navigazione (si ascolta `astro:after-swap`, come fa lo script del tema), e quelli a modulo
-  girano una volta per modulo, non per pagina.
+- Le view transition sono attive sulle pagine prerenderizzate: `<ClientRouter />` nell'`<head>` del
+  layout, che è la posizione documentata perché emette dei meta tag. Una pagina resa a richiesta non
+  lo porta, per la sua CSP (`deploy-ops.md` § Content-Security-Policy). Conseguenze per gli script:
+  quelli inline non rigirano alla navigazione (si ascolta `astro:after-swap`, come fa lo script del
+  tema), e quelli a modulo girano una volta per modulo, non per pagina.
 - **[HARD] Tutto ciò che emette un custom element va nel `<body>`, mai nell'`<head>`** — il caso
   tipico sono Vercel Analytics e Speed Insights (`<vercel-analytics>`,
   `<vercel-speed-insights>`). Un custom element nell'head non è valido, quindi il parser chiude

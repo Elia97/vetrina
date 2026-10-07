@@ -70,7 +70,7 @@ src/
   assets/      # immagini locali; placeholder.jpg per gen:section        seed
   styles/      # tokens.css — la superficie del rebranding               config
                #   light, dark, globals                                  machinery
-  middleware.ts # X-Robots-Tag per le risposte SSR non HTML              machinery
+  middleware.ts # X-Robots-Tag, e la CSP dell'HTML reso a richiesta      machinery
 test/          # infrastruttura di test, mai inclusa nel bundle          machinery
   stubs/       # i moduli virtuali astro:*, risolti dagli alias di vitest
   helpers/     # fixture e mock condivisi (handler delle azioni)
