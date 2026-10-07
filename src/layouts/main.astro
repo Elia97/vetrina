@@ -55,7 +55,9 @@ const lang = Astro.currentLocale ?? DEFAULT_LOCALE
     <ThemeScript />
     <Head {title} {absoluteTitle} {description} {canonicalPath} {ogImage} {jsonLd} {noindex} {locales} />
     <Tracking />
-    <ClientRouter />
+    {/* Solo sulle prerenderizzate: con ClientRouter le CSP in meta delle pagine visitate si
+        sommano, e quella di una pagina a richiesta copre solo i suoi script (src/middleware.ts). */}
+    {Astro.isPrerendered && <ClientRouter />}
   </head>
   <body class="flex min-h-svh flex-col">
     <SkipLink />

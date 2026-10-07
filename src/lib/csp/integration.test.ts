@@ -59,8 +59,6 @@ describe('cspIntegration', () => {
   })
 
   it('gives every page the union of the hashes, not just its own', () => {
-    // ClientRouter scambia la head, non la policy: la CSP in meta della prima pagina
-    // caricata governa tutta la sessione.
     const dir = buildOutput({
       'a.html': '<head><meta charset="utf-8"><script>a=1</script></head>',
       'b.html': '<head><meta charset="utf-8"><script>b=2</script></head>',

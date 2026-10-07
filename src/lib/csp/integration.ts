@@ -27,8 +27,8 @@ export function cspIntegration(): AstroIntegration {
         const files = walkHtml(fileURLToPath(dir))
         const sources = new Map<string, string>()
         const union = new Set<string>()
-        // La sessione è governata dalla CSP in meta della prima pagina caricata, quindi ogni
-        // pagina porta l'unione: ClientRouter scambia la `<head>`, non la policy.
+        // ClientRouter aggiunge il meta di ogni pagina visitata, e il browser applica tutte le
+        // policy che incontra: ogni pagina porta l'unione, così coincidono.
         for (const file of files) {
           const html = readFileSync(file, 'utf-8')
           sources.set(file, html)
