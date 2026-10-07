@@ -48,6 +48,7 @@ src/
   lib/         # logica senza markup — strati foglia (regola sotto)
     seo/       #   json-ld, crawl-policy, manifest                       machinery
     forms/     #   honeypot, honeypot-schema, rate-limit, form-fields    machinery
+    emails/    #   layout: cornice, escapeHtml, detailRow                chrome
     overlay/   #   trap-focus, scroll-lock                               machinery
     motion/    #   ciclo di vita delle animazioni lato client            machinery
     a11y/      #   route-focus (ripristino del focus dopo lo swap)       machinery
@@ -102,7 +103,7 @@ copie che divergono.
 | Content collection, schemi Zod, MDX/Markdown, i18n | `src/content/**`, `src/lib/content/**`, `src/lib/schemas/**` | `content-agent` | `content-collections.md` |
 | Componenti, isole interattive, markup e accessibilità | `src/components/**` (non di contenuto), `src/lib/overlay/**`, `src/lib/a11y/**`, `src/styles/**` | `ui-agent` | `ui-components.md` |
 | Meta tag, JSON-LD, sitemap e robots, OG | `src/lib/seo/**`, `src/components/head/**` | `seo-agent` | `seo.md` |
-| Form, Astro Action, email | `src/actions/**`, `src/emails/**`, `src/lib/forms/**`, `src/lib/vendor/**` | `forms-agent` | `forms-email.md` |
+| Form, Astro Action, email | `src/actions/**`, `src/emails/**`, `src/lib/emails/**`, `src/lib/forms/**`, `src/lib/vendor/**` | `forms-agent` | `forms-email.md` |
 | Prerender e SSR, immagini, animazioni, bundle | `astro.config.mjs`, `src/lib/motion/**`, `prerender` | `perf-rendering-agent` | `rendering-performance.md` |
 | Vercel, variabili d'ambiente, deploy, consenso | `vercel.json`, `scripts/vercel-ignore-build.sh`, `src/lib/consent/**`, `src/lib/analytics/**`, `src/lib/legal/**` | `ops-agent` | `deploy-ops.md` |
 | Nessuno dei precedenti | refactor generico, tooling | `general-purpose` | — |

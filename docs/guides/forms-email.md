@@ -10,7 +10,8 @@ Rimandi: `ui-components.md` (le primitive Field e Select), `seo.md` (i meta a li
 | Schema | `src/lib/contact.ts` | il contratto zod, condiviso client e server |
 | Azione | `src/actions/index.ts` | orchestrazione, guardie anti-abuso, politica d'errore |
 | Fornitore | `src/lib/vendor/brevo.ts` | client HTTP, risultato come valore, gestione della chiave (condiviso) |
-| Email | `src/emails/contact.ts` | rendering HTML, escaping, testi |
+| Email | `src/emails/contact.ts` | le due email del contatto, testi |
+| Layout delle email | `src/lib/emails/layout.ts` | cornice a tabella, `escapeHtml`, `detailRow` (condiviso) |
 | Interfaccia | `src/components/contact/*.astro` | markup, chiavi i18n, accessibilità |
 | Comportamento | `contact-form-behavior.ts` | da FormData a payload tipizzato (`buildPayload`) |
 | Binder | `src/components/forms/action-submit.ts` | ciclo di invio, feedback, aggancio multi-istanza (condiviso) |
@@ -179,17 +180,23 @@ Regole che vale la pena tenere in un progetto:
 
 ## Rendering delle email
 
+- La cornice comune sta in `src/lib/emails/layout.ts`: `layout(heading, body)`,
+  `detailRow(label, value)` ed `escapeHtml`. Un'email nuova le importa da lì invece di ricopiarle,
+  anche da un modulo di `src/lib/`, perché la cartella è nella zona `leaf` dei confini
+  (`docs/ARCHITECTURE.md` § Stratificazione dei sorgenti).
 - Stringhe HTML semplici: layout a tabella e stili inline, perché i client email ignorano i fogli di
   stile. Palette di grigi neutri, da ristilare per progetto se serve.
-- **Ogni** valore fornito dall'utente passa da `escapeHtml` prima dell'interpolazione.
+- **Ogni** valore fornito dall'utente passa da `escapeHtml` prima dell'interpolazione. `layout` lo
+  fa sul titolo ma non su `body`, che inserisce così com'è: dentro `body` ci pensa chi lo compone.
   `detailRow(label, value)` salta i valori vuoti.
-- `escapeHtml` sostituisce attraverso una **funzione**, mai una stringa di sostituzione: in una
-  stringa, `$&` e `$1` sono pattern di sostituzione, quindi un valore utente che ne contenesse uno
-  verrebbe riespanso dopo l'escaping.
+- Un valore dell'utente non fa mai da stringa di sostituzione: in `replace`, `$&` e `$1` sono
+  pattern, e un indirizzo che ne contenesse uno verrebbe riespanso dopo l'escaping. L'indirizzo
+  entra quindi al posto di `{email}` attraverso una **funzione**, il cui risultato `replace`
+  inserisce alla lettera. In `escapeHtml` il valore è il testo in cui si cerca, e il rischio non
+  c'è.
 - Titoli, oggetti, etichette, corpo della risposta automatica e `lang` vengono dal dizionario
   (`email.*`), nella lingua di default (§ Validazione). La cornice degli oggetti con `SITE.name`
-  resta nel codice, e l'indirizzo entra nel corpo della risposta automatica al posto di `{email}`
-  attraverso una funzione, come in `escapeHtml`.
+  resta nel codice, e l'indirizzo entra nel corpo della risposta automatica al posto di `{email}`.
 
 ## Convenzioni dell'interfaccia dei form
 
