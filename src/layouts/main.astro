@@ -1,77 +1,27 @@
 ---
-import { ClientRouter } from 'astro:transitions'
-
-import Head from '@/components/head/head.astro'
-import JsFlag from '@/components/head/js-flag.astro'
-import ThemeScript from '@/components/head/theme-script.astro'
 import Tracking from '@/components/head/tracking.astro'
 import Footer from '@/components/layout/footer.astro'
 import Header from '@/components/layout/header.astro'
 import SkipLink from '@/components/layout/skip-link.astro'
 
-import { DEFAULT_LOCALE } from '@/lib/site'
+import DocumentLayout, { type Props as DocumentProps } from '@/layouts/document.astro'
 
-import '@/styles/globals.css'
-
-interface Props {
-  title: string
-  absoluteTitle?: boolean
-  description?: string
-  canonicalPath?: string
-  ogImage?: string
-  jsonLd?: Record<string, unknown>[]
-  // Solo pagine prerenderizzate, al contrario di NOINDEX_PATHS in src/middleware.ts:
-  // va accompagnato dal `filter` della sitemap in astro.config.mjs.
-  noindex?: boolean
+interface Props extends Omit<DocumentProps, 'class'> {
   heroOverlay?: boolean
   overlayChrome?: 'auto' | 'light'
-  locales?: readonly string[]
 }
 
-const {
-  title,
-  absoluteTitle,
-  description,
-  canonicalPath,
-  ogImage,
-  jsonLd,
-  noindex,
-  heroOverlay = false,
-  overlayChrome = 'auto',
-  locales,
-} = Astro.props
-const lang = Astro.currentLocale ?? DEFAULT_LOCALE
+const { heroOverlay = false, overlayChrome = 'auto', ...documentProps } = Astro.props
 ---
 
-<!doctype html>
 {/* scroll-pt-20: i salti agli ancoraggi atterrano sotto l'header appiccicato da 64px */}
-<html lang={lang} class="scroll-pt-20">
-  <head>
-    {/* La dichiarazione di codifica deve stare entro i primi 1024 byte del documento, e
-        lo script inline del tema qui sotto la spingerebbe oltre. */}
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <JsFlag />
-    <ThemeScript />
-    <Head {title} {absoluteTitle} {description} {canonicalPath} {ogImage} {jsonLd} {noindex} {locales} />
-    <Tracking />
-    {/* Solo sulle prerenderizzate: con ClientRouter le CSP in meta delle pagine visitate si
-        sommano, e quella di una pagina a richiesta copre solo i suoi script (src/middleware.ts). */}
-    {Astro.isPrerendered && <ClientRouter />}
-  </head>
-  <body class="flex min-h-svh flex-col">
-    <SkipLink />
-    <Header heroOverlay={heroOverlay} overlayChrome={overlayChrome} locales={locales} />
-    {/* tabindex=-1: lo skip-link deve muovere il focus vero, non solo il punto di partenza del Tab */}
-    <main id="main-content" class="flex-1" tabindex="-1">
-      <slot />
-    </main>
-    <Footer />
-  </body>
-</html>
-
-<script>
-  import { bindRouteFocus } from '@/lib/a11y/route-focus'
-
-  bindRouteFocus()
-</script>
+<DocumentLayout class="scroll-pt-20" {...documentProps}>
+  <Tracking slot="head" />
+  <SkipLink />
+  <Header heroOverlay={heroOverlay} overlayChrome={overlayChrome} locales={documentProps.locales} />
+  {/* tabindex=-1: lo skip-link deve muovere il focus vero, non solo il punto di partenza del Tab */}
+  <main id="main-content" class="flex-1" tabindex="-1">
+    <slot />
+  </main>
+  <Footer />
+</DocumentLayout>

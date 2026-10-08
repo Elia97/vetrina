@@ -133,8 +133,9 @@ la CI, con `pnpm run check:links` sulla build.
 - **Primitive di interfaccia** (`src/components/ui/`): `.astro` native, cva e `cn()`, la forma
   dell'API di shadcn, zero JS lato client. Le famiglie composte (card, alert) sono cartelle con un
   barrel `.ts`; il layout vive solo in `Container` e `Section`.
-- **Layout di base e SEO** (`src/layouts/main.astro`): head centralizzata, tema scuro senza FOUC,
-  skip-link, view transition.
+- **Layout di base e SEO** (`src/layouts/`): `document.astro` è il guscio, con la head
+  centralizzata, il tema scuro senza FOUC e le view transition; `main.astro` ci aggiunge skip-link,
+  header, footer e tracciamento.
 - **Pagine a sezioni** (`src/content/homepage/*.yml` per la homepage): un YAML per sezione, accesso
   tipizzato solo tramite `get<Nome>Sections(locale)` — che è anche la cucitura verso un CMS.
   `pnpm gen:collection` ne crea altre.
@@ -219,8 +220,8 @@ quindi un webfont è solo configurazione:
 1. In `astro.config.mjs` aggiungi la voce `fonts` (API font di Astro) con
    `cssVariable: '--font-stack-base'` (e/o `--font-stack-display`) e
    `fallbacks: ['system-ui', 'sans-serif']`.
-2. Rendi `<Font cssVariable="--font-stack-base" preload />` nell'`<head>` del layout
-   (`src/layouts/main.astro`).
+2. Rendi `<Font cssVariable="--font-stack-base" preload />` nell'`<head>` del guscio
+   (`src/layouts/document.astro`).
 
 Nessuna modifica ai componenti né al CSS: `--font-sans` e `--font-display` in `globals.css` puntano
 già a quegli agganci.
