@@ -275,7 +275,9 @@ puramente additiva.
    (I passi da 1 a 3 sono tenuti insieme da `src/i18n/locale-config.test.ts`.)
 4. `src/i18n/strings/<lingua>.ts` — esporta un `Record<UIKey, string>`; il compilatore costringe a
    coprire ogni chiave.
-5. `src/i18n/ui.ts` — registra il dizionario nuovo in `dictionaries`.
+5. `src/i18n/ui.ts` — registra il dizionario nuovo in `dictionaries`. Se il progetto ha dizionari di
+   dominio, ognuno vuole il suo `src/i18n/<dominio>/<lingua>.ts`, registrato nel suo `index.ts`, e il
+   type-check si ferma finché manca (`docs/guides/content-collections.md` § Dizionari di dominio).
 6. `src/i18n/segments-by-locale.ts` — mappa i segmenti di URL di primo livello che cambiano
    (`contatti` → `contact`); quelli non mappati passano così come sono.
 7. Contenuti: aggiungi i file `src/content/<collection>/<lingua>/…` (il contenuto nella lingua di

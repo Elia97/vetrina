@@ -42,7 +42,7 @@ export default getViteConfig({
         'src/components/layout/footer.astro',
         'src/components/homepage/hero.astro',
       ],
-      exclude: ['**/*.test.ts', 'src/types/**', 'src/content.config.ts', 'src/lib/company.ts', 'src/i18n/strings/**'],
+      exclude: ['**/*.test.ts', 'src/types/**', 'src/content.config.ts', 'src/lib/company.ts', 'src/i18n/*/**'],
       thresholds: { 'src/**': { 100: true } },
     },
   },

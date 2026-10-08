@@ -55,6 +55,32 @@ collection: non montarne una per lui.
   come per le sezioni una voce della lingua di default finita nella cartella di quella lingua ferma il
   build.
 
+## Dizionari di dominio
+
+I testi dell'interfaccia stanno nei dizionari del sito, `src/i18n/strings/<lingua>.ts`, registrati
+in `src/i18n/ui.ts`. Quelli di un dominio che un template derivato aggiunge, come l'accesso o il
+pannello, stanno in `src/i18n/<dominio>/<lingua>.ts`, e non in `strings/`: lì `gen:page` scrive le
+chiavi delle pagine, e officina legge ogni file come il dizionario di una lingua. Ogni file esporta
+`const <lingua> = { … } as const`, come quelli del sito, e `src/i18n/<dominio>/index.ts` li registra:
+
+```ts
+import type { DomainDictionaries } from '@/i18n/translate'
+
+import { it } from './it'
+
+export const account = { it } satisfies DomainDictionaries<keyof typeof it>
+```
+
+- `useTranslations(Astro.currentLocale, account)` risolve le chiavi del dominio accanto a quelle del
+  sito, con la stessa ricaduta sulla lingua di default. Un traduttore porta un dominio solo: un
+  componente che ne usa due chiama `useTranslations` una volta per ciascuno.
+- Il compilatore pretende un dizionario per ogni lingua registrata in `ui.ts`, le stesse chiavi in
+  ogni lingua e nessuna chiave del sito, perché un dominio aggiunge testi e non riscrive quelli del
+  sito. Una lingua nuova registrata in `ui.ts` ferma il type-check finché ogni dominio non ha il suo
+  dizionario.
+- Le sottocartelle di `src/i18n/` portano solo dizionari, e `vitest.config.ts` le tiene fuori dalla
+  copertura come dati: il codice di `src/i18n/` sta al primo livello.
+
 ## Il contratto del fallire rumorosamente
 
 - Una sezione dichiarata nell'oggetto di ritorno di `get<Nome>Sections` ma senza il suo file di
