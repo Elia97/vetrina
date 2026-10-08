@@ -321,9 +321,15 @@ tailwind-merge): la forma dell'API di shadcn senza il runtime React o Radix.
   rende per primo e resta la fonte di verità verso il form; lo strato di script
   (`select-behavior.ts`) inserisce un trigger e una listbox stilati (focus rotante,
   `aria-expanded` e `aria-selected`, Escape, Tab e click fuori) e ridispaccia `change`
-  sull'elemento nativo. Le primitive con stato nuove seguono questa forma: prima la linea di base
-  senza JavaScript, poi il comportamento in un `*-behavior.ts` fratello agganciato con
+  sull'elemento nativo. Il valore iniziale si passa con la prop `value`, che segna l'opzione nel
+  `<select>` nativo e nell'etichetta del trigger; un valore che nessuna opzione porta lascia il
+  placeholder. Le primitive con stato nuove seguono questa forma: prima la linea di base senza
+  JavaScript, poi il comportamento in un `*-behavior.ts` fratello agganciato con
   `createMotionBinding` (vedi `rendering-performance.md`).
+- `setupSelects` attiva le radici `[data-select-root]` presenti al caricamento e a ogni
+  `astro:page-load`. Una radice aggiunta dopo, come una riga nuova di una griglia, resta il
+  `<select>` nativo finché non la si passa a `setupSelect(root)` di `select-behavior.ts`. Una radice
+  già attiva viene saltata, e la pulizia su `astro:before-swap` copre anche quelle attivate così.
 - Le icone vengono da `@lucide/astro` (SVG in fase di build, zero JS lato client): `stroke-width={1}`
   di default, dimensione con Tailwind (`size-4`, `size-5`), `aria-hidden` per default e l'etichetta
   accessibile sul controllo.

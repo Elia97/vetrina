@@ -1,11 +1,9 @@
-// Leggendo innerHTML, happy-dom ignora un attributo `selected` e riporta la prima opzione
-// abilitata, quindi il valore corrente si assegna a mano.
-export function renderSelect({ value = '', required = true } = {}): void {
-  document.body.innerHTML = `
-    <label for="topic">Argomento</label>
+function selectMarkup(id: string, required: boolean): string {
+  return `
+    <label for="${id}">Argomento</label>
     <div class="relative" data-select-root>
-      <select class="flex" data-select-native id="topic" name="topic"${required ? ' required' : ''}
-              aria-describedby="topic-error">
+      <select class="flex" data-select-native id="${id}" name="${id}"${required ? ' required' : ''}
+              aria-describedby="${id}-error">
         <option value="" disabled>Scegli</option>
         <option value="consulenza">Consulenza</option>
         <option value="preventivo">Preventivo</option>
@@ -18,9 +16,20 @@ export function renderSelect({ value = '', required = true } = {}): void {
         <li role="option" data-value="preventivo" aria-selected="false" tabindex="-1">Preventivo</li>
       </ul>
     </div>
-    <p id="topic-error">Campo obbligatorio</p>`
+    <p id="${id}-error">Campo obbligatorio</p>`
+}
+
+// Leggendo innerHTML, happy-dom ignora un attributo `selected` e riporta la prima opzione
+// abilitata, quindi il valore corrente si assegna a mano.
+export function renderSelect({ value = '', required = true } = {}): void {
+  document.body.innerHTML = selectMarkup('topic', required)
   const control = document.querySelector<HTMLSelectElement>('[data-select-native]')
   if (control) control.value = value
+}
+
+export function appendSelectRoot(id: string): HTMLElement {
+  document.body.insertAdjacentHTML('beforeend', selectMarkup(id, true))
+  return document.getElementById(id)?.closest('[data-select-root]') as HTMLElement
 }
 
 export async function activate(): Promise<void> {

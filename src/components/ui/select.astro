@@ -15,9 +15,11 @@ interface SelectOption {
 interface Props extends HTMLAttributes<'select'> {
   options: SelectOption[]
   placeholder?: string
+  value?: string | undefined
 }
 
-const { class: className, options, placeholder, ...rest } = Astro.props
+const { class: className, options, placeholder, value, ...rest } = Astro.props
+const current = options.find((option) => option.value === value)
 
 const triggerClasses = cn(
   'h-10 w-full items-center justify-between gap-2 rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50',
@@ -26,9 +28,9 @@ const triggerClasses = cn(
 ---
 
 <div class="relative" data-select-root>
-  <SelectNative options={options} placeholder={placeholder} triggerClasses={triggerClasses} {...rest} />
+  <SelectNative options={options} placeholder={placeholder} current={current} triggerClasses={triggerClasses} {...rest} />
 
-  <SelectTrigger options={options} placeholder={placeholder} triggerClasses={triggerClasses} />
+  <SelectTrigger options={options} placeholder={placeholder} current={current} triggerClasses={triggerClasses} />
 
   <SelectListbox options={options} />
 </div>

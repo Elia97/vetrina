@@ -1,5 +1,15 @@
 // @vitest-environment happy-dom
-import { activate, isOpen, key, listbox, native, options, renderSelect, trigger } from '@test/helpers/select-dom'
+import {
+  activate,
+  appendSelectRoot,
+  isOpen,
+  key,
+  listbox,
+  native,
+  options,
+  renderSelect,
+  trigger,
+} from '@test/helpers/select-dom'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 beforeEach(() => {
@@ -81,5 +91,51 @@ describe('select-a11y branches', () => {
     await activate()
 
     expect(trigger().hasAttribute('aria-required')).toBe(false)
+  })
+})
+
+describe('una radice aggiunta dopo il caricamento', () => {
+  async function appendAfterLoad() {
+    renderSelect()
+    await activate()
+    const { setupSelect } = await import('@/components/ui/select-behavior')
+    return { root: appendSelectRoot('extra'), setupSelect }
+  }
+
+  it('resta inerte finché setupSelect non la attiva', async () => {
+    const { root, setupSelect } = await appendAfterLoad()
+    const extraTrigger = root.querySelector('[data-select-trigger]') as HTMLButtonElement
+
+    expect(extraTrigger.classList.contains('hidden')).toBe(true)
+
+    setupSelect(root)
+
+    expect(extraTrigger.classList.contains('hidden')).toBe(false)
+    expect(root.querySelector('[data-select-native]')?.classList.contains('hidden')).toBe(true)
+  })
+
+  it('dopo setupSelect apre la listbox e scrive la scelta nel select nativo', async () => {
+    const { root, setupSelect } = await appendAfterLoad()
+    setupSelect(root)
+    const extraNative = root.querySelector('[data-select-native]') as HTMLSelectElement
+    const changes = vi.fn()
+    extraNative.addEventListener('change', changes)
+
+    root.querySelector<HTMLButtonElement>('[data-select-trigger]')?.click()
+    root.querySelector<HTMLElement>('[data-value="preventivo"]')?.click()
+
+    expect(extraNative.value).toBe('preventivo')
+    expect(changes).toHaveBeenCalledTimes(1)
+  })
+
+  it('si sgancia su astro:before-swap insieme alle altre', async () => {
+    const { root, setupSelect } = await appendAfterLoad()
+    setupSelect(root)
+    const extraTrigger = root.querySelector('[data-select-trigger]') as HTMLButtonElement
+
+    document.dispatchEvent(new Event('astro:before-swap'))
+    extraTrigger.click()
+
+    expect(extraTrigger.getAttribute('aria-expanded')).toBe('false')
   })
 })
