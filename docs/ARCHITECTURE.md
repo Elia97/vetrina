@@ -55,6 +55,7 @@ src/
     a11y/      #   route-focus (ripristino del focus dopo lo swap)       machinery
     consent/   #   gate del consenso e CMP iubenda                       machinery
     analytics/ #   GTM dietro il gate, ponte verso dataLayer             machinery
+    csp/       #   direttive, hash degli script inline, integrazione     machinery
     legal/     #   documenti legali ospitati (iubenda)                   machinery
     content/   #   lettori di sezioni e voci consapevoli della lingua    machinery
     vendor/    #   client di terze parti (brevo)                         machinery
@@ -64,10 +65,11 @@ src/
     utils.ts   #   cn()                                                  machinery
     contact.ts, homepage.ts # i moduli di dominio dell'esempio svolto    seed
   types/       # dichiarazioni ambient di Window per i global del browser machinery
-  i18n/        # href, path, route-segments, translate, ui               machinery
+  i18n/        # href, locales, path, route-segments, translate, ui      machinery
                #   strings/<lingua>.ts, segments-by-locale.ts            config
   actions/     # l'azione di contatto; gli handler sono esportati per
                #   nome, così l'orchestrazione è testabile               seed
+  emails/      # le email delle azioni, una per modulo                   seed
   content/     # dati delle collection                                   example
   assets/      # immagini locali; placeholder.jpg per gen:section        seed
   styles/      # tokens.css — la superficie del rebranding               config
@@ -76,6 +78,7 @@ src/
 test/          # infrastruttura di test, mai inclusa nel bundle          machinery
   stubs/       # i moduli virtuali astro:*, risolti dagli alias di vitest
   helpers/     # fixture e mock condivisi (handler delle azioni)
+  pages/       # i test delle rotte di src/pages/, dove Astro li costruirebbe come pagine
   container.ts # helper della Container API per rendere i componenti .astro
 public/        # asset statici serviti così come sono (favicon, icone del manifest, og-default.png segnaposto)
 docs/          # i documenti tecnici del progetto: ROADMAP (milestone, sotto-task, giornate) e
@@ -83,11 +86,8 @@ docs/          # i documenti tecnici del progetto: ROADMAP (milestone, sotto-tas
                #   fuori dal repo; i blueprint delle milestone li porta il plugin `metodo`
   guides/      # riferimenti di pattern per dominio, consultati dagli agenti verticali (sotto)
 scripts/       # bootstrap-github, vercel-ignore-build — mai importati da src/
-.claude/
-  agents/      # definizioni dei sottoagenti verticali
-  commands/    # /metodo:decisions (i bivi) · /metodo:milestone (l'insieme) · /metodo:pr (una issue)
-  hooks/       # guardrail dell'agente: cosa non può eseguire e cosa non può scrivere
-    lib/       #   parser shell, regole e verdetti — con i loro test
+.claude/       # settings.json, i comandi permessi e vietati; agenti, skill e hook
+               #   arrivano dal plugin `metodo`
 ```
 
 ### I domini
@@ -101,12 +101,12 @@ copie che divergono.
 
 | Dominio | Percorsi | Agente | Guida |
 |---|---|---|---|
-| Content collection, schemi Zod, MDX/Markdown, i18n | `src/content/**`, `src/lib/content/**`, `src/lib/schemas/**` | `content-agent` | `content-collections.md` |
-| Componenti, isole interattive, markup e accessibilità | `src/components/**` (non di contenuto), `src/lib/overlay/**`, `src/lib/a11y/**`, `src/styles/**` | `ui-agent` | `ui-components.md` |
+| Content collection, schemi Zod, MDX/Markdown, i18n | `src/content/**`, `src/lib/content/**`, `src/lib/schemas/**`, `src/i18n/**` | `content-agent` | `content-collections.md` |
+| Componenti, isole interattive, markup e accessibilità | `src/components/**` (non di contenuto), `src/layouts/**`, `src/lib/overlay/**`, `src/lib/a11y/**`, `src/styles/**` | `ui-agent` | `ui-components.md` |
 | Meta tag, JSON-LD, sitemap e robots, OG | `src/lib/seo/**`, `src/components/head/**` | `seo-agent` | `seo.md` |
 | Form, Astro Action, email | `src/actions/**`, `src/emails/**`, `src/lib/emails/**`, `src/lib/forms/**`, `src/lib/vendor/**` | `forms-agent` | `forms-email.md` |
 | Prerender e SSR, immagini, animazioni, bundle | `astro.config.mjs`, `src/lib/motion/**`, `prerender` | `perf-rendering-agent` | `rendering-performance.md` |
-| Vercel, variabili d'ambiente, deploy, consenso | `vercel.json`, `scripts/vercel-ignore-build.sh`, `src/lib/consent/**`, `src/lib/analytics/**`, `src/lib/legal/**` | `ops-agent` | `deploy-ops.md` |
+| Vercel, variabili d'ambiente, deploy, consenso, CSP | `vercel.json`, `scripts/vercel-ignore-build.sh`, `src/middleware.ts`, `src/lib/csp/**`, `src/lib/consent/**`, `src/lib/analytics/**`, `src/lib/legal/**` | `ops-agent` | `deploy-ops.md` |
 | Nessuno dei precedenti | refactor generico, tooling | `general-purpose` | — |
 
 La regola per un dominio nuovo: **la machinery va nella cartella del suo dominio; la configurazione
@@ -147,6 +147,34 @@ vanno in una direzione sola:
 prosa continuava a perdere: un componente non può risalire dentro un layout. Farlo inverte la
 composizione e rende il componente inutilizzabile in qualsiasi altro layout — che è esattamente
 come le pagine legali erano andate alla deriva prima che il controllo esistesse.
+
+## I punti di aggancio dei template derivati
+
+Un template derivato, come `ecommerce`, riceve la base con il cherry-pick dei commit di vetrina e
+la estende solo nei punti qui sotto. In ognuno aggiunge **in coda**, una voce per riga, così un
+allineamento successivo non tocca le righe di vetrina. Ogni altra modifica alla base si fa in
+vetrina, e arriva al template derivato con il cherry-pick.
+
+- **Azioni**: `src/actions/index.ts` è il solo registro, `server`. Un'azione nuova sta in un suo
+  `src/actions/<nome>.ts` e si registra in coda a `server` (`docs/guides/forms-email.md` § Un form
+  nuovo dietro un'azione).
+- **Dizionari di dominio**: i testi di un dominio stanno in `src/i18n/<dominio>/<lingua>.ts`,
+  raccolti in `src/i18n/<dominio>/index.ts`, accanto ai dizionari del sito e fuori da `strings/`.
+  `useTranslations(locale, domain)` li risolve insieme a quelli del sito
+  (`docs/guides/content-collections.md` § Dizionari di dominio).
+- **Layout delle email**: `layout`, `detailRow` ed `escapeHtml` stanno in
+  `src/lib/emails/layout.ts`. Un'email nuova li importa da un suo modulo di `src/emails/`, come
+  `contact.ts` (`docs/guides/forms-email.md` § Rendering delle email).
+- **Guscio del documento**: `src/layouts/document.astro` porta `<html>`, la head, il tema,
+  `ClientRouter` e il focus dopo la navigazione. Ha lo slot `head`, lo slot del corpo e la prop
+  `class` per `<html>`. Un layout nuovo lo compone con il suo arredo, come fa `main.astro`, e rende
+  `<main id="main-content" tabindex="-1">`.
+- **CSP a richiesta**: `src/middleware.ts` scrive la policy nell'HTML di ogni pagina con
+  `prerender = false`, sugli script che porta. Una pagina nuova non aggiunge niente
+  (`docs/guides/deploy-ops.md` § Content-Security-Policy).
+- **Liste di configurazione**: `features` in `officina.config.ts` e `coverage.include` in
+  `vitest.config.ts` hanno una voce per riga. La seconda porta un `biome-ignore format`, perché Biome
+  riporta su una riga un array che ci sta.
 
 ## Primitive di interfaccia — niente React o Radix nello scaffold di base
 
