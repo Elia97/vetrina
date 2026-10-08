@@ -237,8 +237,8 @@ quello che una CSP in `<meta>` può esprimere:
 - **Una pagina resa a richiesta porta la policy dei suoi soli script, e sta fuori da
   `ClientRouter`.** Il middleware legge l'HTML di una rotta non prerenderizzata, ne calcola gli hash
   e inietta il `<meta>` allo stesso modo. Quegli script le prerenderizzate non li conoscono, quindi
-  `src/layouts/main.astro` rende `<ClientRouter />` solo con `Astro.isPrerendered`: alla pagina si
-  arriva e se ne esce con un caricamento completo, che parte dalla sua policy. Costa tre cose:
+  `src/layouts/document.astro` rende `<ClientRouter />` solo con `Astro.isPrerendered`: alla pagina
+  si arriva e se ne esce con un caricamento completo, che parte dalla sua policy. Costa tre cose:
   niente view transition da e verso quella pagina; dal router ci si entra con una richiesta in più,
   che il router scarta prima di ricaricare, a meno che il link porti `data-astro-reload`; e la
   risposta perde lo streaming, perché gli hash vanno nella `<head>` e si conoscono a corpo finito.

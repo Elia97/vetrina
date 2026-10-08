@@ -362,8 +362,9 @@ o un video:
 
 Si accendono dalla pagina, `<MainLayout heroOverlay overlayChrome="light">`, e portano tre fatti:
 
-- `scroll-pt-20` su `<html>` in `main.astro` è tarato sull'header appiccicato: con `heroOverlay`
-  l'header non segue lo scorrimento, ma gli ancoraggi atterrano comunque 80px sotto il bordo;
+- `scroll-pt-20`, che `main.astro` passa all'`<html>` di `document.astro`, è tarato sull'header
+  appiccicato: con `heroOverlay` l'header non segue lo scorrimento, ma gli ancoraggi atterrano
+  comunque 80px sotto il bordo;
 - `transition:name="site-header"` in `header.astro` lega l'header delle pagine con e senza overlay:
   la view transition li tratta come lo stesso elemento e anima il passaggio dall'uno all'altro;
 - `src/pages/index.astro` non lo accende, benché l'hero di `src/components/homepage/hero.astro` sia

@@ -34,7 +34,8 @@ barrel accanto. Cancellare un percorso seed non sfoltisce il progetto, rompe un 
 src/
   pages/       # routing basato sui file                                 example
                #   robots.txt, site.webmanifest, 404, 500                machinery
-  layouts/     # main.astro: guscio del documento (lang, head, chrome)   chrome
+  layouts/     # document.astro: guscio (lang, head, tema, router)       machinery
+               #   main.astro: header, footer e tracciamento sul guscio  chrome
   components/
     head/      # metadati, icone, manifest, script pre-paint             machinery
     ui/        # design system (cva + cn), zero JS lato client           machinery
