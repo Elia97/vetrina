@@ -56,8 +56,8 @@ importers:
         specifier: ^21.2.3
         version: 21.2.3
       '@elia97/officina':
-        specifier: ^0.11.0
-        version: 0.11.0(@biomejs/biome@2.5.14)(@types/node@26.6.3)(sharp@0.35.5(@types/node@26.6.3))
+        specifier: ^0.12.0
+        version: 0.12.0(@biomejs/biome@2.5.14)(@types/node@26.6.3)(sharp@0.35.5(@types/node@26.6.3))
       '@playwright/test':
         specifier: ^1.63.0
         version: 1.63.0
@@ -438,8 +438,8 @@ packages:
     resolution: {integrity: sha512-aalGyl7dbB5PArRebDIX43ZvBlXrYm9uWzGJ26t+4SzJVPsOuvfILGGbw5X4yX7i50YEmJ8zvbiWnqH/AAnZqg==}
     engines: {node: '>=22'}
 
-  '@elia97/officina@0.11.0':
-    resolution: {integrity: sha512-nyOYzS01EHpm1xIlFtFbm5/kxG1pGNwKIxOKczOq6MMUNOyJF3kzNIXRdiNp1RUX2gGtTF9OlZ1vlO0O9PclCg==}
+  '@elia97/officina@0.12.0':
+    resolution: {integrity: sha512-wuMC2rIz3CIdWqSooPaMmLjREjXI6yQydhoCKa/UhbeCIaMbEcQzNTCVIyBhSxPca65Pqnv/rqYwgkXEyb6dtw==}
     engines: {node: '>=24.2.0'}
     hasBin: true
     peerDependencies:
@@ -3867,7 +3867,7 @@ snapshots:
 
   '@conventional-changelog/template@1.4.0': {}
 
-  '@elia97/officina@0.11.0(@biomejs/biome@2.5.14)(@types/node@26.6.3)(sharp@0.35.5(@types/node@26.6.3))':
+  '@elia97/officina@0.12.0(@biomejs/biome@2.5.14)(@types/node@26.6.3)(sharp@0.35.5(@types/node@26.6.3))':
     dependencies:
       '@biomejs/biome': 2.5.14
       plop: 4.0.5(@types/node@26.6.3)
