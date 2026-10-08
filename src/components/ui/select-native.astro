@@ -11,19 +11,26 @@ interface SelectOption {
 interface Props extends HTMLAttributes<'select'> {
   options: SelectOption[]
   placeholder?: string | undefined
+  current?: SelectOption | undefined
   triggerClasses: string
 }
 
-const { options, placeholder, triggerClasses, ...rest } = Astro.props
+const { options, placeholder, current, triggerClasses, ...rest } = Astro.props
 ---
 
 <select class={cn('flex', triggerClasses)} data-select-native {...rest}>
   {
     placeholder && (
-      <option value="" disabled selected>
+      <option value="" disabled selected={!current}>
         {placeholder}
       </option>
     )
   }
-  {options.map((option) => <option value={option.value}>{option.label}</option>)}
+  {
+    options.map((option) => (
+      <option value={option.value} selected={option === current}>
+        {option.label}
+      </option>
+    ))
+  }
 </select>

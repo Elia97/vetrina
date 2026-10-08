@@ -170,14 +170,16 @@ function activateSelect(root: HTMLElement, { native, trigger, listbox }: SelectE
   trigger.classList.add('flex')
 }
 
-function setupSelects(): void {
-  for (const root of document.querySelectorAll<HTMLElement>('[data-select-root]')) {
-    const elements = findSelectElements(root)
-    if (!elements || elements.native.classList.contains('hidden')) continue
+export function setupSelect(root: HTMLElement): void {
+  const elements = findSelectElements(root)
+  if (!elements || elements.native.classList.contains('hidden')) return
 
-    activateSelect(root, elements)
-    cleanups.push(bindSelectHandlers(root, elements))
-  }
+  activateSelect(root, elements)
+  cleanups.push(bindSelectHandlers(root, elements))
+}
+
+function setupSelects(): void {
+  for (const root of document.querySelectorAll<HTMLElement>('[data-select-root]')) setupSelect(root)
 }
 
 function cleanupSelects(): void {
