@@ -3,10 +3,22 @@
 
 type Sources = Record<string, readonly string[]>
 
+// biome-ignore format: una voce per riga, così i cherry-pick da vetrina non confliggono
 const BASE: Sources = {
-  'script-src': ["'self'", 'https://www.googletagmanager.com', 'https://cdn.iubenda.com', 'https://cs.iubenda.com'],
-  'default-src': ["'self'"],
-  'style-src': ["'self'", "'unsafe-inline'", 'https://cdn.iubenda.com'],
+  'script-src': [
+    "'self'",
+    'https://www.googletagmanager.com',
+    'https://cdn.iubenda.com',
+    'https://cs.iubenda.com',
+  ],
+  'default-src': [
+    "'self'",
+  ],
+  'style-src': [
+    "'self'",
+    "'unsafe-inline'",
+    'https://cdn.iubenda.com',
+  ],
   'img-src': [
     "'self'",
     'data:',
@@ -16,8 +28,13 @@ const BASE: Sources = {
     'https://*.google.com',
     'https://cdn.iubenda.com',
   ],
-  'font-src': ["'self'", 'data:'],
-  'object-src': ["'none'"],
+  'font-src': [
+    "'self'",
+    'data:',
+  ],
+  'object-src': [
+    "'none'",
+  ],
   'connect-src': [
     "'self'",
     'https://www.googletagmanager.com',
@@ -28,9 +45,15 @@ const BASE: Sources = {
     'https://pagead2.googlesyndication.com',
     'https://*.iubenda.com',
   ],
-  'frame-src': ['https://www.googletagmanager.com'],
-  'base-uri': ["'self'"],
-  'form-action': ["'self'"],
+  'frame-src': [
+    'https://www.googletagmanager.com',
+  ],
+  'base-uri': [
+    "'self'",
+  ],
+  'form-action': [
+    "'self'",
+  ],
 }
 
 // Solo sui preview: Vercel Toolbar (`vercel-toolbar/managing-toolbar`) e Anteprima di GTM (guida CSP

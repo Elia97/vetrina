@@ -172,6 +172,10 @@ vetrina, e arriva al template derivato con il cherry-pick.
 - **CSP a richiesta**: `src/middleware.ts` scrive la policy nell'HTML di ogni pagina con
   `prerender = false`, sugli script che porta. Una pagina nuova non aggiunge niente
   (`docs/guides/deploy-ops.md` § Content-Security-Policy).
+- **Origini della CSP**: `BASE` in `src/lib/csp/directives.ts` ha una voce per riga, sotto un
+  `biome-ignore format`. Un fornitore nuovo aggiunge le sue origini in coda alla direttiva che gli
+  serve, e una direttiva nuova va in coda a `BASE`
+  (`docs/guides/deploy-ops.md` § Content-Security-Policy).
 - **Liste di configurazione**: `features` in `officina.config.ts` e `coverage.include` in
   `vitest.config.ts` hanno una voce per riga. La seconda porta un `biome-ignore format`, perché Biome
   riporta su una riga un array che ci sta.
