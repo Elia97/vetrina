@@ -9,6 +9,7 @@ Template Astro riutilizzabile (uso personale e freelance). Il metodo di lavoro �
 - **Rendering**: `output: "static"`, quindi le pagine sono prerenderizzate. Una pagina che ha bisogno di dati per richiesta si sfila con `export const prerender = false` esplicito nel frontmatter. Il server viene dall'adapter, non da questa impostazione: azioni e rotte on-demand funzionano in entrambi i casi.
 - **Deploy**: Vercel, tramite `@astrojs/vercel`.
 - **Leggere l'albero**: `docs/ARCHITECTURE.md` § Struttura del repository, che etichetta ogni percorso come `machinery` / `config` / `chrome` / `seed` / `example`. La machinery si tocca per correggere un difetto, non per riordinare; il pattern `example` si estende invece di inventarne un secondo; un percorso `seed` non si cancella, perché i generatori ci scrivono dentro.
+- **Template derivati**: un template nato da vetrina, come ecommerce, la estende solo nei punti di `docs/ARCHITECTURE.md` § I punti di aggancio dei template derivati, aggiungendo in coda. Ogni altra modifica alla base si fa in vetrina e scende con il cherry-pick.
 
 ## Sviluppo
 
