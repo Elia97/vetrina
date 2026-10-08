@@ -85,7 +85,7 @@ regione della funzione.
 
 ## La catena dei gate
 
-Sette gate, e ognuno copre un momento che gli altri non coprono:
+Otto gate, e ognuno copre un momento che gli altri non coprono:
 
 | Gate | Dove | Copre |
 |---|---|---|
@@ -94,6 +94,7 @@ Sette gate, e ognuno copre un momento che gli altri non coprono:
 | `pnpm run check:placeholders` | job `deploy`, prima di `pnpm run ci` e dopo `vercel pull` | i segnaposto del template nei sorgenti e nell'ambiente di produzione |
 | `pnpm perf:bundle` | `ci.yml`, dopo la build | il JavaScript client per rotta |
 | `pnpm run check:links` | `ci.yml`, dopo la build | i link interni della build: nessuno porta a `#` o a una pagina che non esiste |
+| `pnpm run check:secrets` | `ci.yml`, dopo la build con i canary | le chiavi server e secret di `env.schema`: nessuna finisce nei file di `dist/client` |
 | `pnpm run test:e2e` | `ci.yml`, sulla stessa build | ciò che si rompe solo dentro un browser |
 | `pnpm smoke:prod` | job `deploy`, dopo il deploy | ciò che il bordo serve davvero |
 
