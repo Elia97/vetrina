@@ -8,6 +8,6 @@ type Props = HTMLAttributes<'label'>
 const { class: className, ...rest } = Astro.props
 ---
 
-<label class={cn('flex w-fit items-center gap-2 font-medium text-sm leading-snug', className)} {...rest}>
+<label class={cn('flex w-fit items-center gap-2 type-label text-sm leading-snug', className)} {...rest}>
   <slot />
 </label>

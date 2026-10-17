@@ -33,6 +33,29 @@ head).
   esente, perché è il default di una singola istanza e non un tempo del sistema. Un progetto che
   aggiunge altri gradini li nomina sugli stessi due assi; dichiararli in `@theme` invece che in
   `:root` genera anche la utility `ease-*` corrispondente, cosa che `:root` non fa.
+- **La tipografia di controlli ed etichette è un token come i colori.** `tokens.css` porta due ruoli,
+  `--control-*` per `Button` e `--label-*` per `Label` di `field/` e per `Badge`, ciascuno con
+  `font-family`, `font-weight`, `text-transform` e `letter-spacing` (`--control-font-family`,
+  `--label-letter-spacing` e così via). Le primitive li leggono attraverso le utility
+  `type-control` e `type-label` di `globals.css`, e nella classe non scrivono né la famiglia, né il
+  peso, né il maiuscolo, né la spaziatura. I default rifanno la tipografia di prima: il peso è 500 e
+  il resto è `inherit`, cioè arriva dall'antenato, tranne il maiuscolo dei controlli, che è `none`
+  perché il browser non lo fa ereditare a un `<button>`; così vale anche per `<Button as="a">`. Una
+  parte del sito che vuole bottoni o etichette diversi riassegna i token su un suo antenato, e cambia
+  quello che sta sotto e niente fuori:
+
+  ```css
+  .back-office {
+    --control-font-family: var(--font-stack-condensed);
+    --control-text-transform: uppercase;
+    --control-letter-spacing: 0.04em;
+  }
+  ```
+
+  Dentro una parte riassegnata `inherit` non toglie il valore, riprende quello dell'antenato: per
+  tornare al testo normale si scrive `none` o `normal`. `src/styles/typography.test.ts` verifica che
+  ogni token esista, che le due utility li leggano tutti e che le tre primitive non scrivano una
+  tipografia loro.
 - `src/styles/light.css` e `dark.css` — la mappatura dei ruoli semantici (nomi shadcn:
   `--background`, `--primary`, `--destructive`, …). **Queste chiavi non si rinominano mai**: i
   componenti e le utility le danno per assodate. Il tema scuro sovrascrive le stesse chiavi sotto
