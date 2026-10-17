@@ -42,6 +42,19 @@
   z-index: var(--z-skip-link);
 }
 
+@utility type-control {
+  font-family: var(--control-font-family);
+  font-weight: var(--control-font-weight);
+  text-transform: var(--control-text-transform);
+  letter-spacing: var(--control-letter-spacing);
+}
+@utility type-label {
+  font-family: var(--label-font-family);
+  font-weight: var(--label-font-weight);
+  text-transform: var(--label-text-transform);
+  letter-spacing: var(--label-letter-spacing);
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
