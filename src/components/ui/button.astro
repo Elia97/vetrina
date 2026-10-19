@@ -5,34 +5,41 @@ import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '@/lib/utils'
 
 export const buttonVariants = cva(
-  'type-control inline-flex cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm transition-colors focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring active:scale-press disabled:pointer-events-none disabled:opacity-50',
+  'type-control inline-flex cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-md transition-colors focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring active:scale-press disabled:pointer-events-none disabled:opacity-50',
   {
     variants: {
       variant: {
-        default: 'bg-primary text-primary-foreground hover:bg-primary/90',
+        default: 'bg-primary text-primary-foreground hover:bg-hover-primary',
         secondary: 'bg-secondary text-secondary-foreground hover:bg-secondary/80',
-        destructive: 'bg-destructive text-destructive-foreground hover:bg-destructive/90',
-        outline: 'border border-border bg-background hover:bg-accent hover:text-accent-foreground',
+        destructive: 'bg-destructive text-destructive-foreground hover:bg-hover-destructive',
+        outline:
+          'inset-ring-(--control-outline-border-color) inset-ring-[calc(var(--control-outline-border-width)-1px)] border border-(--control-outline-border-color) bg-background hover:bg-accent hover:text-accent-foreground',
         ghost: 'hover:bg-accent hover:text-accent-foreground',
         link: 'text-primary underline-offset-4 hover:underline',
         accent: 'bg-accent text-accent-foreground hover:bg-accent/90',
         soft: 'border border-transparent mix:bg-foreground/10 hover:mix:bg-foreground/20',
       },
       size: {
-        sm: 'h-9 gap-1.5 px-4',
-        md: 'h-10 px-5 py-2',
-        lg: 'h-11 px-8 text-base',
-        xl: 'h-12 px-10 text-base',
-        'icon-sm': 'size-9',
-        'icon-md': 'size-10',
-        'icon-lg': 'size-11',
-        'icon-xl': 'size-12',
+        sm: 'control-sm gap-1.5 px-4',
+        md: 'control-md px-5 py-2',
+        lg: 'control-lg px-8',
+        xl: 'control-xl px-10',
+        'icon-sm': 'control-sm w-(--control-sm-height)',
+        'icon-md': 'control-md w-(--control-md-height)',
+        'icon-lg': 'control-lg w-(--control-lg-height)',
+        'icon-xl': 'control-xl w-(--control-xl-height)',
       },
       shape: {
         default: '',
         pill: 'rounded-full',
       },
     },
+    compoundVariants: [
+      {
+        variant: ['default', 'secondary', 'destructive', 'accent'],
+        class: 'focus-visible:ring-offset-[length:var(--control-ring-offset)] focus-visible:ring-offset-background',
+      },
+    ],
     defaultVariants: { variant: 'default', size: 'md', shape: 'default' },
   },
 )
