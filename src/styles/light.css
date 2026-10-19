@@ -26,4 +26,8 @@
   --border: var(--neutral-200);
   --input: var(--neutral-500);
   --ring: var(--brand-500);
+
+  --control-outline-border-color: var(--border);
+  --field-focus-border-color: var(--input);
+  --field-focus-shadow: 0 0 0 2px var(--ring);
 }

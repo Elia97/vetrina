@@ -56,6 +56,68 @@ head).
   tornare al testo normale si scrive `none` o `normal`. `src/styles/typography.test.ts` verifica che
   ogni token esista, che le due utility li leggano tutti e che le tre primitive non scrivano una
   tipografia loro.
+- **Anche misure, contorno, hover e focus dei controlli sono token.** `tokens.css` porta le misure:
+  - altezza e corpo di ogni taglia di `Button`, da `--control-sm-height` e `--control-sm-font-size`
+    fino a `--control-xl-*`;
+  - lo spessore del contorno di `outline`, `--control-outline-border-width`;
+  - l'hover di `default` e `destructive`, `--control-hover-mix`;
+  - il distacco dell'anello del focus sulle varianti piene, `--control-ring-offset`;
+  - altezza e corpo dei campi, `--field-height` e `--field-font-size`, per `Input`, `Textarea` e
+    `Select` con la sua lista.
+
+  Le primitive leggono questi token con le utility di `globals.css`:
+  - `control-sm` … `control-xl` per le taglie e per i loro gemelli `icon-*`;
+  - `field-text` per il corpo dei campi;
+  - `bg-hover-<ruolo>` per l'hover.
+
+  I token che nominano un ruolo stanno invece accanto ai ruoli, in `light.css` e in `dark.css`:
+  - il colore del contorno di `outline`, `--control-outline-border-color`, su `--border`;
+  - l'ombra del focus dei campi, `--field-focus-shadow`, che è l'anello di 2px su `--ring`;
+  - il colore del bordo al focus, `--field-focus-border-color`, su `--input`, quindi fermo.
+
+  Il tema scuro li ripete con lo stesso valore. Un token si risolve dove è dichiarato, e senza la
+  ripetizione un'isola `.dark`, come il banner, erediterebbe quello calcolato sul tema chiaro.
+
+  `--control-hover-mix` è il colore e la quota che l'hover mescola al riempimento: il default,
+  `transparent 10%`, è il riempimento al 90%, e `black 11%` lo scurisce. Sotto Safari 16.2 l'hover
+  non cambia il fondo, perché lì `color-mix()` non c'è (vedi `mix:` in § Modi di dire).
+
+  Chromium arrotonda per difetto lo spessore di un bordo, e 1,5px diventa 1px. Per questo il
+  contorno di `outline` è un bordo di 1px, e quello che supera il pixel lo dipinge un'ombra interna
+  dello stesso colore. Il focus dei campi ottiene lo stesso effetto con `--field-focus-shadow`.
+
+  Il distacco si dipinge con `--background`, come ogni offset di ring, e su una foto o un gradiente
+  fa da alone (§ Modi di dire). Per questo è spento, e si accende dove l'anello si confonde con il
+  riempimento.
+
+  Un progetto vuole il bottone grande più alto, il contorno nel colore del testo, l'hover che
+  scurisce e il focus dei campi sul bordo. Riassegna i token in un foglio che segue quelli dei temi:
+
+  ```css
+  :root {
+    --control-lg-height: 3.25rem;
+    --control-lg-font-size: 1.0625rem;
+    --control-outline-border-width: 1.5px;
+    --control-hover-mix: black 11%;
+    --control-ring-offset: 2px;
+    --field-height: 3rem;
+  }
+  :root,
+  .dark {
+    --control-outline-border-color: var(--foreground);
+    --field-focus-shadow: inset 0 0 0 0.5px var(--foreground);
+    --field-focus-border-color: var(--foreground);
+  }
+  .dark {
+    --control-hover-mix: white 10%;
+  }
+  ```
+
+  L'ultimo blocco c'è perché, dove il primo piano è scuro, la miscela col nero abbassa il contrasto
+  dell'hover. `src/styles/controls.test.ts` verifica tre cose:
+  - che ogni token stia nel suo foglio;
+  - che le utility li leggano;
+  - che le primitive non scrivano misure, hover o focus loro.
 - `src/styles/light.css` e `dark.css` — la mappatura dei ruoli semantici (nomi shadcn:
   `--background`, `--primary`, `--destructive`, …). **Queste chiavi non si rinominano mai**: i
   componenti e le utility le danno per assodate. Il tema scuro sovrascrive le stesse chiavi sotto
@@ -157,9 +219,9 @@ apre il pannello della CMP, non porta a una pagina.
   nello spazio vuoto e mostra lo sfondo vero; un offset di ring deve indovinare un colore di sfondo
   che il componente non può conoscere, e lo sbaglia nel momento in cui il controllo finisce su un
   gradiente o su una fascia colorata. `.focus-ring` (`globals.css`) è la utility basata su contorno
-  per i focusabili personalizzati. Le primitive tengono `focus-visible:ring-2 ring-ring` perché lì
-  lo stile di focus funge anche da alone attorno al bordo del campo: è un uso legittimo, non un
-  residuo.
+  per i focusabili personalizzati. Le primitive tengono un anello, `focus-visible:ring-2 ring-ring`
+  nei bottoni e `--field-focus-shadow` nei campi, perché lì lo stile di focus funge anche da alone
+  attorno al bordo del campo: è un uso legittimo, non un residuo.
 - Proprietà logiche sull'asse inline (`start-4`, `ms-*`): il template è pronto per l'i18n e deve
   sopravvivere a una lingua da destra a sinistra.
 - `overflow-wrap: anywhere`, non `break-word`, quando una parola lunga non deve far esplodere una
@@ -333,10 +395,11 @@ tailwind-merge): la forma dell'API di shadcn senza il runtime React o Radix.
   fallisce se le due divergono.
 - Le dimensioni dei bottoni sono una sola scala a taglie, `sm/md/lg/xl` più i gemelli quadrati
   `icon-*` (`md` è il default, e non esiste una chiave `default` per la dimensione; i nomi delle
-  varianti invece il `default` di shadcn lo mantengono). Oltre l'insieme shadcn: `variant="soft"` è
-  un controllo riempito a bassa enfasi (solo token semantici, NESSUN colore di testo incorporato —
-  un'icona o un glifo social eredita `currentColor`), e un asse `shape` (`default`/`pill`) cambia
-  solo il raggio della scatola (`pill` è `rounded-full`).
+  varianti invece il `default` di shadcn lo mantengono). Altezza e corpo di ogni taglia vengono dai
+  token (§ Token di design), e un gemello `icon-*` ha per lato l'altezza della sua taglia. Oltre
+  l'insieme shadcn: `variant="soft"` è un controllo riempito a bassa enfasi (solo token semantici,
+  NESSUN colore di testo incorporato — un'icona o un glifo social eredita `currentColor`), e un asse
+  `shape` (`default`/`pill`) cambia solo il raggio della scatola (`pill` è `rounded-full`).
 - I campi di form compongono la famiglia `Field` (`ui/field/`: `Field`, `FieldLabel`, `FieldContent`
   e `FieldError`, con orientamento verticale o orizzontale) attorno ai controlli piatti
   (`input.astro`, `textarea.astro`, `select.astro`). `FieldError` è l'unica parte con un

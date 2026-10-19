@@ -57,6 +57,36 @@
   letter-spacing: var(--label-letter-spacing);
 }
 
+@utility control-sm {
+  height: var(--control-sm-height);
+  font-size: var(--control-sm-font-size);
+  line-height: var(--text-sm--line-height);
+}
+@utility control-md {
+  height: var(--control-md-height);
+  font-size: var(--control-md-font-size);
+  line-height: var(--text-sm--line-height);
+}
+@utility control-lg {
+  height: var(--control-lg-height);
+  font-size: var(--control-lg-font-size);
+  line-height: var(--text-base--line-height);
+}
+@utility control-xl {
+  height: var(--control-xl-height);
+  font-size: var(--control-xl-font-size);
+  line-height: var(--text-base--line-height);
+}
+@utility field-text {
+  font-size: var(--field-font-size);
+  line-height: var(--text-sm--line-height);
+}
+@utility bg-hover-* {
+  @variant mix {
+    background-color: color-mix(in oklab, --value(--color-*), var(--control-hover-mix));
+  }
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);

@@ -2,12 +2,19 @@ import { readFileSync } from 'node:fs'
 
 export type Oklch = readonly [l: number, c: number, h: number]
 
-const styles = (file: string) => readFileSync(new URL(`../../src/styles/${file}`, import.meta.url), 'utf8')
+export const stylesheet = (file: string): string =>
+  readFileSync(new URL(`../../src/styles/${file}`, import.meta.url), 'utf8')
+
+export function utility(name: string): string {
+  const css = stylesheet('globals.css')
+  const start = css.indexOf(`@utility ${name} {`)
+  return start === -1 ? '' : css.slice(start, css.indexOf('}', start))
+}
 
 /** Le primitive di tokens.css: `--neutral-50: oklch(0.985 0 0)` e simili. */
 export function primitives(): Record<string, Oklch> {
   const found: Record<string, Oklch> = {}
-  for (const [, name, l, c, h] of styles('tokens.css').matchAll(
+  for (const [, name, l, c, h] of stylesheet('tokens.css').matchAll(
     /--([\w-]+):\s*oklch\(([\d.]+)\s+([\d.]+)\s+([\d.]+)\)/g,
   )) {
     found[String(name)] = [Number(l), Number(c), Number(h)]
@@ -18,7 +25,7 @@ export function primitives(): Record<string, Oklch> {
 /** I ruoli semantici di un tema, risolti sulla primitiva che ognuno nomina. */
 export function roles(file: string, palette: Record<string, Oklch>): Record<string, Oklch> {
   const found: Record<string, Oklch> = {}
-  for (const [, role, primitive] of styles(file).matchAll(/--([\w-]+):\s*var\(--([\w-]+)\)/g)) {
+  for (const [, role, primitive] of stylesheet(file).matchAll(/--([\w-]+):\s*var\(--([\w-]+)\)/g)) {
     const value = palette[String(primitive)]
     if (value) found[String(role)] = value
   }
