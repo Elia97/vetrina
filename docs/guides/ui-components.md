@@ -54,8 +54,51 @@ head).
 
   Dentro una parte riassegnata `inherit` non toglie il valore, riprende quello dell'antenato: per
   tornare al testo normale si scrive `none` o `normal`. `src/styles/typography.test.ts` verifica che
-  ogni token esista, che le due utility li leggano tutti e che le tre primitive non scrivano una
-  tipografia loro.
+  ogni token esista, che le utility li leggano tutti e che le primitive non scrivano una tipografia
+  loro.
+- **Titoli ed eyebrow hanno la tipografia nei token, sugli stessi quattro assi.** `--heading-*` vale
+  per `Heading` e `--eyebrow-*` per `SectionLabel`. I titoli hanno tre fasce, ciascuna con la sua
+  utility:
+  - `type-heading-display` per `display`, con una spaziatura sua, `--heading-display-letter-spacing`,
+    che di default è quella di `tracking-tight`;
+  - `type-heading` per `h1` e `h2`;
+  - `type-heading-minor` per `h3` e `h4`, con un peso suo, `--heading-minor-font-weight`.
+
+  Ogni fascia scrive tutte e quattro le proprietà. Un'utility con una proprietà sola esce dopo le
+  classi di Tailwind, e vincerebbe su un `font-bold` passato da fuori. La famiglia di default è
+  `--font-display`, quella dei webfont registrati. I corpi restano nelle varianti di
+  `headingVariants`: sono responsivi, e un design che li cambia cambia la variante.
+
+  L'eyebrow prende il colore da `--eyebrow-color`, che sta in `light.css` e in `dark.css` perché
+  nomina `--primary`. Sopra una foto nessun colore del testo regge da solo, e lì si accende il fondo:
+  `--eyebrow-background`, `--eyebrow-padding` ed `--eyebrow-radius`, spenti di default. Misurato in
+  Chromium sopra la velatura dell'hero con immagine e una foto bianca, il primario della base regge
+  5,03:1, mentre un primario arancio scende sotto 2:1. Il segno davanti all'etichetta è lo slot
+  `marker` di `SectionLabel`, e il punto pulsante è il suo ripiego.
+
+  Un derivato con i titoli in maiuscolo, l'eyebrow condensato e il fondo sopra la foto riassegna:
+
+  ```css
+  :root {
+    --heading-font-weight: 700;
+    --heading-minor-font-weight: 600;
+    --heading-text-transform: uppercase;
+    --heading-display-letter-spacing: normal;
+    --eyebrow-font-family: var(--font-stack-condensed);
+    --eyebrow-text-transform: uppercase;
+    --eyebrow-letter-spacing: 0.12em;
+  }
+  .dark {
+    --eyebrow-background: var(--background);
+    --eyebrow-padding: 0.25rem 0.75rem;
+    --eyebrow-radius: 9999px;
+  }
+  ```
+
+  Il blocco `.dark` copre l'hero con immagine, che è un'isola scura. La barra al posto del punto si
+  passa nello slot: `<span slot="marker" aria-hidden="true" class="h-0.5 w-6 bg-current"></span>`.
+  `src/styles/typography.test.ts` e `src/components/ui/section-label.test.ts` verificano token,
+  utility e primitive.
 - **Anche misure, contorno, hover e focus dei controlli sono token.** `tokens.css` porta le misure:
   - altezza e corpo di ogni taglia di `Button`, da `--control-sm-height` e `--control-sm-font-size`
     fino a `--control-xl-*`;
@@ -389,10 +432,13 @@ tailwind-merge): la forma dell'API di shadcn senza il runtime React o Radix.
 - I titoli di pagina e di sezione sono `<Heading as size>`, mai un `<h1>`…`<h6>` con classi
   tipografiche scritte a mano, e i template dei generatori emettono quella forma: `as` dà il livello
   nel documento, `size` la taglia nella scala. Il colore non sta nelle varianti e si eredita, e una
-  taglia che manca diventa una variante di `headingVariants`. I documenti iubenda arrivano da
+  taglia che manca diventa una variante di `headingVariants`. Famiglia, peso, maiuscolo e spaziatura
+  vengono dai token di § Token di design, i corpi dalle varianti. I documenti iubenda arrivano da
   `set:html` e non possono usare il componente: `src/components/legal/legal-doc.astro` dà ai loro
   `h1` e `h2` le classi delle taglie `h1` e `h3`, e `src/components/legal/legal-doc.test.ts`
   fallisce se le due divergono.
+- `SectionLabel` è l'eyebrow sopra un titolo. Tipografia, colore e fondo vengono dai token di
+  § Token di design, e il segno davanti all'etichetta si cambia con lo slot `marker`.
 - Le dimensioni dei bottoni sono una sola scala a taglie, `sm/md/lg/xl` più i gemelli quadrati
   `icon-*` (`md` è il default, e non esiste una chiave `default` per la dimensione; i nomi delle
   varianti invece il `default` di shadcn lo mantengono). Altezza e corpo di ogni taglia vengono dai

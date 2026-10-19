@@ -56,6 +56,30 @@
   text-transform: var(--label-text-transform);
   letter-spacing: var(--label-letter-spacing);
 }
+@utility type-heading {
+  font-family: var(--heading-font-family);
+  font-weight: var(--heading-font-weight);
+  text-transform: var(--heading-text-transform);
+  letter-spacing: var(--heading-letter-spacing);
+}
+@utility type-heading-minor {
+  font-family: var(--heading-font-family);
+  font-weight: var(--heading-minor-font-weight);
+  text-transform: var(--heading-text-transform);
+  letter-spacing: var(--heading-letter-spacing);
+}
+@utility type-heading-display {
+  font-family: var(--heading-font-family);
+  font-weight: var(--heading-font-weight);
+  text-transform: var(--heading-text-transform);
+  letter-spacing: var(--heading-display-letter-spacing);
+}
+@utility type-eyebrow {
+  font-family: var(--eyebrow-font-family);
+  font-weight: var(--eyebrow-font-weight);
+  text-transform: var(--eyebrow-text-transform);
+  letter-spacing: var(--eyebrow-letter-spacing);
+}
 
 @utility control-sm {
   height: var(--control-sm-height);

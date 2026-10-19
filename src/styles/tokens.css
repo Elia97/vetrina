@@ -53,6 +53,21 @@
   --label-text-transform: inherit;
   --label-letter-spacing: inherit;
 
+  --heading-font-family: var(--font-display);
+  --heading-font-weight: 500;
+  --heading-minor-font-weight: 500;
+  --heading-text-transform: inherit;
+  --heading-letter-spacing: inherit;
+  --heading-display-letter-spacing: var(--tracking-tight);
+
+  --eyebrow-font-family: inherit;
+  --eyebrow-font-weight: 500;
+  --eyebrow-text-transform: inherit;
+  --eyebrow-letter-spacing: inherit;
+  --eyebrow-background: transparent;
+  --eyebrow-padding: 0;
+  --eyebrow-radius: 0;
+
   --field-height: 2.5rem;
   --field-font-size: 0.875rem;
 }
