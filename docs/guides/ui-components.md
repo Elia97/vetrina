@@ -170,6 +170,15 @@ apre il pannello della CMP, non porta a una pagina.
 - Nomi di utility attuali: `backdrop-blur-sm` (il `backdrop-blur` nudo è l'alias di compatibilità v3,
   deprecato).
 - Le utility numeriche sono dinamiche in v4 (`z-100` compila senza configurazione).
+- **Una tinta di sfondo sotto il 50% su un ruolo si scrive con `mix:`**, come
+  `mix:bg-foreground/10`. I ruoli puntano a variabili che il tema scuro ridefinisce, quindi dove
+  `color-mix()` manca, sotto Safari 16.2, Tailwind ripiega sul ruolo pieno: il fondo al 10% di
+  `foreground` diventa il colore del testo. Dentro `mix:` la regola sta in `@supports`, e lì la tinta
+  sparisce; dal 50% in su il pieno è l'approssimazione giusta. Le regole `mix:` escono dopo ogni variante di
+  Tailwind e dopo le classi senza variante, quindi uno stato che deve restare pieno esclude la tinta
+  (`not-aria-pressed:hover:mix:…`); per la stessa ragione una classe di sfondo passata da fuori a
+  una primitiva non la batte, e tailwind-merge non la toglie: si passa anche con `mix:` davanti. Una
+  tinta sotto il 50% senza `mix:` fa fallire `src/styles/surface-tints.test.ts`.
 
 ## Pattern di accessibilità nell'arredo
 

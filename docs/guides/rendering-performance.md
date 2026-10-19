@@ -72,6 +72,14 @@ job.
   è insieme l'asset più pesante consegnato e l'unico che blocca il rendering: l'output di Tailwind
   cresce una utility alla volta, quindi un progetto scivola verso l'alto senza che nessuna singola
   modifica sembri costosa. Il suo tetto si alza in `bundle.cssMaxGzip` di `officina.config.ts`.
+- **Il CSS costruito non porta media query in sintassi di intervallo**, come `(width>=40rem)`:
+  Safari le legge solo dalla 16.4, e più indietro scarta ogni breakpoint, quindi un sito scritto
+  mobile-first si impagina come su un telefono. `check bundle` le boccia, nei fogli di
+  `dist/client/_astro` e negli `<style>` delle pagine. Le abbassa Lightning CSS, che minifica il CSS
+  della build, con i browser di `vite.build.cssTarget` in `astro.config.mjs`: senza, riceve
+  l'`esnext` di Astro, non abbassa niente e toglie anche i prefissi, come `-webkit-backdrop-filter`.
+  La base è Safari e iOS 15.4, i primi a leggere `@layer`, con Chrome ed Edge 111 e Firefox 114.
+  `astro dev` non minifica: il difetto si vede solo nel CSS costruito.
 - **Le pagine che si sfilano con `prerender = false`** sono fuori dal budget per costruzione (non
   c'è HTML da misurare) e compaiono in una `NOTE`, non fra i fallimenti. È il prerendering come
   default a tenere piccolo quel buco: una pagina che semplicemente si dimentica di dichiarare

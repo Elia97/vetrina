@@ -44,6 +44,9 @@ export default defineConfig({
   ],
   vite: {
     plugins: [tailwindcss()],
+    // Senza cssTarget Lightning CSS lascia le media query a intervallo, che Safari legge dalla 16.4.
+    // Safari e iOS 15.4 sono i primi a leggere `@layer`, su cui poggia il CSS di Tailwind.
+    build: { cssTarget: ['chrome111', 'edge111', 'firefox114', 'safari15.4', 'ios15.4'] },
   },
   env: {
     schema: {

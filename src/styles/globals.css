@@ -4,6 +4,8 @@
 @import "./dark.css";
 
 @custom-variant dark (&:where(.dark, .dark *));
+/* Sotto Safari 16.2 non c'è color-mix(), e su un ruolo Tailwind ripiega sul colore pieno. */
+@custom-variant mix (@supports (color: color-mix(in lab, red, red)));
 
 /* Il `container` di Tailwind v4 non porta opzioni di centratura e padding. */
 @utility container {
