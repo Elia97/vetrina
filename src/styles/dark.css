@@ -18,8 +18,8 @@
   --accent: var(--brand-700);
   --accent-foreground: var(--neutral-50);
   /* Rosso più chiaro, e il primo piano gira con lui: `--destructive` è sia testo sia
-     riempimento, e il quasi bianco su questo rosso è solo 3,65:1. */
-  --destructive: var(--red-500);
+     riempimento, e il quasi bianco su questo rosso è solo 2,77:1. */
+  --destructive: var(--red-400);
   --destructive-foreground: var(--neutral-950);
   /* Verde più chiaro per la stessa ragione di destructive: leggibile su una card scura. */
   --success: var(--green-600);

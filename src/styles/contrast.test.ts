@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { type Oklch, primitives, ratio, roles } from '../../test/helpers/css-tokens.ts'
+import { controlHoverMix, hoverRatio, type Oklch, primitives, ratio, roles } from '../../test/helpers/css-tokens.ts'
 
 // Forma eseguibile di docs/guides/ui-components.md § Contrasto.
 
@@ -41,6 +41,16 @@ const UI_PAIRS = [
   ['ring', 'card'],
 ] as const
 
+// `bg-hover-*` di globals.css mescola con `--control-hover-mix` il riempimento di `default` e
+// `destructive` in button.astro, e il bottone sta sul fondo o dentro una Card.
+const HOVER_PAIRS = [
+  ['primary-foreground', 'primary', 'background'],
+  ['primary-foreground', 'primary', 'card'],
+  ['destructive-foreground', 'destructive', 'background'],
+  ['destructive-foreground', 'destructive', 'card'],
+] as const
+const hoverMix = controlHoverMix()
+
 describe.each(themes)('%s theme', (_name, tokens) => {
   it.each(TEXT_PAIRS)('%s on %s clears 4.5:1', (fg, bg) => {
     const pair = [tokens[fg], tokens[bg]] as const
@@ -52,5 +62,10 @@ describe.each(themes)('%s theme', (_name, tokens) => {
   it.each(UI_PAIRS)('%s on %s clears 3:1', (fg, bg) => {
     const pair = [tokens[fg], tokens[bg]] as const
     expect(ratio(pair[0] as Oklch, pair[1] as Oklch)).toBeGreaterThanOrEqual(3)
+  })
+
+  it.each(HOVER_PAIRS)("%s su %s all'hover, sopra %s, supera 4,5:1", (fg, fill, surface) => {
+    const [text, hover, under] = [tokens[fg], tokens[fill], tokens[surface]] as Oklch[]
+    expect(hoverRatio(text as Oklch, hover as Oklch, under as Oklch, hoverMix)).toBeGreaterThanOrEqual(4.5)
   })
 })
