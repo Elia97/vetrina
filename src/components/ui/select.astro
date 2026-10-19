@@ -22,7 +22,7 @@ const { class: className, options, placeholder, value, ...rest } = Astro.props
 const current = options.find((option) => option.value === value)
 
 const triggerClasses = cn(
-  'h-10 w-full items-center justify-between gap-2 rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50',
+  'h-10 w-full items-center justify-between gap-2 rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive',
   className,
 )
 ---

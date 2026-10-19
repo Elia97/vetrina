@@ -366,6 +366,14 @@ tailwind-merge): la forma dell'API di shadcn senza il runtime React o Radix.
   `astro:page-load`. Una radice aggiunta dopo, come una riga nuova di una griglia, resta il
   `<select>` nativo finché non la si passa a `setupSelect(root)` di `select-behavior.ts`. Una radice
   già attiva viene saltata, e la pulizia su `astro:before-swap` copre anche quelle attivate così.
+- Il trigger di `Select` è un `<button>` con `role="combobox"`, lo schema «select-only combobox»
+  delle APG. Prende il nome dalla `<label for>` oppure da `aria-label` o `aria-labelledby`, che
+  all'attivazione passano dal `<select>` nativo al trigger insieme a `id` e `aria-describedby`.
+  Espone come valore il testo che mostra, e `aria-required` del nativo.
+- In un form senza `novalidate`, un `Select` obbligatorio rimasto vuoto non può avere il fumetto del
+  browser, perché il nativo è nascosto. All'invio il trigger prende `aria-invalid`, con il bordo
+  `--destructive`, e prende il focus se è il primo campo non valido (`select-validity.ts`). Un
+  messaggio scritto resta compito degli slot d'errore di un form `novalidate`.
 - Le icone vengono da `@lucide/astro` (SVG in fase di build, zero JS lato client): `stroke-width={1}`
   di default, dimensione con Tailwind (`size-4`, `size-5`), `aria-hidden` per default e l'etichetta
   accessibile sul controllo.

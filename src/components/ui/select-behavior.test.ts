@@ -52,6 +52,27 @@ describe('select activation hands the field wiring to the visible control', () =
   })
 })
 
+describe('il nome che il select prende fuori da una label passa al trigger', () => {
+  it('porta aria-label sul trigger, così un select senza etichetta tiene il nome', async () => {
+    renderSelect()
+    native().removeAttribute('id')
+    native().setAttribute('aria-label', 'Colore')
+    await activate()
+
+    expect(trigger().getAttribute('aria-label')).toBe('Colore')
+    expect(native().hasAttribute('aria-label')).toBe(false)
+  })
+
+  it('porta aria-labelledby sul trigger', async () => {
+    renderSelect()
+    native().setAttribute('aria-labelledby', 'topic-heading')
+    await activate()
+
+    expect(trigger().getAttribute('aria-labelledby')).toBe('topic-heading')
+    expect(native().hasAttribute('aria-labelledby')).toBe(false)
+  })
+})
+
 describe('select initial state', () => {
   it('marks the pre-selected option instead of leaving every option unselected', async () => {
     renderSelect({ value: 'preventivo' })

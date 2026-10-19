@@ -18,7 +18,14 @@ interface Props {
 const { options, placeholder, current, triggerClasses } = Astro.props
 ---
 
-<button type="button" data-select-trigger aria-haspopup="listbox" aria-expanded="false" class={cn(triggerClasses, 'hidden')}>
+<button
+  type="button"
+  role="combobox"
+  data-select-trigger
+  aria-haspopup="listbox"
+  aria-expanded="false"
+  class={cn(triggerClasses, 'hidden')}
+>
   <span data-select-value class={cn('truncate', !current && 'text-muted-foreground')}>
     {current?.label ?? placeholder ?? options[0]?.label}
   </span>

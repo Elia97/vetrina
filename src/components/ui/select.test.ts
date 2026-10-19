@@ -13,6 +13,7 @@ async function render(value?: string) {
   const label = document.querySelector('[data-select-value]')
   return {
     native: document.querySelector('[data-select-native]'),
+    trigger: document.querySelector('[data-select-trigger]'),
     selected: Array.from(document.querySelectorAll('[data-select-native] option[selected]'), (option) =>
       option.getAttribute('value'),
     ),
@@ -44,5 +45,12 @@ describe('select.astro', () => {
 
     expect(select.selected).toEqual([''])
     expect(select.label).toBe('Choose')
+  })
+
+  it('rende il trigger come un combobox che apre una listbox', async () => {
+    const select = await render()
+
+    expect(select.trigger?.getAttribute('role')).toBe('combobox')
+    expect(select.trigger?.getAttribute('aria-haspopup')).toBe('listbox')
   })
 })
