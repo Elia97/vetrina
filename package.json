@@ -63,7 +63,7 @@
     "@biomejs/biome": "2.5.14",
     "@commitlint/cli": "^21.2.3",
     "@commitlint/config-conventional": "^21.2.3",
-    "@elia97/officina": "^0.12.0",
+    "@elia97/officina": "^0.15.0",
     "@playwright/test": "^1.63.0",
     "@tailwindcss/vite": "^4.3.3",
     "@types/node": "^26.6.3",

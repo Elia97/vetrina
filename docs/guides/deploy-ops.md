@@ -92,7 +92,7 @@ Otto gate, e ognuno copre un momento che gli altri non coprono:
 | il check obbligatorio `ci` | ruleset di `main`, da `scripts/bootstrap-github.sh` | tutto ciò che atterra su `main` |
 | `pnpm run ci` | job `deploy`, sul tag | ciò che parte dal tag |
 | `pnpm run check:placeholders` | job `deploy`, prima di `pnpm run ci` e dopo `vercel pull` | i segnaposto del template nei sorgenti e nell'ambiente di produzione |
-| `pnpm perf:bundle` | `ci.yml`, dopo la build | il JavaScript client per rotta |
+| `pnpm perf:bundle` | `ci.yml`, dopo la build | il JavaScript client per rotta, il foglio di stile e le sue media query |
 | `pnpm run check:links` | `ci.yml`, dopo la build | i link interni della build: nessuno porta a `#` o a una pagina che non esiste |
 | `pnpm run check:secrets` | `ci.yml`, dopo la build con i canary | le chiavi server e secret di `env.schema`: nessuna finisce nei file di `dist/client` |
 | `pnpm run test:e2e` | `ci.yml`, sulla stessa build | ciò che si rompe solo dentro un browser |
