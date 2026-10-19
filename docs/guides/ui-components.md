@@ -179,6 +179,10 @@ apre il pannello della CMP, non porta a una pagina.
   (`not-aria-pressed:hover:mix:…`); per la stessa ragione una classe di sfondo passata da fuori a
   una primitiva non la batte, e tailwind-merge non la toglie: si passa anche con `mix:` davanti. Una
   tinta sotto il 50% senza `mix:` fa fallire `src/styles/surface-tints.test.ts`.
+- **Le classi vengono solo da `src/`**: `globals.css` importa Tailwind con `source("..")`. Senza, il
+  rilevamento automatico legge ogni file che git non ignora, e le parole delle guide, di `CLAUDE.md`
+  o di `astro.config.mjs` diventano regole del CSS costruito che nessun componente usa. Una classe
+  che vive in un file fuori da `src/` si dichiara con `@source` in `globals.css`.
 
 ## Pattern di accessibilità nell'arredo
 
