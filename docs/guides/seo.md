@@ -180,7 +180,7 @@ del browser — e viene reso una volta sola da `head.astro`.
 - **Una sitemap di media vuole un endpoint suo.** L'hook `serialize` dell'integrazione non può
   emettere un namespace `<video:…>` o `<image:…>`: il suo tipo `SitemapItem` è un `Pick` di
   `url|lastmod|changefreq|priority|links` e nient'altro. Quella sitemap si emette da una rotta
-  propria e si aggancia con `customSitemaps`.
+  propria e si aggiunge all'indice con una voce di `CUSTOM_SITEMAP_PATHS`, come qui sotto.
 - **I campi degli schemi dei media portano i limiti della piattaforma, imposti in build.** Google
   taglia il `name` di un video a 100 caratteri e la `description` a 2048: quei limiti vanno nello
   schema Zod invece che in un troncamento al momento della serializzazione — far fallire la build è
@@ -188,7 +188,11 @@ del browser — e viene reso una volta sola da `head.astro`.
   sitemap che descrivono lo **stesso** insieme: si risolvono entrambi da una funzione sola, o
   finiscono per descrivere media diversi.
 - Nella sitemap finiscono solo le rotte **prerenderizzate**: le pagine indicizzabili restano
-  prerenderizzate (che è il default), oppure gli URL on-demand si elencano con `customPages`.
+  prerenderizzate (che è il default), oppure gli URL on-demand si elencano con `customPages`, che li
+  vuole già in build. Quando gli indirizzi vengono da un dato, come le schede di un catalogo, una
+  rotta del progetto emette la loro sitemap, e il suo percorso va in coda a `CUSTOM_SITEMAP_PATHS`
+  di `src/lib/seo/crawl-paths.ts`. `customSitemapUrls()` lo risolve su `SITE.url`, perché
+  `customSitemaps` vuole URL assoluti, e `sitemap-index.xml` lo elenca accanto alle sitemap generate.
 - `src/pages/robots.txt.ts` (prerenderizzato) indirizza i crawler alla sitemap e legge la sua lista
   di disallow da `crawl-policy.ts`: il controllo dell'indicizzazione per singola risposta NON sta lì
   (i crawler mettono in cache robots.txt).

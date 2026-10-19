@@ -1,11 +1,11 @@
-// Letto da src/pages/robots.txt.ts, dal filtro sitemap in astro.config.mjs, da
+// Letto da src/pages/robots.txt.ts, dalla sitemap in astro.config.mjs, da
 // src/components/head/seo.ts e da src/middleware.ts.
 
 // [HARD] astro.config.mjs carica questo modulo prima che Vite risolva l'alias `@/`: qui e nei
 // moduli che importa si importa solo per percorso relativo.
-import { NOINDEX_PATHS, ROBOTS_DISALLOWED_PATHS } from './crawl-paths'
+import { CUSTOM_SITEMAP_PATHS, NOINDEX_PATHS, ROBOTS_DISALLOWED_PATHS } from './crawl-paths'
 
-export { NOINDEX_PATHS, ROBOTS_DISALLOWED_PATHS }
+export { CUSTOM_SITEMAP_PATHS, NOINDEX_PATHS, ROBOTS_DISALLOWED_PATHS }
 
 /** @astrojs/sitemap consegna le voci assolute e con lo slash finale nonostante
  *  `trailingSlash: 'never'`. */
@@ -29,4 +29,9 @@ export function isExcludedFromSitemap(url: string): boolean {
 
 export function isNoindexPath(pathname: string): boolean {
   return matchesSubtree(pathname, NOINDEX_PATHS)
+}
+
+/** `customSitemaps` di @astrojs/sitemap vuole URL assoluti: il suo schema li valida con `z.url()`. */
+export function customSitemapUrls(site: string): string[] {
+  return CUSTOM_SITEMAP_PATHS.map((path) => new URL(path, site).href)
 }

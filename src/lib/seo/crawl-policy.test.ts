@@ -2,7 +2,9 @@ import { withOnlyListedPaths } from '@test/helpers/crawl-policy'
 import { describe, expect, it } from 'vitest'
 
 import {
+  CUSTOM_SITEMAP_PATHS,
   crawlPathname,
+  customSitemapUrls,
   isExcludedFromSitemap,
   isNoindexPath,
   matchesSubtree,
@@ -104,5 +106,16 @@ describe('isNoindexPath', () => {
 
   it('leaves the home alone', () => {
     expect(isNoindexPath('/')).toBe(NOINDEX_PATHS.includes('/'))
+  })
+})
+
+describe('customSitemapUrls', () => {
+  withOnlyListedPaths(CUSTOM_SITEMAP_PATHS, '/sitemap-products.xml', '/sitemap-blog.xml')
+
+  it('risolve ogni sitemap aggiunta sul sito che riceve, nello stesso ordine', () => {
+    expect(customSitemapUrls('https://example.test')).toEqual([
+      'https://example.test/sitemap-products.xml',
+      'https://example.test/sitemap-blog.xml',
+    ])
   })
 })
