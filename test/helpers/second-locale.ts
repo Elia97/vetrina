@@ -11,6 +11,11 @@ export const translatedSegments = {
   SEGMENTS_BY_LOCALE: { [SECOND_LOCALE]: { contatti: 'contact' } },
 }
 
+export const translatedSlugPaths = {
+  [DEFAULT_LOCALE]: '/prodotto/cintura-ipsc',
+  [SECOND_LOCALE]: '/product/ipsc-belt',
+}
+
 export const twoLocaleManifest = {
   i18n: {
     strategy: 'pathname-prefix-other-locales' as const,

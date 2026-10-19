@@ -45,6 +45,11 @@ Convenzioni stabilite dalla head centralizzata (`src/components/head/head.astro`
   la risolve `pageLocales()` in `src/i18n/locales.ts`, e la leggono sia gli alternate di
   `resolveHeadSeoMeta()` sia il selettore di lingua: una lingua che la configurazione non instrada
   ferma il build, e `x-default` esce solo se la pagina esiste nella lingua di default.
+- **Con gli slug tradotti la pagina passa a `locales` una mappa** dalla lingua al suo percorso,
+  scritto come per `localizedHref()`:
+  `<MainLayout locales={{ it: '/prodotto/cintura-ipsc', en: '/product/ipsc-belt' }}>`. Hreflang,
+  `x-default`, `og:locale:alternate` e selettore vanno su quei percorsi invece che sul percorso
+  rilocalizzato, le lingue della pagina sono le chiavi, e nella lingua corrente vale il canonical.
 - **Un percorso di `NOINDEX_PATHS` resta fuori dal gruppo delle lingue.** Le traduzioni non lo
   annunciano, `x-default` non ci punta, e la pagina stessa non emette hreflang: Google ignora un
   hreflang a cui l'altra pagina non risponde, e chiede che ogni versione elenchi anche sé stessa.

@@ -1,4 +1,6 @@
 ---
+import type { PageLocales } from '@/i18n/locales'
+
 import HeadAlternates from './alternates.astro'
 import HeadIcons from './icons.astro'
 import HeadJsonLd from './json-ld.astro'
@@ -13,7 +15,7 @@ interface Props {
   canonicalPath?: string | undefined
   ogImage?: string | undefined
   jsonLd?: Record<string, unknown>[] | undefined
-  locales?: readonly string[] | undefined
+  locales?: PageLocales | undefined
 }
 
 const { title, absoluteTitle = false, description, canonicalPath, ogImage, jsonLd, locales } = Astro.props

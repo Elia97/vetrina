@@ -9,10 +9,11 @@ import ThemeToggle from '@/components/ui/theme-toggle.astro'
 import { SITE } from '@/lib/site'
 
 import { localizedHref } from '@/i18n/href'
+import type { PageLocales } from '@/i18n/locales'
 import { useTranslations } from '@/i18n/translate'
 
 interface Props {
-  locales?: readonly string[] | undefined
+  locales?: PageLocales | undefined
 }
 
 const { locales } = Astro.props

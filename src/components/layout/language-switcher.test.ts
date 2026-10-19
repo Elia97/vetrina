@@ -1,13 +1,15 @@
 import { renderToFragment } from '@test/container'
-import { twoLocaleManifest } from '@test/helpers/second-locale'
+import { translatedSlugPaths, twoLocaleManifest } from '@test/helpers/second-locale'
 import { describe, expect, it, vi } from 'vitest'
+
+import type { PageLocales } from '@/i18n/locales'
 
 import LanguageSwitcher from './language-switcher.astro'
 
 vi.mock('astro:config/client', () => import('@test/helpers/second-locale').then((m) => m.twoLocaleConfig))
 vi.mock('@/i18n/segments-by-locale', () => import('@test/helpers/second-locale').then((m) => m.translatedSegments))
 
-function render(url: string, props: { locales?: readonly string[] } = {}) {
+function render(url: string, props: { locales?: PageLocales } = {}) {
   return renderToFragment(LanguageSwitcher, { request: new Request(url), props }, twoLocaleManifest)
 }
 
@@ -34,6 +36,23 @@ describe('language-switcher.astro', () => {
 
   it('non rende niente su una pagina che esiste in una lingua sola', async () => {
     const document = await render('https://example.com/privacy', { locales: ['it'] })
+
+    expect(document.body.innerHTML.trim()).toBe('')
+  })
+
+  it.each([
+    ['https://example.com/prodotto/cintura-ipsc', '/en/product/ipsc-belt'],
+    ['https://example.com/en/product/ipsc-belt', '/prodotto/cintura-ipsc'],
+  ])('da %s, con la mappa della pagina, porta a %s', async (url, href) => {
+    const document = await render(url, { locales: translatedSlugPaths })
+
+    expect(document.querySelector('nav a')?.getAttribute('href')).toBe(href)
+  })
+
+  it('non rende niente con una mappa che porta solo la lingua corrente', async () => {
+    const document = await render('https://example.com/prodotto/cintura-ipsc', {
+      locales: { it: '/prodotto/cintura-ipsc' },
+    })
 
     expect(document.body.innerHTML.trim()).toBe('')
   })

@@ -7,6 +7,8 @@ import ThemeScript from '@/components/head/theme-script.astro'
 
 import { DEFAULT_LOCALE } from '@/lib/site'
 
+import type { PageLocales } from '@/i18n/locales'
+
 import '@/styles/globals.css'
 
 export interface Props {
@@ -16,7 +18,7 @@ export interface Props {
   canonicalPath?: string
   ogImage?: string
   jsonLd?: Record<string, unknown>[]
-  locales?: readonly string[]
+  locales?: PageLocales
   class?: string
 }
 
