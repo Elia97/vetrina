@@ -41,11 +41,22 @@ export function role(theme: Record<string, Oklch>, name: string, file: string): 
   return value
 }
 
-// Le costanti sono quelle di oklab_to_linear_srgb in https://bottosson.github.io/posts/oklab/.
-function linearRgb([l, c, hDeg]: Oklch): readonly [number, number, number] {
+type Triple = readonly [number, number, number]
+
+const each = (x: Triple, f: (value: number) => number): Triple => [f(x[0]), f(x[1]), f(x[2])]
+const zip = (x: Triple, y: Triple, f: (first: number, second: number) => number): Triple => [
+  f(x[0], y[0]),
+  f(x[1], y[1]),
+  f(x[2], y[2]),
+]
+
+function oklab([l, c, hDeg]: Oklch): Triple {
   const h = (hDeg * Math.PI) / 180
-  const a = c * Math.cos(h)
-  const b = c * Math.sin(h)
+  return [l, c * Math.cos(h), c * Math.sin(h)]
+}
+
+// Le costanti sono quelle di oklab_to_linear_srgb in https://bottosson.github.io/posts/oklab/.
+function linearRgb([l, a, b]: Triple): Triple {
   const long = (l + 0.3963377774 * a + 0.2158037573 * b) ** 3
   const medium = (l - 0.1055613458 * a - 0.0638541728 * b) ** 3
   const short = (l - 0.0894841775 * a - 1.291485548 * b) ** 3
@@ -58,22 +69,55 @@ function linearRgb([l, c, hDeg]: Oklch): readonly [number, number, number] {
 }
 
 /** Luminanza relativa WCAG 2.x: pesa i canali lineari, non `Y = L³`, che sbaglia su ogni rosso. */
-function luminance(color: Oklch): number {
-  const [r, g, b] = linearRgb(color)
-  return 0.2126 * r + 0.7152 * g + 0.0722 * b
+const weigh = ([r, g, b]: Triple) => 0.2126 * r + 0.7152 * g + 0.0722 * b
+
+const luminance = (color: Oklch) => weigh(linearRgb(oklab(color)))
+
+function contrast(first: number, second: number): number {
+  const [high, low] = [first, second].sort((x, y) => y - x)
+  return ((high ?? 0) + 0.05) / ((low ?? 0) + 0.05)
 }
 
 export function ratio(a: Oklch, b: Oklch): number {
-  const [high, low] = [luminance(a), luminance(b)].sort((x, y) => y - x)
-  return ((high ?? 0) + 0.05) / ((low ?? 0) + 0.05)
+  return contrast(luminance(a), luminance(b))
 }
 
 // Il trasferimento sRGB, che luminance() non applica: i canali lineari vanno gamma-codificati
 // prima di diventare byte.
 const encode = (channel: number) => (channel <= 0.0031308 ? 12.92 * channel : 1.055 * channel ** (1 / 2.4) - 0.055)
+const decode = (channel: number) => (channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4)
 
 /** L'esadecimale a sei cifre che `<meta name="theme-color">` sa leggere. */
 export function hex(color: Oklch): string {
-  const bytes = linearRgb(color).map((channel) => Math.round(encode(channel) * 255))
+  const bytes = linearRgb(oklab(color)).map((channel) => Math.round(encode(channel) * 255))
   return `#${bytes.map((byte) => byte.toString(16).padStart(2, '0')).join('')}`
+}
+
+export interface HoverMix {
+  color: 'transparent' | 'black' | 'white'
+  amount: number
+}
+
+/** `--control-hover-mix` di tokens.css, la miscela che `bg-hover-*` in globals.css dà al riempimento. */
+export function controlHoverMix(css = stylesheet('tokens.css')): HoverMix {
+  const [, color, percent] = css.match(/--control-hover-mix:\s*(transparent|black|white)\s+([\d.]+)%/) ?? []
+  if (!color || !percent) {
+    throw new Error('--control-hover-mix in src/styles/tokens.css non è transparent, black o white con una quota')
+  }
+  return { color: color as HoverMix['color'], amount: Number(percent) / 100 }
+}
+
+const OPAQUE_MIX: Record<Exclude<HoverMix['color'], 'transparent'>, Triple> = { black: [0, 0, 0], white: [1, 0, 0] }
+
+// Chromium compone l'alfa sulla superficie in sRGB codificato, non in lineare: con questo passo
+// il modello ridà le misure dell'hover prese nel browser.
+function hoverLuminance(fill: Oklch, surface: Oklch, { color, amount }: HoverMix): number {
+  const toward = (from: number, to: number) => (1 - amount) * from + amount * to
+  if (color !== 'transparent') return weigh(linearRgb(zip(oklab(fill), OPAQUE_MIX[color], toward)))
+  const encoded = (value: Oklch) => each(linearRgb(oklab(value)), encode)
+  return weigh(each(zip(encoded(fill), encoded(surface), toward), decode))
+}
+
+export function hoverRatio(foreground: Oklch, fill: Oklch, surface: Oklch, mix: HoverMix): number {
+  return contrast(luminance(foreground), hoverLuminance(fill, surface, mix))
 }

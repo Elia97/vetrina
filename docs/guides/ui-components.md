@@ -18,7 +18,8 @@ head).
   ciascuno un gradino più scuro per il tema chiaro e uno più chiaro per lo scuro, perché nessun
   valore singolo supera 4,5:1 su entrambi — e dato che lo stesso token è sia testo
   (`text-destructive`) sia riempimento (`bg-destructive`), il tema scuro gira il suo primo piano su
-  uno scuro. `src/styles/contrast.test.ts` verifica ogni coppia.
+  uno scuro. I gradini di `destructive`, `red-700` e `red-400`, reggono 4,5:1 anche sul riempimento
+  dell'hover, che lo avvicina al fondo. `src/styles/contrast.test.ts` verifica ogni coppia.
 - **Le `z-*` vengono dalla scala in `tokens.css`**, non da un numero che è capitato di far
   funzionare: `--z-raised` < `--z-dropdown` < `--z-header` < `--z-overlay` < `--z-skip-link`. Un
   overlay nuovo si colloca leggendola, e si raggiunge attraverso le utility `z-*` nominate in
@@ -221,7 +222,9 @@ compositi, il contratto deve vivere in un test unitario che calcola luminanza re
   lo sfondo fuori.
 - **Le coppie di token piatti quel test ce l'hanno già**: `src/styles/contrast.test.ts` legge
   `tokens.css`, `light.css` e `dark.css` e verifica ogni coppia primo piano/sfondo a 4,5:1 e ogni
-  confine di controllo a 3:1, in entrambi i temi. Un rebranding che ne porta una sotto il pavimento
+  confine di controllo a 3:1, in entrambi i temi. Verifica anche il primo piano di `default` e
+  `destructive` sul riempimento dell'hover, mescolato con `--control-hover-mix` e composto sul fondo
+  e sulla card come lo compone il browser. Un rebranding che ne porta una sotto il pavimento
   ci fallisce. Due conseguenze da conoscere prima di «riordinarli» rimettendoli insieme: `--border`
   e `--input` sono token diversi di proposito (un divisorio contro il confine di un controllo), e
   `--destructive` ha bisogno di un gradino più chiaro nel tema scuro **con il primo piano girato su

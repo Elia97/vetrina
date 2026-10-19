@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { hex, type Oklch, role } from './css-tokens.ts'
+import { controlHoverMix, type HoverMix, hex, hoverRatio, type Oklch, role } from './css-tokens.ts'
 
 // I primi cinque di https://www.w3.org/TR/css-color-4/#ex-oklch-samples; ogni rgb() è nello `style` del suo swatch.
 const SPEC_SAMPLES: [Oklch, [number, number, number]][] = [
@@ -37,5 +37,31 @@ describe('hex', () => {
 describe('role', () => {
   it('nomina il foglio in cui il ruolo non si risolve', () => {
     expect(() => role({}, 'background', 'dark.css')).toThrow('src/styles/dark.css')
+  })
+})
+
+describe('controlHoverMix', () => {
+  it('legge il colore e la quota della miscela', () => {
+    expect(controlHoverMix('--control-hover-mix: black 11%;')).toEqual({ color: 'black', amount: 0.11 })
+  })
+
+  it('nomina il foglio quando la miscela non è una delle tre che sa calcolare', () => {
+    expect(() => controlHoverMix('--control-hover-mix: oklch(0 0 0) 10%;')).toThrow('src/styles/tokens.css')
+  })
+})
+
+const NEAR_WHITE: Oklch = [0.985, 0, 0]
+const NEAR_BLACK: Oklch = [0.145, 0, 0]
+
+// Misurati in Chromium 153 dipingendo testo e riempimento su un canvas, ogni miscela al 10%.
+const BROWSER_HOVERS: [HoverMix['color'], Oklch, Oklch, Oklch, number][] = [
+  ['transparent', [0.577, 0.245, 27.325], NEAR_WHITE, NEAR_WHITE, 4.35],
+  ['black', [0.505, 0.213, 27.518], NEAR_WHITE, NEAR_WHITE, 7.61],
+  ['white', [0.704, 0.191, 22.216], NEAR_BLACK, NEAR_BLACK, 7.64],
+]
+
+describe('hoverRatio', () => {
+  it.each(BROWSER_HOVERS)('con %s ridà il contrasto che dipinge Chromium', (color, fill, text, surface, measured) => {
+    expect(hoverRatio(text, fill, surface, { color, amount: 0.1 })).toBeCloseTo(measured, 1)
   })
 })
