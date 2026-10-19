@@ -1,3 +1,14 @@
+const NAMING_ATTRIBUTES = ['aria-describedby', 'aria-label', 'aria-labelledby'] as const
+
+let generatedListboxes = 0
+
+function moveAttribute(from: Element, to: Element, name: string): void {
+  const value = from.getAttribute(name)
+  if (!value) return
+  from.removeAttribute(name)
+  to.setAttribute(name, value)
+}
+
 export function adoptNativeRelationships(
   native: HTMLSelectElement,
   trigger: HTMLButtonElement,
@@ -7,14 +18,10 @@ export function adoptNativeRelationships(
   if (id) {
     native.removeAttribute('id')
     trigger.id = id
-    listbox.id = `${id}-listbox`
-    trigger.setAttribute('aria-controls', listbox.id)
   }
-  const describedBy = native.getAttribute('aria-describedby')
-  if (describedBy) {
-    native.removeAttribute('aria-describedby')
-    trigger.setAttribute('aria-describedby', describedBy)
-  }
+  listbox.id = id ? `${id}-listbox` : `ui-select-listbox-${++generatedListboxes}`
+  trigger.setAttribute('aria-controls', listbox.id)
+  for (const name of NAMING_ATTRIBUTES) moveAttribute(native, trigger, name)
   if (native.required) trigger.setAttribute('aria-required', 'true')
   trigger.disabled = native.disabled
 }

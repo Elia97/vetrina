@@ -1,6 +1,7 @@
 import { createMotionBinding } from '@/lib/motion'
 
 import { adoptNativeRelationships, markSelectedOption, markSelectedValue } from './select-a11y'
+import { bindValidity } from './select-validity'
 
 interface SelectElements {
   native: HTMLSelectElement
@@ -175,7 +176,7 @@ export function setupSelect(root: HTMLElement): void {
   if (!elements || elements.native.classList.contains('hidden')) return
 
   activateSelect(root, elements)
-  cleanups.push(bindSelectHandlers(root, elements))
+  cleanups.push(bindSelectHandlers(root, elements), bindValidity(elements.native, elements.trigger))
 }
 
 function setupSelects(): void {

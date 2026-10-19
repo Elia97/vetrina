@@ -75,14 +75,15 @@ describe('defensive and lifecycle paths', () => {
 })
 
 describe('select-a11y branches', () => {
-  it('leaves the trigger unnamed when the native carries no id', async () => {
+  it('senza id sul nativo la listbox ne riceve uno generato, che il trigger controlla', async () => {
     renderSelect()
     native().removeAttribute('id')
     native().removeAttribute('aria-describedby')
     await activate()
 
     expect(trigger().id).toBe('')
-    expect(trigger().hasAttribute('aria-controls')).toBe(false)
+    expect(listbox().id).toMatch(/^ui-select-listbox-\d+$/)
+    expect(trigger().getAttribute('aria-controls')).toBe(listbox().id)
     expect(trigger().hasAttribute('aria-describedby')).toBe(false)
   })
 
