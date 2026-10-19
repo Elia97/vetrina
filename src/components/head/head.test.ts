@@ -2,11 +2,13 @@ import { renderToFragment } from '@test/container'
 import HeadPage from '@test/fixtures/head-page.astro'
 import RewriteToPrivacy from '@test/fixtures/rewrite-to-privacy.astro'
 import { withOnlyListedPaths } from '@test/helpers/crawl-policy'
-import { twoLocaleManifest } from '@test/helpers/second-locale'
+import { translatedSlugPaths, twoLocaleManifest } from '@test/helpers/second-locale'
 import { describe, expect, it, vi } from 'vitest'
 
 import { isExcludedFromSitemap, NOINDEX_PATHS } from '@/lib/seo/crawl-policy'
 import { localeTag, SITE } from '@/lib/site'
+
+import type { PageLocales } from '@/i18n/locales'
 
 import Head from './head.astro'
 
@@ -17,8 +19,8 @@ const props = { title: 'Page title', description: 'Page description' }
 
 type Fragment = Awaited<ReturnType<typeof renderToFragment>>
 
-function render(url: string): Promise<Fragment> {
-  return renderToFragment(Head, { request: new Request(url), props }, twoLocaleManifest)
+function render(url: string, locales?: PageLocales): Promise<Fragment> {
+  return renderToFragment(Head, { request: new Request(url), props: { ...props, locales } }, twoLocaleManifest)
 }
 
 function hreflangs(document: Fragment): (string | null)[][] {
@@ -43,6 +45,24 @@ describe('head.astro', () => {
   it('lascia nudo il titolo del documento con absoluteTitle', async () => {
     const document = await renderToFragment(Head, { props: { ...props, absoluteTitle: true } })
     expect(document.querySelector('title')?.textContent).toBe('Page title')
+  })
+})
+
+describe('head.astro con i percorsi dichiarati dalla pagina', () => {
+  it('porta canonical, hreflang, x-default e og:locale:alternate sugli indirizzi veri', async () => {
+    const document = await render('https://example.com/en/product/ipsc-belt', translatedSlugPaths)
+
+    expect(document.querySelector('link[rel="canonical"]')?.getAttribute('href')).toBe(
+      'https://example.com/en/product/ipsc-belt',
+    )
+    expect(hreflangs(document)).toEqual([
+      [localeTag('it'), 'https://example.com/prodotto/cintura-ipsc'],
+      [localeTag('en'), 'https://example.com/en/product/ipsc-belt'],
+      ['x-default', 'https://example.com/prodotto/cintura-ipsc'],
+    ])
+    expect(document.querySelector('meta[property="og:locale:alternate"]')?.getAttribute('content')).toBe(
+      localeTag('it').replace('-', '_'),
+    )
   })
 })
 

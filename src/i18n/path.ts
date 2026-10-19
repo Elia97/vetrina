@@ -3,6 +3,7 @@ import { getPathByLocale } from 'astro:i18n'
 import { DEFAULT_LOCALE } from '@/lib/site'
 
 import { localizedHref } from '@/i18n/href'
+import { declaredPath, type PageLocales } from '@/i18n/locales'
 import { canonicalizePath } from '@/i18n/route-segments'
 
 function localePrefix(currentLocale: string, defaultLocale: string): string {
@@ -30,8 +31,26 @@ export function localeAgnosticPath(pathname: string, currentLocale: string | und
   return normalizeTrailingSlash(canonical)
 }
 
-export function localeSwitchHref(targetLocale: string, pathname: string, currentLocale: string | undefined): string {
-  return localizedHref(targetLocale, localeAgnosticPath(pathname, currentLocale))
+// I motori di ricerca ignorano un insieme di hreflang che non concorda col canonical: nella lingua
+// corrente vale il percorso della pagina, anche quando la mappa della pagina ne porta un altro.
+export function alternatePath(
+  targetLocale: string,
+  pathname: string,
+  currentLocale: string | undefined,
+  declared?: PageLocales,
+): string {
+  const locale = currentLocale ?? DEFAULT_LOCALE
+  const path = targetLocale === locale ? undefined : declaredPath(declared, targetLocale)
+  return path === undefined ? localeAgnosticPath(pathname, locale) : localeAgnosticPath(path, targetLocale)
+}
+
+export function localeSwitchHref(
+  targetLocale: string,
+  pathname: string,
+  currentLocale: string | undefined,
+  declared?: PageLocales,
+): string {
+  return localizedHref(targetLocale, alternatePath(targetLocale, pathname, currentLocale, declared))
 }
 
 export function ariaCurrent(

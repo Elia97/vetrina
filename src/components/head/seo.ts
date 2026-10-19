@@ -3,8 +3,8 @@ import { getAbsoluteLocaleUrl } from 'astro:i18n'
 import { isNoindexPath } from '@/lib/seo/crawl-policy'
 import { DEFAULT_LOCALE, localeTag, SITE } from '@/lib/site'
 
-import { pageLocales } from '@/i18n/locales'
-import { localeAgnosticPath } from '@/i18n/path'
+import { type PageLocales, pageLocales } from '@/i18n/locales'
+import { alternatePath, localeAgnosticPath } from '@/i18n/path'
 import { translatePath } from '@/i18n/route-segments'
 import { useTranslations } from '@/i18n/translate'
 
@@ -38,15 +38,17 @@ interface HeadSeoParams {
   pathname: string
   canonicalPath: string
   ogImage: string | undefined
-  locales: readonly string[] | undefined
+  locales: PageLocales | undefined
 }
 
-// I motori di ricerca ignorano un insieme di hreflang che non concorda col canonical:
-// entrambi rilocalizzano lo stesso percorso di base.
-function resolveLocaleAlternates(canonicalPath: string, codes: readonly string[]): LocaleAlternate[] {
-  return codes.map((code) => ({
+function resolveLocaleAlternates(
+  canonicalPath: string,
+  locale: string,
+  locales: PageLocales | undefined,
+): LocaleAlternate[] {
+  return pageLocales(locales).map((code) => ({
     tag: localeTag(code),
-    href: getAbsoluteLocaleUrl(code, translatePath(canonicalPath, code)),
+    href: getAbsoluteLocaleUrl(code, translatePath(alternatePath(code, canonicalPath, locale, locales), code)),
   }))
 }
 
@@ -70,7 +72,7 @@ export function resolveHeadSeoMeta({
 }: HeadSeoParams): HeadSeoMeta {
   const locale = currentLocale ?? DEFAULT_LOCALE
   const canonical = localeAgnosticPath(canonicalPath, locale)
-  const localeAlternates = resolveLocaleAlternates(canonical, pageLocales(locales))
+  const localeAlternates = resolveLocaleAlternates(canonicalPath, locale, locales)
   const noindex = isNoindexPath(pathname)
   const hreflangAlternates = noindex ? [] : localeAlternates.filter((alt) => !isNoindexPath(alt.href))
   const defaultAlternate = hreflangAlternates.find((alt) => alt.tag === localeTag(DEFAULT_LOCALE))

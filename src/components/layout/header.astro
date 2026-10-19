@@ -12,12 +12,13 @@ import { SITE } from '@/lib/site'
 import { cn } from '@/lib/utils'
 
 import { localizedHref } from '@/i18n/href'
+import type { PageLocales } from '@/i18n/locales'
 import { useTranslations } from '@/i18n/translate'
 
 interface Props {
   heroOverlay?: boolean
   overlayChrome?: 'auto' | 'light'
-  locales?: readonly string[] | undefined
+  locales?: PageLocales | undefined
 }
 
 const { heroOverlay = false, overlayChrome = 'auto', locales } = Astro.props

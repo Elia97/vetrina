@@ -1,7 +1,8 @@
+import { translatedSlugPaths } from '@test/helpers/second-locale'
 import { describe, expect, it, vi } from 'vitest'
 
 import { ctaHref, localizedHref } from '@/i18n/href'
-import { ariaCurrent, localeAgnosticPath, localeSwitchHref } from '@/i18n/path'
+import { alternatePath, ariaCurrent, localeAgnosticPath, localeSwitchHref } from '@/i18n/path'
 
 vi.mock('@/i18n/segments-by-locale', () => import('@test/helpers/second-locale').then((m) => m.translatedSegments))
 
@@ -59,6 +60,28 @@ describe('localeSwitchHref', () => {
   ])('da %s (%s) verso %s porta a %s', (pathname, current, target, expected) => {
     expect(localeSwitchHref(target, pathname, current)).toBe(expected)
   })
+
+  it.each([
+    ['/prodotto/cintura-ipsc', 'it', 'en', '/en/product/ipsc-belt'],
+    ['/en/product/ipsc-belt', 'en', 'it', '/prodotto/cintura-ipsc'],
+  ])('con la mappa della pagina, da %s (%s) verso %s porta a %s', (pathname, current, target, expected) => {
+    expect(localeSwitchHref(target, pathname, current, translatedSlugPaths)).toBe(expected)
+  })
+
+  it('traduce il segmento canonico di un percorso della mappa', () => {
+    const paths = { it: '/contatti/sede', en: '/contatti/office' }
+    expect(localeSwitchHref('en', '/contatti/sede', 'it', paths)).toBe('/en/contact/office')
+  })
+})
+
+describe('alternatePath', () => {
+  it.each(['it', undefined])(
+    'nella lingua corrente (Astro dà %s) resta sul percorso della pagina anche se la mappa ne porta un altro',
+    (current) => {
+      const paths = { ...translatedSlugPaths, it: '/prodotto/cintura' }
+      expect(alternatePath('it', '/prodotto/cintura-ipsc', current, paths)).toBe('/prodotto/cintura-ipsc')
+    },
+  )
 })
 
 describe('ariaCurrent', () => {
