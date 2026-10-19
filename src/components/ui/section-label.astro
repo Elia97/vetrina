@@ -11,12 +11,16 @@ const { label, class: className } = Astro.props
 
 {
   label && (
-    <p class={cn('flex items-center gap-2 font-medium text-primary text-sm sm:text-lg 2xl:text-xl', className)}>
-      <span class="relative flex size-2.5 sm:size-3 2xl:size-4" aria-hidden="true">
-        <span class="absolute inline-flex size-full rounded-full bg-primary opacity-60 motion-safe:animate-ping" />
-        <span class="relative inline-flex size-full rounded-full bg-primary" />
+    <p class={cn('type-eyebrow flex items-center text-(color:--eyebrow-color) text-sm sm:text-lg 2xl:text-xl', className)}>
+      <span class="inline-flex items-center gap-2 rounded-(--eyebrow-radius) bg-(--eyebrow-background) p-(--eyebrow-padding)">
+        <slot name="marker">
+          <span class="relative flex size-2.5 sm:size-3 2xl:size-4" aria-hidden="true">
+            <span class="absolute inline-flex size-full rounded-full bg-current opacity-60 motion-safe:animate-ping" />
+            <span class="relative inline-flex size-full rounded-full bg-current" />
+          </span>
+        </slot>
+        {label}
       </span>
-      {label}
     </p>
   )
 }

@@ -32,4 +32,5 @@
   --control-outline-border-color: var(--border);
   --field-focus-border-color: var(--input);
   --field-focus-shadow: 0 0 0 2px var(--ring);
+  --eyebrow-color: var(--primary);
 }
