@@ -6,7 +6,7 @@ import tailwindcss from '@tailwindcss/vite'
 import { defineConfig, envField } from 'astro/config'
 
 import { cspIntegration } from './src/lib/csp/integration'
-import { isExcludedFromSitemap } from './src/lib/seo/crawl-policy'
+import { customSitemapUrls, isExcludedFromSitemap } from './src/lib/seo/crawl-policy'
 import { createLastmodResolver, withLastmod } from './src/lib/seo/sitemap-lastmod'
 import { DEFAULT_LOCALE, SITE } from './src/lib/site'
 
@@ -36,6 +36,7 @@ export default defineConfig({
     sitemap({
       filter: (page) => !isExcludedFromSitemap(page),
       serialize: withLastmod(createLastmodResolver()),
+      customSitemaps: customSitemapUrls(SITE.url),
       i18n: {
         defaultLocale: DEFAULT_LOCALE,
         locales: { ...SITE.localeTags },

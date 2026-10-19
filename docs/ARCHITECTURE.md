@@ -48,7 +48,7 @@ src/
     homepage/  # le sezioni della homepage                               example
   lib/         # logica senza markup — strati foglia (regola sotto)
     seo/       #   json-ld, crawl-policy, manifest                       machinery
-               #   crawl-paths: i percorsi fuori dalla ricerca           config
+               #   crawl-paths: fuori dalla ricerca, sitemap in più      config
     forms/     #   honeypot, honeypot-schema, rate-limit, form-fields    machinery
     emails/    #   layout: cornice, escapeHtml, detailRow                chrome
     overlay/   #   trap-focus, scroll-lock                               machinery
@@ -188,6 +188,12 @@ vetrina, e arriva al template derivato con il cherry-pick.
   back-office o le pagine non ancora tradotte, e il resto li segue senza altre modifiche: da
   `ROBOTS_DISALLOWED_PATHS` la sitemap e `robots.txt`, da `NOINDEX_PATHS` la sitemap, il meta
   `noindex`, gli hreflang e `X-Robots-Tag` (`docs/guides/seo.md` § Sitemap e robots).
+- **Sitemap aggiuntive**: `CUSTOM_SITEMAP_PATHS` sta in `src/lib/seo/crawl-paths.ts`, con la stessa
+  forma delle due liste della politica di scansione. Un template derivato vi aggiunge in coda il
+  percorso di una sitemap che emette da una sua rotta, come quella delle schede di un catalogo rese
+  a richiesta. `astro.config.mjs` lo risolve su `SITE.url` con `customSitemapUrls()` e lo passa a
+  `customSitemaps`, e `sitemap-index.xml`, che `robots.txt` annuncia, lo elenca accanto alle sitemap
+  generate (`docs/guides/seo.md` § Sitemap e robots).
 
 ## Primitive di interfaccia — niente React o Radix nello scaffold di base
 
