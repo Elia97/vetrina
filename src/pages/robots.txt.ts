@@ -8,7 +8,13 @@ export const GET: APIRoute = ({ site }) => {
   const base = site ?? new URL('http://localhost:4321/')
   const sitemapUrl = new URL('sitemap-index.xml', base).href
 
-  const rules = ['User-agent: *', 'Allow: /', ...ROBOTS_DISALLOWED_PATHS.map((path) => `Disallow: ${path}`)]
+  const blocksEverything = ROBOTS_DISALLOWED_PATHS.includes('/')
+  // RFC 9309 §2.2.2: a regole equivalenti vince Allow, quindi `Allow: /` neutralizza `Disallow: /`.
+  const rules = [
+    'User-agent: *',
+    ...(blocksEverything ? [] : ['Allow: /']),
+    ...ROBOTS_DISALLOWED_PATHS.map((path) => `Disallow: ${path}`),
+  ]
   const body = `${rules.join('\n')}\n\nSitemap: ${sitemapUrl}\n`
 
   return new Response(body, {

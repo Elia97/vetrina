@@ -64,6 +64,12 @@ describe('matchesSubtree', () => {
   it('matches nothing against an empty list', () => {
     expect(matchesSubtree('/qualsiasi', [])).toBe(false)
   })
+
+  it('con la radice / copre la home e ogni altro percorso', () => {
+    for (const path of ['/', '/about', '/blog/a-post', 'https://example.com/blog/a-post/']) {
+      expect(matchesSubtree(path, ['/']), path).toBe(true)
+    }
+  })
 })
 
 describe('isExcludedFromSitemap', () => {
@@ -106,6 +112,32 @@ describe('isNoindexPath', () => {
 
   it('leaves the home alone', () => {
     expect(isNoindexPath('/')).toBe(NOINDEX_PATHS.includes('/'))
+  })
+})
+
+describe('con / in una lista', () => {
+  const urls = ['https://example.com/', 'https://example.com/about', 'https://example.com/blog/a-post/']
+
+  describe('in NOINDEX_PATHS', () => {
+    withOnlyListedPaths(NOINDEX_PATHS, '/')
+
+    it('ogni percorso è noindex ed esce dalla sitemap', () => {
+      for (const url of urls) {
+        expect(isNoindexPath(url), url).toBe(true)
+        expect(isExcludedFromSitemap(url), url).toBe(true)
+      }
+    })
+  })
+
+  describe('in ROBOTS_DISALLOWED_PATHS', () => {
+    withOnlyListedPaths(ROBOTS_DISALLOWED_PATHS, '/')
+
+    it('nessun percorso resta nella sitemap, e nessuno diventa noindex', () => {
+      for (const url of urls) {
+        expect(isExcludedFromSitemap(url), url).toBe(true)
+        expect(isNoindexPath(url), url).toBe(false)
+      }
+    })
   })
 })
 
