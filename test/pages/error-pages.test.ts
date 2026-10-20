@@ -2,7 +2,7 @@ import { renderToFragment } from '@test/container'
 import { twoLocaleManifest } from '@test/helpers/second-locale'
 import { describe, expect, it, vi } from 'vitest'
 
-import { DEFAULT_LOCALE } from '@/lib/site'
+import { DEFAULT_LOCALE, localeTag } from '@/lib/site'
 
 import { useTranslations } from '@/i18n/translate'
 
@@ -22,7 +22,7 @@ describe.each([
 
     expect(document.querySelector(`nav[aria-label="${languageNav}"]`)).toBeNull()
     expect(document.querySelector('a[href^="/en"]')).toBeNull()
-    expect(document.querySelector('link[rel="alternate"][hreflang="en"]')).toBeNull()
+    expect(document.querySelector(`link[rel="alternate"][hreflang="${localeTag('en')}"]`)).toBeNull()
     expect(document.querySelector('meta[property="og:locale:alternate"]')).toBeNull()
   })
 })

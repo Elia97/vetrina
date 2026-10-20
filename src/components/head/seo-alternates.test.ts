@@ -26,10 +26,10 @@ describe("resolveHeadSeoMeta() da una pagina nell'altra lingua", () => {
   it('fa concordare canonical, alternate e x-default sul segmento tradotto', () => {
     const meta = resolveHeadSeoMeta({ ...params, currentLocale: 'en', canonicalPath: '/en/contact' })
     expect(meta.canonical).toBe('https://example.com/en/contact')
-    expect(meta.currentTag).toBe('en')
+    expect(meta.currentTag).toBe(localeTag('en'))
     expect(meta.localeAlternates).toEqual([
-      { tag: 'it-IT', href: 'https://example.com/contatti' },
-      { tag: 'en', href: 'https://example.com/en/contact' },
+      { tag: localeTag('it'), href: 'https://example.com/contatti' },
+      { tag: localeTag('en'), href: 'https://example.com/en/contact' },
     ])
     expect(meta.defaultHref).toBe('https://example.com/contatti')
   })
@@ -38,8 +38,8 @@ describe("resolveHeadSeoMeta() da una pagina nell'altra lingua", () => {
     const meta = resolveHeadSeoMeta({ ...params, currentLocale: 'en', canonicalPath: '/en' })
     expect(meta.canonical).toBe('https://example.com/en')
     expect(meta.localeAlternates).toEqual([
-      { tag: 'it-IT', href: 'https://example.com' },
-      { tag: 'en', href: 'https://example.com/en' },
+      { tag: localeTag('it'), href: 'https://example.com' },
+      { tag: localeTag('en'), href: 'https://example.com/en' },
     ])
     expect(meta.defaultHref).toBe('https://example.com')
   })
@@ -48,13 +48,13 @@ describe("resolveHeadSeoMeta() da una pagina nell'altra lingua", () => {
 describe('resolveHeadSeoMeta() con le lingue dichiarate dalla pagina', () => {
   it("emette gli alternate delle sole lingue della pagina, e x-default se c'è la lingua di default", () => {
     const meta = resolveHeadSeoMeta({ ...params, canonicalPath: '/privacy', locales: ['it'] })
-    expect(meta.localeAlternates).toEqual([{ tag: 'it-IT', href: 'https://example.com/privacy' }])
+    expect(meta.localeAlternates).toEqual([{ tag: localeTag('it'), href: 'https://example.com/privacy' }])
     expect(meta.defaultHref).toBe('https://example.com/privacy')
   })
 
   it('non emette x-default quando la pagina non esiste nella lingua di default', () => {
     const meta = resolveHeadSeoMeta({ ...params, currentLocale: 'en', canonicalPath: '/en/news', locales: ['en'] })
-    expect(meta.localeAlternates).toEqual([{ tag: 'en', href: 'https://example.com/en/news' }])
+    expect(meta.localeAlternates).toEqual([{ tag: localeTag('en'), href: 'https://example.com/en/news' }])
     expect(meta).not.toHaveProperty('defaultHref')
   })
 
@@ -83,8 +83,8 @@ describe('resolveHeadSeoMeta() con i percorsi dichiarati dalla pagina', () => {
     })
     expect(meta.canonical).toBe('https://example.com/en/product/ipsc-belt')
     expect(meta.localeAlternates).toEqual([
-      { tag: 'it-IT', href: 'https://example.com/prodotto/cintura-ipsc' },
-      { tag: 'en', href: 'https://example.com/en/product/ipsc-belt' },
+      { tag: localeTag('it'), href: 'https://example.com/prodotto/cintura-ipsc' },
+      { tag: localeTag('en'), href: 'https://example.com/en/product/ipsc-belt' },
     ])
     expect(meta.defaultHref).toBe('https://example.com/prodotto/cintura-ipsc')
   })
@@ -96,7 +96,7 @@ describe('resolveHeadSeoMeta() con i percorsi dichiarati dalla pagina', () => {
       canonicalPath: '/en/product/ipsc-belt',
       locales: { en: '/product/ipsc-belt' },
     })
-    expect(meta.localeAlternates).toEqual([{ tag: 'en', href: 'https://example.com/en/product/ipsc-belt' }])
+    expect(meta.localeAlternates).toEqual([{ tag: localeTag('en'), href: 'https://example.com/en/product/ipsc-belt' }])
     expect(meta).not.toHaveProperty('defaultHref')
   })
 
@@ -107,7 +107,7 @@ describe('resolveHeadSeoMeta() con i percorsi dichiarati dalla pagina', () => {
       locales: { ...translatedSlugPaths, it: '/prodotto/cintura' },
     })
     expect(meta.canonical).toBe('https://example.com/prodotto/cintura-ipsc')
-    expect(meta.localeAlternates).toContainEqual({ tag: 'it-IT', href: meta.canonical })
+    expect(meta.localeAlternates).toContainEqual({ tag: localeTag('it'), href: meta.canonical })
   })
 })
 

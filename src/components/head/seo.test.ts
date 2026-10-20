@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest'
 
 import { resolveHeadSeoMeta } from '@/components/head/seo'
 
-import { SITE } from '@/lib/site'
+import { localeTag, SITE } from '@/lib/site'
 
 import { useTranslations } from '@/i18n/translate'
 
@@ -33,14 +33,14 @@ describe('resolveHeadSeoMeta', () => {
   it('falls back to the default locale when none is set (prerendered pages)', () => {
     const meta = resolveHeadSeoMeta({ ...params, currentLocale: undefined, canonicalPath: '/privacy' })
     expect(meta.canonical).toBe('https://example.com/privacy')
-    expect(meta.currentTag).toBe('it-IT')
+    expect(meta.currentTag).toBe(localeTag('it'))
   })
 
   it('emits one alternate per configured locale, agreeing with the canonical', () => {
     const meta = resolveHeadSeoMeta({ ...params, canonicalPath: '/privacy' })
     expect(meta.localeAlternates).toEqual([
-      { tag: 'it-IT', href: 'https://example.com/privacy' },
-      { tag: 'en', href: 'https://example.com/en/privacy' },
+      { tag: localeTag('it'), href: 'https://example.com/privacy' },
+      { tag: localeTag('en'), href: 'https://example.com/en/privacy' },
     ])
     expect(meta.defaultHref).toBe('https://example.com/privacy')
   })
