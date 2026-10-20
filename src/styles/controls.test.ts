@@ -19,6 +19,7 @@ const MEASURES = [
 ]
 const ROLE_TOKENS = ['control-outline-border-color', 'field-focus-border-color', 'field-focus-shadow']
 const FILLED = ['default', 'secondary', 'destructive', 'accent'] as const
+const TRANSPARENT_BORDER = [...FILLED, 'soft', 'ghost'] as const
 const OPTIONS = [{ value: 'a', label: 'A' }]
 const FIELDS = [
   ['Input', Input, {}, 'input'],
@@ -97,6 +98,13 @@ describe('Button', () => {
       ]),
     )
   })
+
+  it.each(TRANSPARENT_BORDER)(
+    '%s porta un bordo trasparente, che con i contrasti forzati resta come contorno quando il fondo sparisce',
+    async (variant) => {
+      expect(await classesOf(Button, { variant })).toEqual(expect.arrayContaining(['border', 'border-transparent']))
+    },
+  )
 
   it.each(FILLED)("%s stacca l'anello del focus di --control-ring-offset, sul fondo", async (variant) => {
     expect(await classesOf(Button, { variant })).toEqual(
