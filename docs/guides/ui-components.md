@@ -4,14 +4,18 @@ Convenzioni stabilite dallo scaffold di base (token di design, arredo di pagina)
 `rendering-performance.md` (ciclo di vita di animazioni e rivelazioni), `seo.md` (il contratto della
 head).
 
-## Token di design — tre livelli, una sola superficie di rebranding
+## Token di design
 
-- `src/styles/tokens.css` — primitive oklch grezze, la scala di impilamento e `--radius`. **È l'unico
-  file da toccare quando si fa il rebranding di un progetto**, e la rampa `--brand-*` è ciò che lo
-  rende vero alla lettera: `--primary`, `--accent` e `--ring` si appoggiano a lei e non a
-  `--neutral-*`, quindi dare a un cliente il suo colore non significa mai modificare `light.css` o
+- `src/styles/tokens.css` — primitive oklch grezze, la scala di impilamento e `--radius`. **È il
+  primo file da toccare quando si fa il rebranding di un progetto**, e di solito basta lui: la rampa
+  `--brand-*` regge `--primary`, `--accent` e `--ring`, che si appoggiano a lei e non a
+  `--neutral-*`, quindi dare a un cliente il suo colore non chiede di modificare `light.css` o
   `dark.css`. Arriva coi valori neutri, quindi l'aspetto di default è acromatico: si sostituiscono i
-  gradini, non i ruoli. I nomi dei token seguono il gradino della scala Tailwind che contengono
+  gradini, non i ruoli. Quando il design chiede un altro ruolo, come un primario che non è il
+  gradino scuro della rampa o un fondo bianco al posto del quasi bianco, un derivato sposta quel
+  ruolo su un altro gradino in `light.css` e `dark.css`, e le chiavi restano quelle. Non serve un
+  foglio a parte: `src/styles/contrast.test.ts` legge proprio quei due fogli, e verifica le coppie
+  anche dopo lo spostamento. I nomi dei token seguono il gradino della scala Tailwind che contengono
   (`--neutral-700` è il valore neutral-700 di Tailwind; un gradino etichettato male è un difetto,
   non una scelta di gusto).
 - **I ruoli di stato hanno due gradini, e così il loro primo piano.** `destructive`, `success` e
