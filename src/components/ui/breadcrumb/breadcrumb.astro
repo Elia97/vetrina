@@ -9,9 +9,10 @@ import { useTranslations } from '@/i18n/translate'
 
 interface Props extends HTMLAttributes<'nav'> {
   items: readonly ListEntry[]
+  prefetch?: boolean
 }
 
-const { items, class: className, ...rest } = Astro.props
+const { items, prefetch = true, class: className, ...rest } = Astro.props
 const t = useTranslations(Astro.currentLocale)
 const last = items.length - 1
 ---
@@ -24,6 +25,7 @@ const last = items.length - 1
           <a
             href={item.url}
             aria-current={index === last ? 'page' : undefined}
+            data-astro-prefetch={prefetch ? undefined : 'false'}
             class="hover:text-foreground aria-[current]:text-foreground"
           >
             {item.name}

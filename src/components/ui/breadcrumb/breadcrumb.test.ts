@@ -13,7 +13,7 @@ const items = [
   { name: 'Consulting', url: '/services/consulting' },
 ]
 
-const render = () => renderToFragment(Breadcrumb, { props: { items } })
+const render = (props: { prefetch?: boolean } = {}) => renderToFragment(Breadcrumb, { props: { items, ...props } })
 
 describe('breadcrumb.astro', () => {
   it("è una navigazione con l'etichetta del dizionario e un link per ogni voce del percorso", async () => {
@@ -50,5 +50,26 @@ describe('breadcrumb.astro', () => {
 
     const rendered = [...document.querySelectorAll('a')].map((link) => link.textContent?.trim())
     expect(rendered).toEqual(buildBreadcrumbList(items).itemListElement.map(({ name }) => name))
+  })
+
+  it('senza la prop lascia i link al prefetch del sito', async () => {
+    const document = await render()
+
+    expect([...document.querySelectorAll('a')].map((link) => link.hasAttribute('data-astro-prefetch'))).toEqual([
+      false,
+      false,
+      false,
+    ])
+  })
+
+  it('con prefetch={false} toglie dal prefetch ogni link, compresa la voce corrente', async () => {
+    const document = await render({ prefetch: false })
+
+    expect([...document.querySelectorAll('a')].map((link) => link.getAttribute('data-astro-prefetch'))).toEqual([
+      'false',
+      'false',
+      'false',
+    ])
+    expect(document.querySelector('nav')?.hasAttribute('prefetch')).toBe(false)
   })
 })
