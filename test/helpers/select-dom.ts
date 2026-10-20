@@ -16,7 +16,7 @@ function selectMarkup(id: string, required: boolean): string {
         <li role="option" data-value="preventivo" aria-selected="false" tabindex="-1">Preventivo</li>
       </ul>
     </div>
-    <p id="${id}-error">Campo obbligatorio</p>`
+    <p id="${id}-error" data-field-error="${id}"></p>`
 }
 
 // Leggendo innerHTML, happy-dom ignora un attributo `selected` e riporta la prima opzione

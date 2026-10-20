@@ -2,8 +2,6 @@ import { HONEYPOT_FIELD } from '@/lib/forms/honeypot'
 
 // Riempie gli slot `[data-field-error]` renderizzati da ui/field/error.astro.
 
-type FormControl = HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-
 export type FieldErrorResult = {
   matched: boolean
   unmatched: string[]
@@ -13,8 +11,8 @@ export function fieldErrorId(field: string): string {
   return `${field}-error`
 }
 
-function controlFor(form: HTMLFormElement, name: string): FormControl | null {
-  return form.querySelector<FormControl>(`input[name="${name}"], textarea[name="${name}"], select[name="${name}"]`)
+function controlFor(form: HTMLFormElement, name: string): HTMLElement | null {
+  return form.querySelector<HTMLElement>(`[aria-describedby~="${fieldErrorId(name)}"]`)
 }
 
 export function clearFieldErrors(form: HTMLFormElement): void {
@@ -44,7 +42,7 @@ export function applyFieldErrors(
 }
 
 export function focusFirstInvalid(form: HTMLFormElement): boolean {
-  const control = form.querySelector<FormControl>('[aria-invalid="true"]')
+  const control = form.querySelector<HTMLElement>('[aria-invalid="true"]')
   if (!control) return false
   control.focus()
   return true

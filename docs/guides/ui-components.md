@@ -487,7 +487,8 @@ tailwind-merge): la forma dell'API di shadcn senza il runtime React o Radix.
 - In un form senza `novalidate`, un `Select` obbligatorio rimasto vuoto non può avere il fumetto del
   browser, perché il nativo è nascosto. All'invio il trigger prende `aria-invalid`, con il bordo
   `--destructive`, e prende il focus se è il primo campo non valido (`select-validity.ts`). Un
-  messaggio scritto resta compito degli slot d'errore di un form `novalidate`.
+  messaggio scritto resta compito degli slot d'errore di un form `novalidate`, che segnano il
+  trigger e gli portano il focus allo stesso modo (`forms-email.md` § La superficie di validazione).
 - Le icone vengono da `@lucide/astro` (SVG in fase di build, zero JS lato client): `stroke-width={1}`
   di default, dimensione con Tailwind (`size-4`, `size-5`), `aria-hidden` per default e l'etichetta
   accessibile sul controllo.
