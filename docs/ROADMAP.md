@@ -11,10 +11,12 @@
 > blueprint a cui si arriva a metà progetto e mai contro una sezione già scritta qui, dove creerebbe
 > un doppione un numero più avanti.
 >
-> **Due regole di stima:** una milestone di **sistema** vale **una giornata**; il **front-end** si
-> conta **mezza giornata per pagina**. In entrambi i casi è lo **sforzo minimo** — le giornate
-> effettivamente maturate si consolidano a fine periodo. Si stima per milestone, mai per sotto-task:
-> sommare le stime dei sotto-task compra precisione apparente e costa accuratezza vera.
+> **Due regole di stima:** una milestone di **sistema** vale **una giornata**, tranne fondamenta e
+> messa online, che valgono **mezza giornata** ciascuna perché il template porta già la base che
+> costruirebbero; il **front-end** si conta **mezza giornata per pagina**. In entrambi i casi è lo
+> **sforzo minimo** — le giornate effettivamente maturate si consolidano a fine periodo. Si stima
+> per milestone, mai per sotto-task: sommare le stime dei sotto-task compra precisione apparente e
+> costa accuratezza vera.
 > La stima, che è un'offerta nel sistema e non un file di questo repo, è derivata dalla colonna
 > `gg` qui sotto e non si scrive mai prima.
 
