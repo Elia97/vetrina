@@ -459,6 +459,11 @@ tailwind-merge): la forma dell'API di shadcn senza il runtime React o Radix.
   l'insieme shadcn: `variant="soft"` è un controllo riempito a bassa enfasi (solo token semantici,
   NESSUN colore di testo incorporato — un'icona o un glifo social eredita `currentColor`), e un asse
   `shape` (`default`/`pill`) cambia solo il raggio della scatola (`pill` è `rounded-full`).
+- Ogni variante di `Button` porta `border border-transparent`, tranne `outline`, che ha il suo
+  bordo, e `link`. Con i contrasti forzati il browser toglie il fondo dell'autore e ridipinge il
+  bordo con il colore del testo, così un bottone pieno, o un `ghost` dell'header, resta una scatola
+  invece di diventare testo. Il bordo sta dentro l'altezza della taglia e allarga di 2 px solo i
+  bottoni di testo; lo presidia `src/styles/controls.test.ts`.
 - I campi di form compongono la famiglia `Field` (`ui/field/`: `Field`, `FieldLabel`, `FieldContent`
   e `FieldError`, con orientamento verticale o orizzontale) attorno ai controlli piatti
   (`input.astro`, `textarea.astro`, `select.astro`). `FieldError` è l'unica parte con un
