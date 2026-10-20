@@ -9,12 +9,12 @@ import SectionLabel from '@/components/ui/section-label.astro'
 
 import { stylesheet, utility } from '../../test/helpers/css-tokens.ts'
 
-const ROLES = ['control', 'label', 'heading', 'eyebrow'] as const
+const ROLES = ['control', 'label', 'badge', 'heading', 'eyebrow'] as const
 const PROPERTIES = ['font-family', 'font-weight', 'text-transform', 'letter-spacing'] as const
 const PRIMITIVES = [
   ['Button', Button, 'control', {}],
   ['Label', Label, 'label', {}],
-  ['Badge', Badge, 'label', {}],
+  ['Badge', Badge, 'badge', {}],
   ['SectionLabel', SectionLabel, 'eyebrow', { label: 'Save' }],
   ['Heading display', Heading, 'heading-display', { size: 'display' }],
   ['Heading h1', Heading, 'heading', { size: 'h1' }],

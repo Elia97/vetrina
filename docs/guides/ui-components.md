@@ -34,16 +34,18 @@ head).
   esente, perché è il default di una singola istanza e non un tempo del sistema. Un progetto che
   aggiunge altri gradini li nomina sugli stessi due assi; dichiararli in `@theme` invece che in
   `:root` genera anche la utility `ease-*` corrispondente, cosa che `:root` non fa.
-- **La tipografia di controlli ed etichette è un token come i colori.** `tokens.css` porta due ruoli,
-  `--control-*` per `Button` e `--label-*` per `Label` di `field/` e per `Badge`, ciascuno con
-  `font-family`, `font-weight`, `text-transform` e `letter-spacing` (`--control-font-family`,
-  `--label-letter-spacing` e così via). Le primitive li leggono attraverso le utility
-  `type-control` e `type-label` di `globals.css`, e nella classe non scrivono né la famiglia, né il
-  peso, né il maiuscolo, né la spaziatura. I default rifanno la tipografia di prima: il peso è 500 e
-  il resto è `inherit`, cioè arriva dall'antenato, tranne il maiuscolo dei controlli, che è `none`
-  perché il browser non lo fa ereditare a un `<button>`; così vale anche per `<Button as="a">`. Una
-  parte del sito che vuole bottoni o etichette diversi riassegna i token su un suo antenato, e cambia
-  quello che sta sotto e niente fuori:
+- **La tipografia di controlli, etichette e badge è un token come i colori.** `tokens.css` porta tre
+  ruoli, `--control-*` per `Button`, `--label-*` per `Label` di `field/` e `--badge-*` per `Badge`,
+  ciascuno con `font-family`, `font-weight`, `text-transform` e `letter-spacing`
+  (`--control-font-family`, `--label-letter-spacing` e così via). Le primitive li leggono attraverso
+  le utility `type-control`, `type-label` e `type-badge` di `typography.css`, e nella classe non
+  scrivono né la famiglia, né il peso, né il maiuscolo, né la spaziatura. I default rifanno la
+  tipografia di prima: il peso è 500 e il resto è `inherit`, cioè arriva dall'antenato, tranne il
+  maiuscolo dei controlli, che è `none` perché il browser non lo fa ereditare a un `<button>`; così
+  vale anche per `<Button as="a">`. Badge ed etichette partono dagli stessi valori, ma ciascuno nei
+  suoi token: cambiare `--label-*` non tocca i badge, e un design che li vuole diversi cambia
+  `--badge-*`. Una parte del sito che vuole bottoni, etichette o badge diversi riassegna i token su
+  un suo antenato, e cambia quello che sta sotto e niente fuori:
 
   ```css
   .back-office {
@@ -169,6 +171,8 @@ head).
 - `src/styles/globals.css` — l'orchestratore: la catena di `@import`, `@custom-variant dark` (nella
   forma ufficiale v4 `&:where(.dark, .dark *)`), il rimappaggio `@theme inline` verso le utility, il
   layer di base e il CSS delle animazioni.
+- `src/styles/typography.css` — le utility `type-*` dei ruoli tipografici, ciascuna sui quattro
+  token del suo ruolo in `tokens.css`. La importa `globals.css`.
 
 I token dei gradienti seguono la stessa logica di livello — il livello È la decisione sul tema. Un
 gradiente che deve reagire al tema vive in `light.css` e `dark.css` con una sovrascrittura per lo

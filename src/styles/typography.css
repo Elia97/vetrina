@@ -1,0 +1,42 @@
+@utility type-control {
+  font-family: var(--control-font-family);
+  font-weight: var(--control-font-weight);
+  text-transform: var(--control-text-transform);
+  letter-spacing: var(--control-letter-spacing);
+}
+@utility type-label {
+  font-family: var(--label-font-family);
+  font-weight: var(--label-font-weight);
+  text-transform: var(--label-text-transform);
+  letter-spacing: var(--label-letter-spacing);
+}
+@utility type-badge {
+  font-family: var(--badge-font-family);
+  font-weight: var(--badge-font-weight);
+  text-transform: var(--badge-text-transform);
+  letter-spacing: var(--badge-letter-spacing);
+}
+@utility type-heading {
+  font-family: var(--heading-font-family);
+  font-weight: var(--heading-font-weight);
+  text-transform: var(--heading-text-transform);
+  letter-spacing: var(--heading-letter-spacing);
+}
+@utility type-heading-minor {
+  font-family: var(--heading-font-family);
+  font-weight: var(--heading-minor-font-weight);
+  text-transform: var(--heading-text-transform);
+  letter-spacing: var(--heading-letter-spacing);
+}
+@utility type-heading-display {
+  font-family: var(--heading-font-family);
+  font-weight: var(--heading-font-weight);
+  text-transform: var(--heading-text-transform);
+  letter-spacing: var(--heading-display-letter-spacing);
+}
+@utility type-eyebrow {
+  font-family: var(--eyebrow-font-family);
+  font-weight: var(--eyebrow-font-weight);
+  text-transform: var(--eyebrow-text-transform);
+  letter-spacing: var(--eyebrow-letter-spacing);
+}

@@ -53,6 +53,11 @@
   --label-text-transform: inherit;
   --label-letter-spacing: inherit;
 
+  --badge-font-family: inherit;
+  --badge-font-weight: 500;
+  --badge-text-transform: inherit;
+  --badge-letter-spacing: inherit;
+
   --heading-font-family: var(--font-display);
   --heading-font-weight: 500;
   --heading-minor-font-weight: 500;
