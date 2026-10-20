@@ -285,7 +285,8 @@ puramente additiva.
    default resta piatto, e i loader lo impongono).
 8. Pagine: rispecchia l'albero di default sotto `src/pages/<lingua>/…`;
    `getHomepageSections(Astro.currentLocale)` e `useTranslations(Astro.currentLocale)` risolvono già
-   per lingua.
+   per lingua. 404 e 500 restano fuori: Vercel serve sempre quelle della radice, e dichiarano già la
+   sola lingua di default.
 
 I link della chrome passano da `localizedHref(Astro.currentLocale, path)` (vedi header e footer),
 quindi nav e URL legali si localizzano senza toccare i componenti. Le CTA dei contenuti — i bottoni
