@@ -69,6 +69,11 @@
   font-size: var(--field-font-size);
   line-height: var(--text-sm--line-height);
 }
+@utility alert-shape {
+  border-width: var(--alert-border-width);
+  border-inline-start-width: var(--alert-border-start-width);
+  border-radius: var(--alert-radius);
+}
 @utility bg-hover-* {
   @variant mix {
     background-color: color-mix(in oklab, --value(--color-*), var(--control-hover-mix));
@@ -93,6 +98,7 @@
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
   --color-success: var(--success);
+  --color-warning: var(--warning);
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);

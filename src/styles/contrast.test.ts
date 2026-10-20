@@ -30,6 +30,10 @@ const TEXT_PAIRS = [
   ['destructive-foreground', 'destructive'],
   ['success', 'background'],
   ['success', 'card'],
+  ['warning', 'background'],
+  ['warning', 'card'],
+  // Il testo delle varianti di stato di alert.astro sta sul loro fondo `muted`.
+  ['foreground', 'muted'],
 ] as const
 
 // WCAG 1.4.11, confini di un componente di interfaccia.
@@ -39,6 +43,10 @@ const UI_PAIRS = [
   ['input', 'card'],
   ['ring', 'background'],
   ['ring', 'card'],
+  // Bordo e icona delle varianti di stato di alert.astro, sul loro fondo `muted`.
+  ['destructive', 'muted'],
+  ['success', 'muted'],
+  ['warning', 'muted'],
 ] as const
 
 // `bg-hover-*` di globals.css mescola con `--control-hover-mix` il riempimento di `default` e
