@@ -65,7 +65,17 @@ ruleset_payload=$(cat << JSON
 JSON
 )
 # The rulesets API takes duplicate names: without this lookup a re-run stacks a second 'main'.
-ruleset_id=$(gh api "repos/{owner}/{repo}/rulesets" --jq '[.[] | select(.name == "main") | .id] | first // empty')
+if ! ruleset_id=$(gh api "repos/{owner}/{repo}/rulesets" --jq '[.[] | select(.name == "main") | .id] | first // empty'); then
+  cat >&2 << 'EOF'
+   ✗ GitHub refused the rulesets API (error above): main is NOT protected, with no required PR
+     and no required 'ci' check.
+     On a private repository rulesets need GitHub Pro on a personal account, or GitHub Team or
+     Enterprise Cloud on an organization: GitHub Free has them on public repositories only.
+     Upgrade the plan of whoever owns the repository, then re-run this script: steps 1-3 are
+     already applied, and every step is idempotent.
+EOF
+  exit 1
+fi
 if [ -n "$ruleset_id" ]; then
   echo "$ruleset_payload" | gh api -X PUT "repos/{owner}/{repo}/rulesets/$ruleset_id" --input - > /dev/null
   echo "   ruleset 'main' updated (id $ruleset_id)"

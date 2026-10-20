@@ -29,7 +29,9 @@ commerciale: brief, decisioni, stima e verbali stanno nel sistema; qui si scrive
 
 1. Su GitHub, **«Use this template» → «Create a new repository»**, privato, sotto il tuo account e
    non nell'organizzazione del committente (non `git clone`, che si trascinerebbe dietro la storia
-   git e i tag di release di questo repo).
+   git e i tag di release di questo repo). L'account deve avere GitHub Pro prima del passo 8: con
+   GitHub Free un repository privato non ha i ruleset, e senza quello su `main` la PR obbligatoria
+   e il check `ci` restano una convenzione.
 2. Clonalo nella cartella del progetto del sistema (`progetti/<id>/repo/`), poi `corepack enable &&
    pnpm install`: installa dipendenze e hook git (lefthook).
 3. **Metti dependabot in pausa**. Il primo giro è già partito: «Use this template» crea il commit
@@ -54,9 +56,11 @@ commerciale: brief, decisioni, stima e verbali stanno nel sistema; qui si scrive
 
 ### Al cancello
 
-6. Se il committente è un'agenzia, trasferisci il repo alla sua organizzazione, aggiorna `origin`
+6. Se il committente è un'agenzia e la sua organizzazione ha i ruleset sui repository privati
+   (GitHub Team o Enterprise Cloud), trasferisci il repo all'organizzazione, aggiorna `origin`
    (`git remote set-url origin …`) e verifica che l'app Vercel sia installata sull'organizzazione
-   di destinazione, altrimenti il collegamento git del progetto si rompe.
+   di destinazione, altrimenti il collegamento git del progetto si rompe. Con un'organizzazione su
+   GitHub Free il repo resta sul tuo account, che ha GitHub Pro dal passo 1.
 7. Riallinea lo scaffold al template corrente, che nel frattempo è cambiato: `git remote add
    template git@github.com:Elia97/vetrina.git`, `git fetch template`, `git diff HEAD
    template/main -- ':!docs' ':!README.md' ':!.github/dependabot.yml'`. Le storie sono scorrelate:
@@ -64,8 +68,11 @@ commerciale: brief, decisioni, stima e verbali stanno nel sistema; qui si scrive
 8. `bash scripts/bootstrap-github.sh` da dentro il clone (serve `gh` autenticato): label di
    dependabot, merge solo in squash, permessi Actions per release-please, e il ruleset su `main` (PR
    obbligatoria, `ci` come check richiesto, branch aggiornato prima del merge, nessun push diretto).
-   Si può rilanciare quando si vuole: ogni passo è idempotente. Non ricorrere ad `ADMIN_BYPASS=1`:
-   su un progetto cliente rimette `ci` al rango di suggerimento.
+   Su un repository privato il ruleset chiede GitHub Pro sull'account, o GitHub Team
+   sull'organizzazione (passi 1 e 6): senza, lo script si ferma al passo 4/4, dice che cosa manca ed
+   esce con errore. Si può rilanciare quando si vuole, anche dopo l'upgrade: ogni passo è
+   idempotente. Non ricorrere ad `ADMIN_BYPASS=1`: su un progetto cliente rimette `ci` al rango di
+   suggerimento.
 9. Collega il repo a un progetto Vercel. L'*Ignored Build Step* non si imposta a mano: lo dichiara
    `ignoreCommand` in `vercel.json`, ed è quello che tiene la produzione legata a un tag di release
    invece che a ogni push. Se il progetto Vercel ce l'ha già impostato dalla dashboard, svuotalo:
