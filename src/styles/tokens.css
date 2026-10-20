@@ -19,6 +19,8 @@
   --red-700: oklch(0.505 0.213 27.518);
   --green-600: oklch(0.627 0.194 149.214);
   --green-700: oklch(0.527 0.154 150.069);
+  --amber-400: oklch(0.828 0.189 84.429);
+  --amber-700: oklch(0.555 0.163 48.998);
 
   --z-raised: 10;
   --z-dropdown: 20;
@@ -75,4 +77,8 @@
 
   --field-height: 2.5rem;
   --field-font-size: 0.875rem;
+
+  --alert-border-width: 1px;
+  --alert-border-start-width: 1px;
+  --alert-radius: var(--radius);
 }

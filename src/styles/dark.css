@@ -23,6 +23,7 @@
   --destructive-foreground: var(--neutral-950);
   /* Verde più chiaro per la stessa ragione di destructive: leggibile su una card scura. */
   --success: var(--green-600);
+  --warning: var(--amber-400);
 
   /* Vedi la nota in light.css: un divisorio e il confine di un controllo sono due ruoli. */
   --border: var(--neutral-800);

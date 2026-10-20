@@ -14,9 +14,9 @@ head).
   gradini, non i ruoli. I nomi dei token seguono il gradino della scala Tailwind che contengono
   (`--neutral-700` è il valore neutral-700 di Tailwind; un gradino etichettato male è un difetto,
   non una scelta di gusto).
-- **I ruoli di stato hanno due gradini, e così il loro primo piano.** `destructive` e `success` sono
-  ciascuno un gradino più scuro per il tema chiaro e uno più chiaro per lo scuro, perché nessun
-  valore singolo supera 4,5:1 su entrambi — e dato che lo stesso token è sia testo
+- **I ruoli di stato hanno due gradini, e così il loro primo piano.** `destructive`, `success` e
+  `warning` sono ciascuno un gradino più scuro per il tema chiaro e uno più chiaro per lo scuro,
+  perché nessun valore singolo supera 4,5:1 su entrambi — e dato che lo stesso token è sia testo
   (`text-destructive`) sia riempimento (`bg-destructive`), il tema scuro gira il suo primo piano su
   uno scuro. I gradini di `destructive`, `red-700` e `red-400`, reggono 4,5:1 anche sul riempimento
   dell'hover, che lo avvicina al fondo. `src/styles/contrast.test.ts` verifica ogni coppia.
@@ -469,6 +469,25 @@ tailwind-merge): la forma dell'API di shadcn senza il runtime React o Radix.
   per il contenuto statico. Il ruolo va su un elemento che è già nella pagina quando il messaggio
   cambia, come i paragrafi di esito del form (`forms-email.md` § Convenzioni dell'interfaccia dei
   form).
+- `Alert` ha cinque varianti. `default` e `muted` sono avvisi neutri; `destructive`, `success` e
+  `warning` sono messaggi di stato con un disegno solo: fondo `muted`, testo nel colore normale,
+  bordo e icona nel colore dello stato. Anche `AlertDescription`, che altrove è `muted-foreground`,
+  lì passa al colore normale, perché su `muted` quel grigio non regge 4,5:1 nel tema chiaro. Un'icona
+  messa come primo figlio prende una colonna sua, accanto a titolo e descrizione. La forma viene da
+  tre token di `tokens.css`, letti dalla utility `alert-shape`: `--alert-border-width` per i lati,
+  `--alert-border-start-width` per il lato iniziale e `--alert-radius`. I default rifanno il bordo
+  pieno e il raggio di sempre, e `muted` tiene il suo raggio di 2px più piccolo. Un messaggio con la
+  sola barra sul lato iniziale si ottiene con tre righe:
+
+  ```css
+  :root {
+    --alert-border-width: 0;
+    --alert-border-start-width: 3px;
+    --alert-radius: 0;
+  }
+  ```
+
+  `src/styles/contrast.test.ts` verifica testo, bordo e icona delle varianti di stato sul loro fondo.
 - `Breadcrumb` (`ui/breadcrumb/`) rende un percorso di voci `{ name, url }`, le stesse che
   `buildBreadcrumbList()` trasforma in JSON-LD: la pagina costruisce l'elenco una volta e lo passa a
   entrambi. È una `<nav>` con l'etichetta del dizionario e un `<ol>`; ogni voce è un link, l'ultima

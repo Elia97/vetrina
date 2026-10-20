@@ -21,6 +21,7 @@
   --destructive: var(--red-700);
   --destructive-foreground: var(--neutral-50);
   --success: var(--green-700);
+  --warning: var(--amber-700);
   /* `--border` separa due superfici, `--input` è l'unico confine visibile di un controllo e
      la WCAG 1.4.11 gli chiede 3:1: sono due token diversi di proposito. */
   --border: var(--neutral-200);

@@ -4,16 +4,25 @@ import { cva, type VariantProps } from 'class-variance-authority'
 
 import { cn } from '@/lib/utils'
 
-export const alertVariants = cva('relative w-full rounded-lg border border-border px-4 py-3 text-sm', {
-  variants: {
-    variant: {
-      default: 'bg-background text-foreground',
-      destructive: 'border-destructive/50 text-destructive',
-      muted: 'rounded-md border-border/60 mix:bg-muted/40 text-muted-foreground',
+export const alertVariants = cva(
+  'alert-shape relative w-full px-4 py-3 text-sm has-[>svg]:grid has-[>svg]:grid-cols-[auto_1fr] has-[>svg]:gap-x-3 [&>:not(svg)]:col-start-2 [&>svg]:mt-0.5 [&>svg]:size-4',
+  {
+    variants: {
+      variant: {
+        default: 'border-border bg-background text-foreground',
+        destructive:
+          'border-destructive bg-muted text-foreground *:data-[slot=alert-description]:text-foreground [&>svg]:text-destructive',
+        success:
+          'border-success bg-muted text-foreground *:data-[slot=alert-description]:text-foreground [&>svg]:text-success',
+        warning:
+          'border-warning bg-muted text-foreground *:data-[slot=alert-description]:text-foreground [&>svg]:text-warning',
+        muted:
+          'rounded-[max(0px,calc(var(--alert-radius)-2px))] border-border/60 mix:bg-muted/40 text-muted-foreground',
+      },
     },
+    defaultVariants: { variant: 'default' },
   },
-  defaultVariants: { variant: 'default' },
-})
+)
 
 interface Props extends HTMLAttributes<'div'>, VariantProps<typeof alertVariants> {}
 
