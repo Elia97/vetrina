@@ -18,7 +18,7 @@ export function crawlPathname(url: string): string {
  *  `/area-riservata/documenti`, e quando non lo fa non fallisce niente. */
 export function matchesSubtree(pathname: string, roots: readonly string[]): boolean {
   const path = crawlPathname(pathname)
-  return roots.some((root) => path === root || path.startsWith(`${root}/`))
+  return roots.some((root) => root === '/' || path === root || path.startsWith(`${root}/`))
 }
 
 /** Un URL della sitemap bloccato da robots è un avviso in Search Console. @astrojs/sitemap scarta

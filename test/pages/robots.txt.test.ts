@@ -46,4 +46,14 @@ describe('robots.txt', () => {
     expect(body).toContain('Disallow: /area-riservata')
     expect(body).toContain('Disallow: /tmp')
   })
+
+  it('con / fra le voci bloccate scrive Disallow: / senza Allow: /', async () => {
+    ;(ROBOTS_DISALLOWED_PATHS as unknown as string[]).push('/')
+
+    const { body } = await get(new URL('https://example.test'))
+    const lines = body.split('\n')
+
+    expect(lines).toContain('Disallow: /')
+    expect(lines).not.toContain('Allow: /')
+  })
 })

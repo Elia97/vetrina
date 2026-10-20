@@ -204,6 +204,13 @@ del browser — e viene reso una volta sola da `head.astro`.
   — `/area-riservata` copre `/area-riservata/documenti`. Una corrispondenza esatta lascerebbe
   indicizzabile ogni figlio senza che niente fallisca, ed è il motivo per cui `matchesSubtree` porta
   una nota `[HARD]`.
+- **`/` copre tutto il sito.** In `NOINDEX_PATHS` toglie dall'indice ogni pagina; in
+  `ROBOTS_DISALLOWED_PATHS` la blocca al crawler, e `robots.txt` scrive `Disallow: /` senza
+  `Allow: /`, che a parità di lunghezza vincerebbe (RFC 9309, §2.2.2): per questo
+  `pnpm run lhci:local`, che pretende `Allow: /`, in quello stato non parte. Nei due casi il `filter`
+  scarta ogni pagina e `@astrojs/sitemap` non scrive `sitemap-index.xml`, a cui `robots.txt` continua
+  a rimandare: il fumo di produzione la cerca, e un progetto in quello stato la toglie da
+  `smoke.nonHtmlRoutes` in `officina.config.ts`.
 - **Per togliere una pagina dall'indice basta la sua voce in `NOINDEX_PATHS`**: la pagina non passa
   niente al layout. La head le dà `<meta name="robots" content="noindex, nofollow">`, l'unico
   segnale che arriva a una pagina prerenderizzata, e nessuna pagina la annuncia con un hreflang
