@@ -9,16 +9,22 @@ import DocumentLayout, { type Props as DocumentProps } from '@/layouts/document.
 interface Props extends Omit<DocumentProps, 'class'> {
   heroOverlay?: boolean
   overlayChrome?: 'auto' | 'light'
+  languagePrefetch?: boolean
 }
 
-const { heroOverlay = false, overlayChrome = 'auto', ...documentProps } = Astro.props
+const { heroOverlay = false, overlayChrome = 'auto', languagePrefetch, ...documentProps } = Astro.props
 ---
 
 {/* scroll-pt-20: i salti agli ancoraggi atterrano sotto l'header appiccicato da 64px */}
 <DocumentLayout class="scroll-pt-20" {...documentProps}>
   <Tracking slot="head" />
   <SkipLink />
-  <Header heroOverlay={heroOverlay} overlayChrome={overlayChrome} locales={documentProps.locales} />
+  <Header
+    heroOverlay={heroOverlay}
+    overlayChrome={overlayChrome}
+    locales={documentProps.locales}
+    languagePrefetch={languagePrefetch}
+  />
   {/* tabindex=-1: lo skip-link deve muovere il focus vero, non solo il punto di partenza del Tab */}
   <main id="main-content" class="flex-1" tabindex="-1">
     <slot />

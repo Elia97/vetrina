@@ -14,9 +14,10 @@ import { useTranslations } from '@/i18n/translate'
 
 interface Props {
   locales?: PageLocales | undefined
+  languagePrefetch?: boolean | undefined
 }
 
-const { locales } = Astro.props
+const { locales, languagePrefetch } = Astro.props
 const t = useTranslations(Astro.currentLocale)
 ---
 
@@ -62,6 +63,7 @@ const t = useTranslations(Astro.currentLocale)
     <span class="text-muted-foreground text-sm">{t('a11y.toggleTheme')}</span>
     <LanguageSwitcher
       {locales}
+      prefetch={languagePrefetch}
       class="ms-auto"
       itemClass="text-muted-foreground hover:text-foreground aria-[current]:text-foreground"
     />

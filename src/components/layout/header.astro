@@ -19,9 +19,10 @@ interface Props {
   heroOverlay?: boolean
   overlayChrome?: 'auto' | 'light'
   locales?: PageLocales | undefined
+  languagePrefetch?: boolean | undefined
 }
 
-const { heroOverlay = false, overlayChrome = 'auto', locales } = Astro.props
+const { heroOverlay = false, overlayChrome = 'auto', locales, languagePrefetch } = Astro.props
 const lightChrome = heroOverlay && overlayChrome === 'light'
 
 const t = useTranslations(Astro.currentLocale)
@@ -63,7 +64,7 @@ const controlClass = lightChrome ? 'text-white hover:text-white/80' : 'text-mute
     </nav>
 
     <div class="flex items-center gap-2">
-      <LanguageSwitcher {locales} class="hidden md:flex" itemClass={navLinkClass} />
+      <LanguageSwitcher {locales} prefetch={languagePrefetch} class="hidden md:flex" itemClass={navLinkClass} />
       <ThemeToggle class={cn('hidden md:inline-flex', controlClass)} />
       <Button as="a" href={href(SITE.cta.href)} size="sm" class="hidden md:inline-flex">{t(SITE.cta.key)}</Button>
       <Button
@@ -83,4 +84,4 @@ const controlClass = lightChrome ? 'text-white hover:text-white/80' : 'text-mute
   </Container>
 </header>
 
-<MobileNav {locales} />
+<MobileNav {locales} {languagePrefetch} />
