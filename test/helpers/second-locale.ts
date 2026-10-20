@@ -16,6 +16,13 @@ export const translatedSlugPaths = {
   [SECOND_LOCALE]: '/product/ipsc-belt',
 }
 
+export const SECOND_LOCALE_DESCRIPTION = 'A short description of the site, in English'
+
+export function withSecondLocaleDictionary(ui: typeof import('@/i18n/ui')) {
+  const translated = { ...ui.dictionaries[DEFAULT_LOCALE], 'site.description': SECOND_LOCALE_DESCRIPTION }
+  return { ...ui, dictionaries: { ...ui.dictionaries, [SECOND_LOCALE]: translated } }
+}
+
 export const twoLocaleManifest = {
   i18n: {
     strategy: 'pathname-prefix-other-locales' as const,

@@ -7,12 +7,15 @@ import { getHomepageSections } from '@/lib/homepage'
 import { buildOrganization, buildWebSite } from '@/lib/seo/json-ld'
 import { SITE } from '@/lib/site'
 
+import { useTranslations } from '@/i18n/translate'
+
 // @gen:homepage-imports (i generatori inseriscono i nuovi import SOPRA questa riga)
 
+const t = useTranslations(Astro.currentLocale)
 const content = await getHomepageSections(Astro.currentLocale)
 ---
 
-<MainLayout title={SITE.name} description={SITE.description} jsonLd={[buildOrganization(), buildWebSite()]}>
+<MainLayout title={SITE.name} description={t('site.description')} jsonLd={[buildOrganization(), buildWebSite()]}>
   <Hero {...content.hero} />
   {/* @gen:homepage-sections */}
 </MainLayout>

@@ -95,9 +95,12 @@ La superficie completa, in un posto solo — la milestone `foundations` la distr
 
 - `package.json#name` (e `release-please-config.json`): trapela nel changelog che release-please
   genera, quindi deve corrispondere al progetto nuovo e non restare `vetrina`;
-- `src/lib/site.ts`: nome, url, descrizione, voci di nav, CTA e legali (la chrome si rende da qui, e
-  le voci portano chiavi i18n, non testo), più i profili di `SITE.social`, che arriva vuoto: ogni
-  profilo aggiunto finisce nel footer e nel `sameAs` del JSON-LD;
+- `src/lib/site.ts`: nome, url, voci di nav, CTA e legali (la chrome si rende da qui, e le voci
+  portano chiavi i18n, non testo), più i profili di `SITE.social`, che arriva vuoto: ogni profilo
+  aggiunto finisce nel footer e nel `sameAs` del JSON-LD;
+- `site.description` in `src/i18n/strings/it.ts`: la descrizione del sito, sotto il nome nel footer
+  e nella meta description della homepage. Sta nei dizionari perché si traduce con il resto della
+  chrome, e il manifest, che è uno per sito, prende quella della lingua di default;
 - `src/lib/company.ts`: il soggetto giuridico — ragione sociale, telefono (`phone` in E.164 e
   `phoneDisplay` nella forma che si legge), email, indirizzo e partita IVA, più il `logo`
   facoltativo, un file di `public/` su fondo chiaro. Si vedono nella riga legale del footer e nei
