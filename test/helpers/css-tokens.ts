@@ -6,7 +6,7 @@ export const stylesheet = (file: string): string =>
   readFileSync(new URL(`../../src/styles/${file}`, import.meta.url), 'utf8')
 
 export function utility(name: string): string {
-  const css = stylesheet('globals.css')
+  const css = ['globals.css', 'typography.css'].map(stylesheet).join('\n')
   const start = css.indexOf(`@utility ${name} {`)
   return start === -1 ? '' : css.slice(start, css.indexOf('}', start))
 }
