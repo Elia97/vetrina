@@ -453,7 +453,9 @@ tailwind-merge): la forma dell'API di shadcn senza il runtime React o Radix.
   e `FieldError`, con orientamento verticale o orizzontale) attorno ai controlli piatti
   (`input.astro`, `textarea.astro`, `select.astro`). `FieldError` è l'unica parte con un
   comportamento attaccato: il suo contratto e il test che lo presidia stanno in `forms-email.md` §
-  La superficie di validazione.
+  La superficie di validazione. `FieldLabel` è flex: un'etichetta che è una frase con un link, come
+  quella del consenso, gli passa `block`, e lo spazio prima del link si scrive `{' '}`, perché
+  `compressHTML` toglie quello fra un'espressione e un tag anche sulla stessa riga.
 - `Alert` non porta nessun `role` di suo. `role="alert"` è una live region assertiva: interrompe
   quello che lo screen reader sta dicendo, e su un avviso presente al caricamento alcuni lo
   annunciano prima del titolo della pagina. Si passa `role="alert"` per un errore che compare in

@@ -18,14 +18,11 @@ const t = useTranslations(Astro.currentLocale)
     aria-describedby={fieldErrorId('consent')}
   />
   <FieldContent>
-    <FieldLabel for="consent" class="font-normal text-muted-foreground text-xs leading-relaxed">
-      {t('contact.consent')}
+    <FieldLabel for="consent" class="block font-normal text-muted-foreground text-xs leading-relaxed">
+      {t('contact.consent')}{' '}
       <a
         href={localizedHref(Astro.currentLocale, '/privacy')}
-        class="focus-ring text-foreground underline underline-offset-4"
-      >
-        {t('contact.privacyPolicy')}
-      </a>.
+        class="focus-ring text-foreground underline underline-offset-4">{t('contact.privacyPolicy')}</a>.
     </FieldLabel>
     <FieldError field="consent" />
   </FieldContent>
