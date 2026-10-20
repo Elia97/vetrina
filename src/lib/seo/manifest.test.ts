@@ -5,7 +5,9 @@ import { ICON_SPECS } from '@elia97/officina/icons'
 import { describe, expect, it } from 'vitest'
 
 import { buildWebManifest } from '@/lib/seo/manifest'
-import { SITE } from '@/lib/site'
+import { DEFAULT_LOCALE, localeTag, SITE } from '@/lib/site'
+
+import { useTranslations } from '@/i18n/translate'
 
 const manifest = buildWebManifest()
 
@@ -24,7 +26,11 @@ describe('web manifest', () => {
   it('takes its identity from SITE, so the install can not drift from the site', () => {
     expect(manifest.name).toBe(SITE.name)
     expect(manifest.short_name).toBe(SITE.name)
-    expect(manifest.description).toBe(SITE.description)
+  })
+
+  it('prende la descrizione dal dizionario della lingua di default, quella del suo `lang`', () => {
+    expect(manifest.description).toBe(useTranslations(DEFAULT_LOCALE)('site.description'))
+    expect(manifest.lang).toBe(localeTag(DEFAULT_LOCALE))
   })
 
   it('pins the app identity and the navigation scope at the root', () => {

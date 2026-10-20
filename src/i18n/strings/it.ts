@@ -80,6 +80,8 @@ export const it = {
   'email.autoreplyBody':
     'Abbiamo ricevuto la tua richiesta e ti ricontatteremo al più presto. Per qualsiasi urgenza puoi scriverci a {email}.',
 
+  'site.description': '<DESCRIPTION>',
+
   'seo.defaultOgImageAlt': '<OG_IMAGE_ALT>',
 
   'footer.legalHeading': 'Legale',

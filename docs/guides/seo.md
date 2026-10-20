@@ -139,8 +139,9 @@ o un riferimento compatto usato come `author`, `publisher` o `provider` — i no
 del browser — e viene reso una volta sola da `head.astro`.
 
 - **Il manifest si costruisce, non si scrive.** `src/lib/seo/manifest.ts` lo deriva da `SITE` (nome,
-  descrizione, lingua, colori) e `src/pages/site.webmanifest.ts` lo serve prerenderizzato, così
-  l'identità installata non può divergere da quella del sito.
+  lingua, colori) e dal dizionario della lingua di default (la descrizione, `site.description`), e
+  `src/pages/site.webmanifest.ts` lo serve prerenderizzato, così l'identità installata non può
+  divergere da quella del sito.
 - **`id`, `start_url` e `scope` sono fissati su `/`.** Cambiare `id` fa sì che i browser trattino il
   sito come un'altra applicazione: un'installazione esistente smette di aggiornarsi e il prompt
   ricompare.

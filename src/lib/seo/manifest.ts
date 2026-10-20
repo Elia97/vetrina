@@ -1,5 +1,7 @@
 import { DEFAULT_LOCALE, localeTag, SITE } from '@/lib/site'
 
+import { useTranslations } from '@/i18n/translate'
+
 const ICONS = [
   { src: '/favicon.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'any' },
   { src: '/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
@@ -16,7 +18,7 @@ export function buildWebManifest() {
     scope: '/',
     name: SITE.name,
     short_name: SITE.name,
-    description: SITE.description,
+    description: useTranslations(DEFAULT_LOCALE)('site.description'),
     lang: localeTag(DEFAULT_LOCALE),
     dir: 'ltr',
     display: 'standalone',
