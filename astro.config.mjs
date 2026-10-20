@@ -7,8 +7,13 @@ import { defineConfig, envField } from 'astro/config'
 
 import { cspIntegration } from './src/lib/csp/integration'
 import { customSitemapUrls, isExcludedFromSitemap } from './src/lib/seo/crawl-policy'
+import { sitemapAlternates } from './src/lib/seo/sitemap-alternates'
 import { createLastmodResolver, withLastmod } from './src/lib/seo/sitemap-lastmod'
 import { DEFAULT_LOCALE, SITE } from './src/lib/site'
+
+const sitemapLocales = { defaultLocale: DEFAULT_LOCALE, locales: { ...SITE.localeTags } }
+const alternates = sitemapAlternates(sitemapLocales)
+const lastmod = withLastmod(createLastmodResolver())
 
 export default defineConfig({
   site: SITE.url,
@@ -34,13 +39,10 @@ export default defineConfig({
     cspIntegration(),
     // Emette sitemap-index.xml, a cui src/pages/robots.txt.ts indirizza i crawler.
     sitemap({
-      filter: (page) => !isExcludedFromSitemap(page),
-      serialize: withLastmod(createLastmodResolver()),
+      filter: alternates.keep((page) => !isExcludedFromSitemap(page)),
+      serialize: (item) => lastmod(alternates.link(item)),
       customSitemaps: customSitemapUrls(SITE.url),
-      i18n: {
-        defaultLocale: DEFAULT_LOCALE,
-        locales: { ...SITE.localeTags },
-      },
+      i18n: sitemapLocales,
     }),
   ],
   vite: {
