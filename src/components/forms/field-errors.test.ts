@@ -1,4 +1,5 @@
 // @vitest-environment happy-dom
+import { activate, native, renderSelectInForm, trigger } from '@test/helpers/select-dom'
 import { beforeEach, describe, expect, it } from 'vitest'
 
 import { HONEYPOT_FIELD } from '@/lib/forms/honeypot'
@@ -77,5 +78,20 @@ describe('focusFirstInvalid', () => {
 
   it('reports that there was nothing to focus', () => {
     expect(focusFirstInvalid(form)).toBe(false)
+  })
+})
+
+describe('con un ui/select attivo', () => {
+  it('segna il trigger, non il select nativo nascosto, e gli porta il focus', async () => {
+    renderSelectInForm()
+    await activate()
+    const selectForm = document.querySelector('form') as HTMLFormElement
+
+    applyFieldErrors(selectForm, { topic: ['Pick a topic'] })
+
+    expect(trigger().getAttribute('aria-invalid')).toBe('true')
+    expect(native().hasAttribute('aria-invalid')).toBe(false)
+    expect(focusFirstInvalid(selectForm)).toBe(true)
+    expect(document.activeElement).toBe(trigger())
   })
 })
