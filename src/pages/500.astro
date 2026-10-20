@@ -6,6 +6,8 @@ import Section from '@/components/ui/section.astro'
 
 import MainLayout from '@/layouts/main.astro'
 
+import { DEFAULT_LOCALE } from '@/lib/site'
+
 import { localizedHref } from '@/i18n/href'
 import { useTranslations } from '@/i18n/translate'
 
@@ -13,7 +15,7 @@ const t = useTranslations(Astro.currentLocale)
 const home = localizedHref(Astro.currentLocale, '/')
 ---
 
-<MainLayout title={`500 — ${t('error.500title')}`} description={t('error.500description')}>
+<MainLayout title={`500 — ${t('error.500title')}`} description={t('error.500description')} locales={[DEFAULT_LOCALE]}>
   <Section>
     <Container>
       <div class="mx-auto flex min-h-status max-w-2xl flex-col items-center justify-center gap-6 text-center">
