@@ -106,8 +106,9 @@ La superficie completa, in un posto solo — la milestone `foundations` la distr
   facoltativo, un file di `public/` su fondo chiaro. Si vedono nella riga legale del footer e nei
   recapiti di `/contatti`, e alimentano il JSON-LD `Organization` della homepage, con la partita IVA
   come `vatID`;
-- `src/styles/tokens.css`: l'UNICO file da toccare per il rebranding visivo (primitive oklch grezze;
-  i nomi semantici in `light.css` e `dark.css` restano);
+- `src/styles/tokens.css`: il file del rebranding visivo (primitive oklch grezze). In `light.css` e
+  `dark.css` le chiavi dei ruoli restano, e un valore si sposta su un altro gradino solo quando il
+  design chiede un altro ruolo (`docs/guides/ui-components.md` § Token di design);
 - `public/og-default.png`: si sostituisce il segnaposto (1200×630), e con lui le misure in
   `SITE.defaultOgImageSize` e l'alt `seo.defaultOgImageAlt` in `src/i18n/strings/it.ts`;
 - `public/favicon.svg` e `public/favicon.ico`: si sostituiscono entrambi, poi `pnpm gen:icons`
