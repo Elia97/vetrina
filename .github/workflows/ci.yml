@@ -4,20 +4,13 @@ on:
   # Niente paths-ignore su pull_request: `ci` è un check obbligatorio nel ruleset, e un job
   # saltato non riporta niente — la PR resta appesa su "Expected — Waiting for status".
   pull_request:
-  push:
-    branches: [main]
-    paths-ignore:
-      - '*.md'
-      - 'docs/**/*.md'
-      - '.github/**/*.md'
-      - '.claude/**/*.md'
 
 permissions:
   contents: read
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+  cancel-in-progress: true
 
 jobs:
   # Niente `name:` qui: lo prenderebbe il check run, e il ruleset pretende il contesto `ci`,
