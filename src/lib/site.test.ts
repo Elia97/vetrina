@@ -11,7 +11,7 @@ describe('localeTag', () => {
   })
 
   it('falls back to the code itself for a locale with no tag', () => {
-    expect(localeTag('en')).toBe('en')
+    expect(localeTag('zz')).toBe('zz')
   })
 })
 

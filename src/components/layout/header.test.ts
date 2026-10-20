@@ -1,9 +1,14 @@
 import { renderToFragment } from '@test/container'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import { useTranslations } from '@/i18n/translate'
 
 import Header from './header.astro'
+
+vi.mock('astro:config/client', async () => {
+  const { DEFAULT_LOCALE } = await import('@/lib/site')
+  return { i18n: { defaultLocale: DEFAULT_LOCALE, locales: [DEFAULT_LOCALE] } }
+})
 
 describe('header.astro', () => {
   it.each([
