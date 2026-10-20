@@ -150,9 +150,15 @@ CI per assenza, che è il modo peggiore di passare.
 - **`permissions` è dichiarato in `ci.yml`, non ereditato.** È il workflow che gira su ogni pull
   request, quindi quello più esposto, e il default del repository vale solo finché nessuno lo
   cambia dalle impostazioni: la riga nel file no.
-- **`ci.yml` non salta niente su `pull_request`.** Il suo `paths-ignore` riguarda solo i push su
-  `main`: il ruleset pretende il check, e un job saltato non riporta *nessuno* stato — quindi una PR
-  che l'ha saltato resta appesa per sempre su «Expected — Waiting for status» invece di fallire.
+- **`ci.yml` gira solo sulle pull request.** Il ruleset vuole il branch aggiornato prima del merge,
+  quindi dopo lo squash `main` ha l'albero già provato sulla PR, e la produzione rilancia
+  `pnpm run ci` sul tag. Nemmeno le cache valgono una corsa su `main`, misurato sulle corse di
+  vetrina: senza lo store pnpm, setup-node e l'installazione durano quanto con lo store ripristinato,
+  e `playwright install --with-deps` gira comunque per i pacchetti di sistema, quindi la cache del
+  browser fa risparmiare pochi secondi.
+- **Sulle pull request `ci.yml` non salta niente.** Un `paths-ignore` lì sarebbe una trappola: il
+  ruleset pretende il check, e un job saltato non riporta *nessuno* stato — quindi una PR che l'ha
+  saltato resta appesa per sempre su «Expected — Waiting for status» invece di fallire.
 - **Il ruleset imposta `strict_required_status_checks_policy: true`**: un branch deve essere
   aggiornato con `main` prima di poter essere mergiato. Senza, due PR verdi ognuna contro un `main`
   più vecchio atterrano entrambe e lasciano `main` rosso sulla loro combinazione. Il costo è un
