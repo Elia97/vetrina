@@ -169,7 +169,10 @@ la CI, con `pnpm run check:links` sulla build.
   sotto).
 - **Unit test** (vitest e happy-dom): `pnpm test`, collegato a `pnpm run ci`. I moduli virtuali di
   Astro sono stubbati in `test/stubs/` (env, config, i18n), così la logica pura (head e seo, i18n,
-  rate-limit, email, fornitori) si testa in fretta. **La soglia del 100% vale su `src/`**, che è la
+  rate-limit, email, fornitori) si testa in fretta. I test girano a thread in due progetti di
+  vitest, e solo quelli che raccoglie `astroTests`, in `vitest.config.ts`, passano dai plugin di
+  Astro: un test che importa un `.astro`, anche dal container, sta accanto al componente o in
+  `src/layouts/`, `src/styles/` o `test/pages/`. **La soglia del 100% vale su `src/`**, che è la
   logica del prodotto: sotto ci sono i `.ts` più i due `.astro` che portano rami veri, elencati
   nell'`include` di `vitest.config.ts`, e la copertura non guarda altro. Ogni buco voluto porta un
   `v8 ignore` con la sua ragione. La soglia esiste per dare un senso al gate CRAP di `fallow audit`,
