@@ -178,9 +178,10 @@ vetrina, e arriva al template derivato con il cherry-pick.
   `biome-ignore format`. Un fornitore nuovo aggiunge le sue origini in coda alla direttiva che gli
   serve, e una direttiva nuova va in coda a `BASE`
   (`docs/guides/deploy-ops.md` § Content-Security-Policy).
-- **Liste di configurazione**: `features` in `officina.config.ts` e `coverage.include` in
-  `vitest.config.ts` hanno una voce per riga. La seconda porta un `biome-ignore format`, perché Biome
-  riporta su una riga un array che ci sta.
+- **Liste di configurazione**: `features` in `officina.config.ts`, `coverage.include` e `astroTests`
+  in `vitest.config.ts` hanno una voce per riga. `coverage.include` porta un `biome-ignore format`,
+  perché Biome riporta su una riga un array che ci sta. In `astroTests` un template derivato aggiunge
+  in coda la cartella di un test che importa un `.astro` fuori da quelle della base.
 - **Politica di scansione**: `ROBOTS_DISALLOWED_PATHS` e `NOINDEX_PATHS` stanno da sole in
   `src/lib/seo/crawl-paths.ts`, una voce per riga sotto un `biome-ignore format`, così un file che
   cresce con le voci non porta sopra la soglia di `check:comments --strict` i commenti della
