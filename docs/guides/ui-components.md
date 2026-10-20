@@ -349,6 +349,15 @@ apre il pannello della CMP, non porta a una pagina.
   `[data-astro-transition-persist]`, e il template non ne ha, quindi senza questo ogni navigazione
   butta il focus su `<body>` (WCAG 2.4.3). L'eccezione per l'hash e il motivo per cui non usa
   `createMotionBinding` sono documentati accanto al binder.
+- **Due parti di uno stesso nome si separano con `{' '}`.** `compressHTML` toglie lo spazio che
+  contiene un a capo, quindi due `<span>` su righe diverse dentro un link, un bottone o un
+  `<summary>` danno un nome attaccato, «Ordina perIn evidenza», anche se a schermo le separa un `gap`.
+- **Un elenco con un nome porta `role="list"`.** WebKit toglie il ruolo agli elenchi con
+  `list-style: none`, che il preflight di Tailwind dà a ogni `<ul>` e `<ol>`, e con il ruolo se ne va
+  anche il nome di `aria-label` o `aria-labelledby`.
+- **Radio e checkbox native non prendono `focus-ring`.** Il suo `outline` trasparente c'è sempre, e
+  con i contrasti forzati diventa un riquadro fisso attorno al controllo; l'anello di focus del
+  browser basta, come in `contact-consent-field.astro`.
 
 ## Scorrimento morbido (quando un progetto lo aggiunge)
 
