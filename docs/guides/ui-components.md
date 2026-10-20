@@ -312,7 +312,9 @@ apre il pannello della CMP, non porta a una pagina.
 - **Il selettore di lingua** (`src/components/layout/language-switcher.astro`) sta nell'header e
   nella nav mobile, e compare solo quando la pagina esiste in almeno due lingue. La lingua corrente
   è testo con `aria-current="true"`, le altre sono link con `lang` e `hreflang`, e ogni nome è
-  scritto nella lingua che nomina (`localeName()` in `src/i18n/locales.ts`).
+  scritto nella lingua che nomina (`localeName()` in `src/i18n/locales.ts`). Una pagina che tiene
+  fuori dal prefetch le sue versioni nelle altre lingue passa `languagePrefetch={false}` a
+  `MainLayout`, che lo porta ai due selettori come `data-astro-prefetch="false"` su ogni link.
 - I glifi delle icone sono `aria-hidden` con l'etichetta sul controllo; il selettore di variazione
   testuale (`&#xFE0E;`) va sui codepoint che WebKit renderebbe come emoji.
 - Mattoni per gli overlay (per menu e dialog che un progetto aggiunge):

@@ -10,9 +10,10 @@ interface Props {
   locales?: PageLocales | undefined
   class?: string | undefined
   itemClass?: string | undefined
+  prefetch?: boolean | undefined
 }
 
-const { locales, class: className, itemClass } = Astro.props
+const { locales, class: className, itemClass, prefetch = true } = Astro.props
 const available = pageLocales(locales)
 const current = Astro.currentLocale ?? DEFAULT_LOCALE
 const t = useTranslations(Astro.currentLocale)
@@ -32,6 +33,7 @@ const item = cn('font-medium text-sm underline-offset-4 transition-colors aria-[
             href={localeSwitchHref(code, Astro.url.pathname, Astro.currentLocale, locales)}
             hreflang={localeTag(code)}
             lang={localeTag(code)}
+            data-astro-prefetch={prefetch ? undefined : 'false'}
             class={item}
           >
             {localeName(code)}

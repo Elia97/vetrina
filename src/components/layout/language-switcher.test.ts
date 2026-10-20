@@ -11,7 +11,7 @@ import LanguageSwitcher from './language-switcher.astro'
 vi.mock('astro:config/client', () => import('@test/helpers/second-locale').then((m) => m.twoLocaleConfig))
 vi.mock('@/i18n/segments-by-locale', () => import('@test/helpers/second-locale').then((m) => m.translatedSegments))
 
-function render(url: string, props: { locales?: PageLocales } = {}) {
+function render(url: string, props: { locales?: PageLocales; prefetch?: boolean } = {}) {
   return renderToFragment(LanguageSwitcher, { request: new Request(url), props }, twoLocaleManifest)
 }
 
@@ -57,5 +57,17 @@ describe('language-switcher.astro', () => {
     })
 
     expect(document.body.innerHTML.trim()).toBe('')
+  })
+
+  it('senza la prop lascia il link al prefetch del sito', async () => {
+    const document = await render('https://example.com/contatti')
+
+    expect(document.querySelector('nav a')?.hasAttribute('data-astro-prefetch')).toBe(false)
+  })
+
+  it('con prefetch={false} toglie dal prefetch il link alle altre lingue', async () => {
+    const document = await render('https://example.com/contatti', { prefetch: false })
+
+    expect(document.querySelector('nav a')?.getAttribute('data-astro-prefetch')).toBe('false')
   })
 })
