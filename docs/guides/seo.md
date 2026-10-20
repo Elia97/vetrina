@@ -166,8 +166,15 @@ del browser — e viene reso una volta sola da `head.astro`.
 
 - `@astrojs/sitemap` (in `astro.config.mjs`) emette `sitemap-index.xml` in fase di build: in
   sviluppo non viene mai servito. La sua mappa delle lingue rispecchia `SITE.localeTags`.
-- **`lastmod` viene dalla storia git.** La `serialize` del sitemap,
-  `withLastmod(createLastmodResolver())`, data ogni URL con l'ultimo commit fra i file che lo
+- **Gli alternate `xhtml:link` li calcola `src/lib/seo/sitemap-alternates.ts`, come la head.** Il
+  plugin da solo collega le versioni di una pagina solo se il percorso, tolto il prefisso della
+  lingua, è lo stesso: con `SEGMENTS_BY_LOCALE`, `/contatti` e `/en/contact` resterebbero slegate.
+  La `serialize` le ritrova con `canonicalizePath()` e `translatePath()` di
+  `src/i18n/route-segments.ts`, e solo fra le voci che il `filter` tiene. Una pagina che dichiara
+  per lingua un percorso suo, come uno slug tradotto, è collegata solo nella head, e la sitemap di
+  un catalogo le versioni le calcola da sé.
+- **`lastmod` viene dalla storia git.** Nella `serialize` della sitemap,
+  `withLastmod(createLastmodResolver())` data ogni URL con l'ultimo commit fra i file che lo
   producono, e `lastmodSources()` in `src/lib/seo/sitemap-lastmod.ts` dice quali sono: `/` è
   `src/pages/index.astro` più `src/content/homepage`, `/contatti` e `/termini` sono il loro `.astro`.
   Un progetto ci aggiunge le sue rotte con i file che le producono: una pagina di dettaglio porta il
@@ -217,8 +224,8 @@ del browser — e viene reso una volta sola da `head.astro`.
   segnale che arriva a una pagina prerenderizzata, e nessuna pagina la annuncia con un hreflang
   (§ Politica degli URL). Conta l'URL richiesto, `Astro.originPathname`: una pagina resa con una
   rewrite, o con il fallback di i18n, risponde del suo URL e non di quello di destinazione. Il
-  `filter` della sitemap gira prima che `@astrojs/sitemap` calcoli gli alternate `xhtml:link`, quindi
-  la pagina non compare nemmeno fra gli alternate delle altre voci.
+  `filter` della sitemap gira prima che si calcolino gli alternate `xhtml:link`, quindi la pagina non
+  compare nemmeno fra gli alternate delle altre voci.
 - Anche `src/middleware.ts` legge `NOINDEX_PATHS` e mette `X-Robots-Tag` su ogni risposta resa a
   richiesta: su una pagina HTML si somma al meta, su una risposta non HTML (un feed generato, un
   endpoint JSON), dove nessun meta può esistere, è l'unico segnale. Su una pagina prerenderizzata

@@ -1,4 +1,6 @@
-import { SEGMENTS_BY_LOCALE } from '@/i18n/segments-by-locale'
+// [HARD] astro.config.mjs carica questo modulo, dalla sitemap, prima che Vite risolva l'alias `@/`:
+// qui si importa solo per percorso relativo.
+import { SEGMENTS_BY_LOCALE } from './segments-by-locale'
 
 const CANONICAL_BY_LOCALE: Record<string, Record<string, string>> = Object.fromEntries(
   Object.entries(SEGMENTS_BY_LOCALE).map(([locale, segments]) => [
