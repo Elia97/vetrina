@@ -313,7 +313,8 @@ gira sempre.
 1. i default `is:inline` del Consent Mode — tutte e quattro le chiavi `denied`, più
    `wait_for_update: 500`, `ads_data_redaction` e `url_passthrough`. Deve essere la prima cosa che
    tocca `dataLayer`, altrimenti un tag può accodarsi prima dei default e girare senza restrizioni;
-2. il blocco di configurazione inline, che pubblica gli id su `window`;
+2. il blocco di configurazione inline, che pubblica gli id su `window`, con l'id di policy della
+   lingua della pagina (`src/lib/legal/policy-id.ts`);
 3. gli script a modulo, che registrano `bootstrapAnalytics()` sul gate e poi avviano il CMP. Il
    container GTM viene appeso **dentro** `onConsent('measurement')`, mai prima.
 
@@ -397,14 +398,15 @@ rifiuto, e i rifiuti che compaiono solo lì.
 ## Ricostruire le pagine legali dopo una modifica alle policy
 
 Le policy di privacy e cookie si scaricano da iubenda **in fase di build**
-(`src/lib/legal/documents.ts`, pagine prerenderizzate). Una modifica fatta nel pannello iubenda è
+(`src/lib/legal/documents.ts`, pagine prerenderizzate), ognuna con l'id di policy della lingua della
+pagina (`src/lib/legal/policy-id.ts`). Una modifica fatta nel pannello iubenda è
 quindi invisibile al sito vivo finché qualcuno non rideploya, e niente avverte nessuno che i due sono
 andati alla deriva.
 
 - Si pubblica la modifica su iubenda, poi si lancia un deploy di produzione (Actions → Deploy → *Run
   workflow*, senza bisogno di toccare il codice).
-- **[HARD] Configurato significa obbligatorio.** Senza un id di policy le pagine dichiarano che il
-  documento non è disponibile — è il default del template, e di proposito non è prosa legale
+- **[HARD] Configurato significa obbligatorio.** Senza un id di policy per la loro lingua le pagine
+  dichiarano che il documento non è disponibile — è il default del template, e di proposito non è prosa legale
   segnaposto, che su una pagina viva si legge come una policy vera. Ma una volta che un id C'È, una
   build di produzione che non riesce a scaricare la policy **fallisce** invece di ricadere sul
   ripiego: quel ripiego porta un avviso visibile «bozza, non ancora rivista legalmente», e
@@ -501,8 +503,8 @@ spedire qualcosa che la strada della release avrebbe preso.
   build legge l'ambiente al momento del `vercel pull`, e lì un valore Sensitive non è disponibile
   (`BOTID_ENFORCE` è l'esempio vivo). Una variabile Sensitive non fallisce nemmeno rumorosamente:
   arriva come la stringa letterale `[SENSITIVE]`, ed è il motivo per cui gli id di iubenda si
-  validano come numerici prima dell'uso (`src/lib/analytics/tracking.ts`,
-  `src/lib/legal/documents.ts`) invece di essere infilati dentro l'URL di un'API. **`vercel env add`
+  validano come numerici prima dell'uso (`src/lib/analytics/tracking.ts` per il sito,
+  `src/lib/legal/policy-id.ts` per le policy) invece di essere infilati dentro l'URL di un'API. **`vercel env add`
   salva come Sensitive di default**, quindi si passa `--no-sensitive` e si conferma con un
   `vercel pull` prima di fidarsi, altrimenti la funzione deployata riceve `[SENSITIVE]` come chiave
   API.

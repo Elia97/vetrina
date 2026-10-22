@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { sanitizeLegalHtml } from '@/lib/legal/documents'
 
 const POLICY_ID = '7654321'
+const ENGLISH_POLICY_ID = '7654322'
 
 async function loadWith(id?: string) {
   vi.resetModules()
@@ -132,6 +133,29 @@ describe('getLegalDoc — a configured policy is required in production', () => 
     const getLegalDoc = await loadWith('')
 
     await expect(getLegalDoc('privacy')).resolves.toBeNull()
+  })
+})
+
+describe('getLegalDoc e iubendaHostedUrl — la lingua della pagina', () => {
+  it("con l'inglese scaricano e collegano la policy inglese", async () => {
+    vi.resetModules()
+    vi.stubEnv('PUBLIC_IUBENDA_COOKIE_POLICY_ID', POLICY_ID)
+    vi.stubEnv('PUBLIC_IUBENDA_COOKIE_POLICY_IDS', `en:${ENGLISH_POLICY_ID}`)
+    const { getLegalDoc, iubendaHostedUrl } = await import('@/lib/legal/documents')
+    const fetchSpy = mockFetch({ success: true, content: '<p>Privacy</p>' })
+
+    await getLegalDoc('privacy', 'en')
+
+    expect(fetchSpy.mock.calls[0]?.[0]).toContain(`/${ENGLISH_POLICY_ID}/no-markup`)
+    expect(iubendaHostedUrl('privacy', 'en')).toBe(`https://www.iubenda.com/privacy-policy/${ENGLISH_POLICY_ID}`)
+  })
+
+  it('senza la coppia della lingua non scaricano niente', async () => {
+    const getLegalDoc = await loadWith(POLICY_ID)
+    const fetchSpy = mockFetch({})
+
+    expect(await getLegalDoc('privacy', 'en')).toBeNull()
+    expect(fetchSpy).not.toHaveBeenCalled()
   })
 })
 

@@ -8,7 +8,7 @@ import { getLegalDoc } from '@/lib/legal/documents'
 import { useTranslations } from '@/i18n/translate'
 
 const t = useTranslations(Astro.currentLocale)
-const html = await getLegalDoc('privacy')
+const html = await getLegalDoc('privacy', Astro.currentLocale)
 
 const title = t('legal.privacy')
 const description = t('legal.privacyDescription')

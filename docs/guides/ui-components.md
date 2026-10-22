@@ -246,6 +246,10 @@ compositi, il contratto deve vivere in un test unitario che calcola luminanza re
 
 ## Contenuti dell'arredo
 
+Header e footer arrivano a `main.astro` da `src/components/layout/chrome.ts`, il modulo che un
+template derivato riscrive con i suoi (`docs/ARCHITECTURE.md` § I punti di aggancio dei template
+derivati).
+
 La struttura di header, footer e skip-link viene da `src/lib/site.ts` (`SITE`): nav, CTA, link
 legali, social. I testi NON stanno lì: le voci portano chiavi di dizionario i18n risolte tramite
 `useTranslations(Astro.currentLocale)` (`src/i18n/strings/<lingua>.ts`). Nessuna etichetta fissa nei
@@ -298,7 +302,10 @@ apre il pannello della CMP, non porta a una pagina.
 - **Le classi vengono solo da `src/`**: `globals.css` importa Tailwind con `source("..")`. Senza, il
   rilevamento automatico legge ogni file che git non ignora, e le parole delle guide, di `CLAUDE.md`
   o di `astro.config.mjs` diventano regole del CSS costruito che nessun componente usa. Una classe
-  che vive in un file fuori da `src/` si dichiara con `@source` in `globals.css`.
+  che vive in un file fuori da `src/` si dichiara con `@source` in `globals.css`. Dentro `src/`
+  restano fuori, con `@source not`, i test `*.test.ts`, che citano classi che nessun elemento usa, e
+  `src/assets`, dove i comandi dei tracciati SVG si leggerebbero come utility: una classe scritta
+  dentro un file di `src/assets` non arriva al CSS, e va sul componente che lo rende.
 
 ## Pattern di accessibilità nell'arredo
 
