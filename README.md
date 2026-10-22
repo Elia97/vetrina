@@ -213,7 +213,10 @@ non carica nessun tag e non scrive nessun cookie non essenziale. Per accenderlo:
 1. Crea per il cliente il sito iubenda con la sua cookie policy, e il container GTM.
 2. Imposta `PUBLIC_GTM_ID`, `PUBLIC_IUBENDA_SITE_ID` e `PUBLIC_IUBENDA_COOKIE_POLICY_ID` — su Vercel
    come variabili **Plain**, mai Sensitive (una variabile Sensitive arriva alla build come la
-   stringa letterale `[SENSITIVE]`). Sono id pubblici che finiscono nel bundle, non segreti.
+   stringa letterale `[SENSITIVE]`). Sono id pubblici che finiscono nel bundle, non segreti. In un
+   sito con più lingue iubenda dà un id di policy per lingua: `PUBLIC_IUBENDA_COOKIE_POLICY_ID`
+   resta quello della lingua di default, e `PUBLIC_IUBENDA_COOKIE_POLICY_IDS` porta le altre come
+   coppie `lingua:id` separate da virgole, per esempio `en:12345678,de:87654321`.
 3. **La CSP non si tocca**: gli host di GTM e iubenda stanno già in `src/lib/csp/directives.ts`, da
    cui la policy si genera in fase di build, e `vercel.json` porta solo `frame-ancestors`. Un
    fornitore in più va in `directives.ts`, mai in `vercel.json`: `docs/guides/deploy-ops.md` §
@@ -221,8 +224,10 @@ non carica nessun tag e non scrive nessun cookie non essenziale. Per accenderlo:
 4. Verifica su una preview, accettando e rifiutando, con GA4 Realtime e la console aperti: prima del
    consenso a Google non deve arrivare niente, e nessuna richiesta deve essere bloccata dalla CSP.
 
-Lo stesso id di policy fa passare anche `/privacy` e `/cookie-policy` dalle loro bozze segnaposto ai
-documenti iubenda ospitati. Vengono scaricati in fase di build, quindi una policy modificata su
+L'id di policy di una lingua fa passare anche le sue `/privacy` e `/cookie-policy` dalle bozze
+segnaposto ai documenti iubenda ospitati, ed è quello che riceve il banner delle sue pagine; una
+lingua senza il suo id dice che il documento non è disponibile. I documenti vengono scaricati in
+fase di build, quindi una policy modificata su
 iubenda arriva sul sito solo al deploy successivo, e la procedura è in `docs/guides/deploy-ops.md`
 § Ricostruire le pagine legali dopo una modifica alle policy.
 
@@ -301,6 +306,9 @@ puramente additiva.
    `getHomepageSections(Astro.currentLocale)` e `useTranslations(Astro.currentLocale)` risolvono già
    per lingua. 404 e 500 restano fuori: Vercel serve sempre quelle della radice, e dichiarano già la
    sola lingua di default.
+9. Consenso: con iubenda configurato, l'id di policy della lingua nuova va in
+   `PUBLIC_IUBENDA_COOKIE_POLICY_IDS` (§ Configurare consenso e analytics, sopra). Senza, le sue
+   pagine legali dicono che il documento non è disponibile.
 
 I link della chrome passano da `localizedHref(Astro.currentLocale, path)` (vedi header e footer),
 quindi nav e URL legali si localizzano senza toccare i componenti. Le CTA dei contenuti — i bottoni

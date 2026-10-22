@@ -98,6 +98,11 @@ export default defineConfig({
         access: 'public',
         optional: true,
       }),
+      PUBLIC_IUBENDA_COOKIE_POLICY_IDS: envField.string({
+        context: 'client',
+        access: 'public',
+        optional: true,
+      }),
     },
   },
 })

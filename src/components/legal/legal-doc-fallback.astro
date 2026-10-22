@@ -13,7 +13,7 @@ interface Props {
 const { kind } = Astro.props
 const t = useTranslations(Astro.currentLocale)
 const title = kind === 'privacy' ? t('legal.privacyPolicyTitle') : t('legal.cookiePolicyTitle')
-const hostedUrl = iubendaHostedUrl(kind)
+const hostedUrl = iubendaHostedUrl(kind, Astro.currentLocale)
 ---
 
 <div>

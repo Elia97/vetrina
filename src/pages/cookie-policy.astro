@@ -8,7 +8,7 @@ import { getLegalDoc } from '@/lib/legal/documents'
 import { useTranslations } from '@/i18n/translate'
 
 const t = useTranslations(Astro.currentLocale)
-const html = await getLegalDoc('cookie-policy')
+const html = await getLegalDoc('cookie-policy', Astro.currentLocale)
 
 const title = t('legal.cookies')
 const description = t('legal.cookiesDescription')
