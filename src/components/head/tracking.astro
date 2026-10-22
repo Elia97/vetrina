@@ -6,7 +6,7 @@ import { DEFAULT_LOCALE, SITE } from '@/lib/site'
 
 import { localizedHref } from '@/i18n/href'
 
-const config = getTrackingConfig()
+const config = getTrackingConfig(Astro.currentLocale)
 const lang = Astro.currentLocale ?? DEFAULT_LOCALE
 
 // I link legali del banner puntano qui invece che ai documenti ospitati: vedi

@@ -1,23 +1,13 @@
-import { PUBLIC_IUBENDA_COOKIE_POLICY_ID } from 'astro:env/client'
 import { z } from 'astro/zod'
+
+import { iubendaPolicyId } from '@/lib/legal/policy-id'
 
 export type LegalDocKind = 'privacy' | 'cookie-policy'
 
-function policyId(): string {
-  const id = PUBLIC_IUBENDA_COOKIE_POLICY_ID ?? ''
-  // Le variabili "sensitive" di Vercel arrivano a un pull prebuilt come la stringa letterale
-  // [SENSITIVE]; gli id iubenda sono numerici.
-  if (id !== '' && !/^\d+$/.test(id)) {
-    console.error('[legal] ignoring non-numeric iubenda policy id (misconfigured env?)')
-    return ''
-  }
-  return id
-}
-
 /** null quando non è configurato: per un id vuoto iubenda serve una pagina di policy
  *  generica, non un 404. */
-export function iubendaHostedUrl(kind: LegalDocKind): string | null {
-  const id = policyId()
+export function iubendaHostedUrl(kind: LegalDocKind, locale?: string): string | null {
+  const id = iubendaPolicyId(locale)
   if (id === '') return null
   const base = `https://www.iubenda.com/privacy-policy/${id}`
   return kind === 'privacy' ? base : `${base}/cookie-policy`
@@ -45,8 +35,8 @@ export function sanitizeLegalHtml(html: string): string {
 
 /** [HARD] Configurato significa obbligatorio: in produzione una fetch fallita solleva un
  *  errore invece di spedire come policy la bozza segnaposto "non ancora rivista legalmente". */
-export async function getLegalDoc(kind: LegalDocKind): Promise<string | null> {
-  const id = policyId()
+export async function getLegalDoc(kind: LegalDocKind, locale?: string): Promise<string | null> {
+  const id = iubendaPolicyId(locale)
   if (id === '') return null
   try {
     const res = await fetch(apiUrl(kind, id), { signal: AbortSignal.timeout(10_000) })

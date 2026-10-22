@@ -5,3 +5,4 @@ import process from 'node:process'
 export const PUBLIC_GTM_ID: string | undefined = process.env.PUBLIC_GTM_ID
 export const PUBLIC_IUBENDA_SITE_ID: string | undefined = process.env.PUBLIC_IUBENDA_SITE_ID
 export const PUBLIC_IUBENDA_COOKIE_POLICY_ID: string | undefined = process.env.PUBLIC_IUBENDA_COOKIE_POLICY_ID
+export const PUBLIC_IUBENDA_COOKIE_POLICY_IDS: string | undefined = process.env.PUBLIC_IUBENDA_COOKIE_POLICY_IDS

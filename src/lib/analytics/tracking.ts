@@ -1,4 +1,6 @@
-import { PUBLIC_GTM_ID, PUBLIC_IUBENDA_COOKIE_POLICY_ID, PUBLIC_IUBENDA_SITE_ID } from 'astro:env/client'
+import { PUBLIC_GTM_ID, PUBLIC_IUBENDA_SITE_ID } from 'astro:env/client'
+
+import { iubendaPolicyId } from '@/lib/legal/policy-id'
 
 export interface TrackingConfig {
   gtmId: string
@@ -15,10 +17,10 @@ function numericId(value: string | undefined): string {
 
 /** null se non ci sono entrambe: senza tag non c'è nessun cookie non essenziale, quindi
  *  nessun banner di consenso è dovuto per legge. */
-export function getTrackingConfig(): TrackingConfig | null {
+export function getTrackingConfig(locale?: string): TrackingConfig | null {
   const gtmId = PUBLIC_GTM_ID ?? ''
   const iubendaSiteId = numericId(PUBLIC_IUBENDA_SITE_ID)
   if (gtmId === '' || iubendaSiteId === '') return null
 
-  return { gtmId, iubendaSiteId, cookiePolicyId: numericId(PUBLIC_IUBENDA_COOKIE_POLICY_ID) }
+  return { gtmId, iubendaSiteId, cookiePolicyId: iubendaPolicyId(locale) }
 }

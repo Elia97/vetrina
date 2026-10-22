@@ -31,7 +31,12 @@
     },
     {
       "file": "test/stubs/astro-env-client.ts",
-      "exports": ["PUBLIC_GTM_ID", "PUBLIC_IUBENDA_SITE_ID", "PUBLIC_IUBENDA_COOKIE_POLICY_ID"]
+      "exports": [
+        "PUBLIC_GTM_ID",
+        "PUBLIC_IUBENDA_SITE_ID",
+        "PUBLIC_IUBENDA_COOKIE_POLICY_ID",
+        "PUBLIC_IUBENDA_COOKIE_POLICY_IDS"
+      ]
     },
     { "file": "test/stubs/astro-actions.ts", "exports": ["isInputError", "ActionError", "defineAction", "actions"] },
     { "file": "test/stubs/astro-config-client.ts", "exports": ["i18n"] },
