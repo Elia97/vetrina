@@ -21,6 +21,7 @@ const t = useTranslations(Astro.currentLocale)
     novalidate
     method="post"
     data-contact-form
+    data-locale={Astro.currentLocale}
     data-i18n-sending={t('contact.sending')}
     data-i18n-submit={t('contact.submit')}
     data-i18n-generic-error={t('contact.genericFieldError')}

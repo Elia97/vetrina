@@ -15,9 +15,15 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { HONEYPOT_FIELD } from '@/lib/forms/honeypot'
 
 import { it as dictionary } from '@/i18n/strings/it'
+import { useTranslations } from '@/i18n/translate'
 
 vi.mock('@/lib/vendor/brevo', () => brevoMock)
 vi.mock('botid/server', () => botidMock)
+vi.mock('astro:config/client', () => import('@test/helpers/second-locale').then((m) => m.twoLocaleConfig))
+vi.mock('@/i18n/ui', async (importOriginal) => {
+  const { withSecondLocaleDictionary } = await import('@test/helpers/second-locale')
+  return withSecondLocaleDictionary(await importOriginal())
+})
 
 const TRAPPED = { ...CONTACT_INPUT, [HONEYPOT_FIELD]: 'http://spam.test' }
 
@@ -59,6 +65,15 @@ describe('rate limit', () => {
     expect(brevoMock.sendTransactionalEmail).not.toHaveBeenCalled()
   })
 
+  it('rifiuta nella lingua del payload', async () => {
+    const { handleContact } = await importContactAction()
+    for (let i = 0; i < 5; i++) await handleContact(CONTACT_INPUT, CLIENT)
+
+    const error = await rejectionOf(handleContact({ ...CONTACT_INPUT, locale: 'en' }, CLIENT))
+
+    expect(error.message).toBe(useTranslations('en')('forms.action.tooManyRequests'))
+  })
+
   it('keeps a separate window per address', async () => {
     const { handleContact } = await importContactAction()
     for (let i = 0; i < 5; i++) await handleContact(CONTACT_INPUT, CLIENT)
@@ -98,6 +113,16 @@ describe('bot check', () => {
     expect(error.code).toBe('FORBIDDEN')
     expect(error.message).toBe(dictionary['forms.action.securityCheckFailed'])
     expect(brevoMock.sendTransactionalEmail).not.toHaveBeenCalled()
+  })
+
+  it('rifiuta un bot nella lingua del payload', async () => {
+    spyOnConsoleWarn()
+    botidMock.checkBotId.mockResolvedValue({ isBot: true })
+    const { handleContact } = await importContactAction({ prod: true, botidEnforce: true })
+
+    const error = await rejectionOf(handleContact({ ...CONTACT_INPUT, locale: 'en' }, CLIENT))
+
+    expect(error.message).toBe(useTranslations('en')('forms.action.securityCheckFailed'))
   })
 
   it('fails open when the check itself throws — a broken guard never costs a lead', async () => {

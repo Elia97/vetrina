@@ -1,8 +1,14 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import { detailRow, escapeHtml, layout } from '@/lib/emails/layout'
 
 import { it as dictionary } from '@/i18n/strings/it'
+import { useTranslations } from '@/i18n/translate'
+
+vi.mock('@/i18n/ui', async (importOriginal) => {
+  const { withSecondLocaleDictionary } = await import('@test/helpers/second-locale')
+  return withSecondLocaleDictionary(await importOriginal())
+})
 
 describe('escapeHtml', () => {
   it("sostituisce i cinque caratteri speciali dell'HTML", () => {
@@ -19,6 +25,10 @@ describe('escapeHtml', () => {
 describe('layout', () => {
   it('prende la lingua del documento da email.lang', () => {
     expect(layout('Heading', '')).toContain(`<html lang="${dictionary['email.lang']}">`)
+  })
+
+  it('prende email.lang dalla lingua della mail, quando la riceve', () => {
+    expect(layout('Heading', '', 'en')).toContain(`<html lang="${useTranslations('en')('email.lang')}">`)
   })
 
   it('passa il titolo da escapeHtml', () => {

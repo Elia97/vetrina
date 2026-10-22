@@ -11,7 +11,6 @@ import { useTranslations } from '@/i18n/translate'
 
 import { renderContactAutoreply, renderContactNotification } from '@/emails/contact'
 
-const t = useTranslations()
 const sender = { email: CONTACT_FROM_EMAIL, name: CONTACT_FROM_NAME }
 
 function droppedByHoneypot(input: Parameters<typeof isHoneypotFilled>[0]): boolean {
@@ -20,11 +19,11 @@ function droppedByHoneypot(input: Parameters<typeof isHoneypotFilled>[0]): boole
   return true
 }
 
-function assertNotRateLimited(clientAddress: string): void {
+function assertNotRateLimited(clientAddress: string, locale: string): void {
   if (rateLimit(`contact:${clientAddress}`)) return
   throw new ActionError({
     code: 'TOO_MANY_REQUESTS',
-    message: t('forms.action.tooManyRequests'),
+    message: useTranslations(locale)('forms.action.tooManyRequests'),
   })
 }
 
@@ -41,7 +40,7 @@ async function detectBot(): Promise<boolean> {
   }
 }
 
-async function assertNotBot(): Promise<void> {
+async function assertNotBot(locale: string): Promise<void> {
   if (!(await detectBot())) return
   if (!BOTID_ENFORCE) {
     console.warn('[contact] bot detected — observe mode, submission allowed (BOTID_ENFORCE=false)')
@@ -50,13 +49,13 @@ async function assertNotBot(): Promise<void> {
   console.warn('[contact] bot detected — submission rejected')
   throw new ActionError({
     code: 'FORBIDDEN',
-    message: t('forms.action.securityCheckFailed'),
+    message: useTranslations(locale)('forms.action.securityCheckFailed'),
   })
 }
 
 function sendContactEmails(input: ContactRequest): Promise<[BrevoResult, BrevoResult, BrevoResult]> {
   const notify = renderContactNotification(input)
-  const auto = renderContactAutoreply(CONTACT_TO_EMAIL)
+  const auto = renderContactAutoreply(CONTACT_TO_EMAIL, input.locale)
   const replyToName = [input.firstName, input.lastName].filter(Boolean).join(' ')
 
   return Promise.all([
@@ -92,7 +91,7 @@ function reportContactResults(
     console.error('[contact] lead-recovery', JSON.stringify(leadRecoveryRecord(input)))
     throw new ActionError({
       code: 'INTERNAL_SERVER_ERROR',
-      message: t('forms.action.sendFailed'),
+      message: useTranslations(input.locale)('forms.action.sendFailed'),
     })
   }
   if (!autoreplied.ok) {
@@ -109,8 +108,8 @@ export interface ActionContext {
 
 export async function handleContact(input: ContactRequest, context: ActionContext): Promise<{ ok: true }> {
   if (droppedByHoneypot(input)) return { ok: true }
-  assertNotRateLimited(context.clientAddress)
-  await assertNotBot()
+  assertNotRateLimited(context.clientAddress, input.locale)
+  await assertNotBot(input.locale)
   reportContactResults(input, await sendContactEmails(input))
   return { ok: true }
 }

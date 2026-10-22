@@ -4,6 +4,7 @@ import { vi } from 'vitest'
 
 import type { ContactRequest } from '@/lib/contact'
 import { HONEYPOT_FIELD } from '@/lib/forms/honeypot'
+import { DEFAULT_LOCALE } from '@/lib/site'
 import type { BrevoResult, SendEmailParams, UpsertContactParams } from '@/lib/vendor/brevo'
 
 export const brevoMock = {
@@ -18,6 +19,7 @@ export const KO_ERROR = 'brevo said no'
 export const KO: BrevoResult = { ok: false, error: KO_ERROR }
 
 export const CONTACT_INPUT: ContactRequest = {
+  locale: DEFAULT_LOCALE,
   [HONEYPOT_FIELD]: '',
   firstName: 'Mario',
   lastName: 'Rossi',
