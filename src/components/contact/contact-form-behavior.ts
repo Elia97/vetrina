@@ -13,6 +13,7 @@ export const bindContactForm = createActionFormBinding({
   buildPayload: (form) => {
     const data = new FormData(form)
     return {
+      locale: form.dataset.locale ?? '',
       [HONEYPOT_FIELD]: field(data, HONEYPOT_FIELD),
       firstName: field(data, 'firstName'),
       lastName: field(data, 'lastName'),

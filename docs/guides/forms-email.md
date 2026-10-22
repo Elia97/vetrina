@@ -49,18 +49,24 @@ momento del type-check.
 **[HARD] Ogni messaggio viene dal dizionario.** Gli errori di zod sono in inglese («Invalid email») e
 arrivano all'utente tali e quali: `applyFieldErrors()` li stampa dritti negli slot dei campi. I
 campi si costruiscono da `src/lib/forms/form-fields.ts` (`requiredText`, `emailField`,
-`consentField`), che portano messaggi `error:` risolti tramite `useTranslations()`;
-`form-fields.test.ts` verifica ciascuno contro il dizionario, così un campo non può ricadere in
-silenzio sul messaggio di default. Lo stesso vale per i messaggi delle `ActionError` di
+`consentField`), che portano messaggi `error:` risolti con `useTranslations()`: `emailField` e
+`consentField` prendono la lingua, e `requiredText` il messaggio già tradotto. `form-fields.test.ts`
+verifica ciascuno contro il dizionario di ogni lingua, così un campo non può ricadere in silenzio sul
+messaggio di default. Lo stesso vale per i messaggi delle `ActionError` di
 `src/actions/contact.ts` (chiavi `forms.action.*`), che `messageOf()` mostra all'utente, e per le
 email di `src/emails/contact.ts` (chiavi `email.*`): `guards.test.ts`, `contact.test.ts` ed
 `emails/contact.test.ts` li confrontano con il dizionario.
 
-Schema, errori delle azioni ed email risolvono le stringhe a livello di modulo, nella **lingua di
-default**, e non ce n'è una migliore da usare: il form chiama l'azione via RPC (`accept: 'json'`),
-la richiesta arriva su `/_actions/contact`, e lì `Astro.currentLocale` vale sempre la lingua di
-default, qualunque sia la pagina da cui parte l'invio. Un progetto con due lingue passa la lingua
-della pagina nel payload, e costruisce su quella messaggi ed email.
+**La lingua viaggia nel payload.** Il form chiama l'azione via RPC (`accept: 'json'`), la richiesta
+arriva su `/_actions/contact`, e lì `Astro.currentLocale` vale sempre la lingua di default, qualunque
+sia la pagina da cui parte l'invio. Il form porta quindi la lingua della pagina in `data-locale`, e
+`buildPayload` la manda come `locale`. Lo schema è uno per lingua: `schemaByLocale()`, in
+`src/lib/forms/form-fields.ts`, mette in una `z.discriminatedUnion('locale', …)` un membro per ogni
+lingua instradata, ciascuno con i messaggi della sua, e Astro valida l'input con il membro della
+lingua del payload. Gli errori di campo arrivano così nella lingua della pagina, e l'handler legge
+`input.locale` per i messaggi delle `ActionError` e per la risposta automatica. Un invio senza
+lingua, o con una che il sito non instrada, si rifiuta con un messaggio solo, `forms.error.reload`,
+nella lingua di default: chiede di ricaricare la pagina, perché lo manda un bundle di prima.
 
 **[HARD] `required` nel markup significa obbligatorio nello schema.** Il form è `novalidate`, perché
 altrimenti i fumetti del browser segnalerebbero il primo campo non valido con parole e stile propri,
@@ -181,7 +187,7 @@ Regole che vale la pena tenere in un progetto:
 
 ## Rendering delle email
 
-- La cornice comune sta in `src/lib/emails/layout.ts`: `layout(heading, body)`,
+- La cornice comune sta in `src/lib/emails/layout.ts`: `layout(heading, body, locale?)`,
   `detailRow(label, value)` ed `escapeHtml`. Un'email nuova le importa da lì invece di ricopiarle,
   anche da un modulo di `src/lib/`, perché la cartella è nella zona `leaf` dei confini
   (`docs/ARCHITECTURE.md` § Stratificazione dei sorgenti).
@@ -196,8 +202,11 @@ Regole che vale la pena tenere in un progetto:
   inserisce alla lettera. In `escapeHtml` il valore è il testo in cui si cerca, e il rischio non
   c'è.
 - Titoli, oggetti, etichette, corpo della risposta automatica e `lang` vengono dal dizionario
-  (`email.*`), nella lingua di default (§ Validazione). La cornice degli oggetti con `SITE.name`
-  resta nel codice, e l'indirizzo entra nel corpo della risposta automatica al posto di `{email}`.
+  (`email.*`). La notifica al titolare è nella lingua di default, perché la legge chi gestisce il
+  sito, e in un sito con più lingue dice in una riga la lingua di chi ha scritto. La risposta
+  automatica è nella lingua del payload (§ Validazione), e `layout()` le dà il `lang` di quella
+  lingua. La cornice degli oggetti con `SITE.name` resta nel codice, e l'indirizzo entra nel corpo
+  della risposta automatica al posto di `{email}`.
 
 ## Convenzioni dell'interfaccia dei form
 
@@ -292,7 +301,7 @@ fixture condivise e i mock di fornitore e BotID stanno in `test/helpers/actions.
 
 ### Un campo nuovo sul form di contatto
 
-1. Aggiungilo a `contactSchema`, limiti compresi.
+1. Aggiungilo a `contactSchemaFor()` in `src/lib/contact.ts`, limiti compresi.
 2. Rendilo nel componente `contact-*.astro` giusto (con le chiavi i18n), col suo
    `aria-describedby={fieldErrorId('<nome>')}` e un `<FieldError field="<nome>" />` fratello:
    `markup-contract.test.ts` fallisce senza.
@@ -305,9 +314,12 @@ fixture condivise e i mock di fornitore e BotID stanno in `test/helpers/actions.
 ### Un form nuovo dietro un'azione
 
 1. **Schema** in un suo `src/lib/<nome>.ts` (zod, condiviso client e server), che include
-   `honeypotShape`. Un campo nascosto che il visitatore non vede prende `.catch(<ripiego>)`, non
-   `.default()`: un valore inatteso si converte invece di far rifiutare l'invio, così un visitatore
-   su un bundle vecchio in cache passa comunque.
+   `honeypotShape`: una funzione della lingua, con `locale: z.literal(locale)` e i messaggi di quella
+   lingua, che `schemaByLocale()` rende lo schema dell'azione (§ Validazione). Il form porta
+   `data-locale={Astro.currentLocale}`, e `buildPayload` la manda. Un campo nascosto che il visitatore
+   non vede prende `.catch(<ripiego>)`, non `.default()`: un valore inatteso si converte invece di
+   far rifiutare l'invio, così un visitatore su un bundle vecchio in cache passa comunque. La lingua
+   fa eccezione, perché è il discriminante dell'unione.
 2. **Azione** in un suo `src/actions/<nome>.ts`: un handler esportato `handle<Nome>` passato a
    `defineAction({ accept: 'json', input, handler })`, e l'azione registrata in coda a `server` in
    `src/actions/index.ts`, una voce per riga. Le guardie girano nello stesso ordine (honeypot →

@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import { contactSchema } from '@/lib/contact'
 import { HONEYPOT_FIELD, isHoneypotFilled } from '@/lib/forms/honeypot'
+import { DEFAULT_LOCALE } from '@/lib/site'
 
 describe('isHoneypotFilled', () => {
   it('reads an empty decoy as a human submission', () => {
@@ -15,6 +16,7 @@ describe('isHoneypotFilled', () => {
 
 describe('honeypot in the contact schema', () => {
   const contact = {
+    locale: DEFAULT_LOCALE,
     firstName: 'Ada',
     lastName: 'Lovelace',
     email: 'ada@example.com',

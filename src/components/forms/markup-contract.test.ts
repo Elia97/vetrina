@@ -1,5 +1,6 @@
 import { renderToFragment } from '@test/container'
-import { describe, expect, it } from 'vitest'
+import { twoLocaleManifest } from '@test/helpers/second-locale'
+import { describe, expect, it, vi } from 'vitest'
 
 import ContactForm from '@/components/contact/contact-form.astro'
 import ContactFormFields from '@/components/contact/contact-form-fields.astro'
@@ -11,11 +12,14 @@ import { it as dictionary } from '@/i18n/strings/it'
 
 import { fieldErrorId } from './field-errors'
 
+vi.mock('astro:config/client', () => import('@test/helpers/second-locale').then((m) => m.twoLocaleConfig))
+
 // Uno slot mancante o rinominato rispetto allo schema compila benissimo e degrada in silenzio
 // l'errore di campo a un messaggio a livello di form.
-const WITHOUT_SLOT: readonly string[] = [HONEYPOT_FIELD]
+const WITHOUT_SLOT: readonly string[] = [HONEYPOT_FIELD, 'locale']
 
-const expectedFields = Object.keys(contactSchema.shape).filter((field) => !WITHOUT_SLOT.includes(field))
+const [schema] = contactSchema.options
+const expectedFields = Object.keys(schema.shape).filter((field) => !WITHOUT_SLOT.includes(field))
 
 describe('contact form markup contract', () => {
   it('covers every schema field with a slot, and adds none of its own', async () => {
@@ -61,6 +65,16 @@ describe('il contratto di invio di contact-form.astro', () => {
     const form = await contactForm()
 
     expect(form?.querySelector('button[type="submit"]')?.hasAttribute('disabled')).toBe(true)
+  })
+
+  it("porta la lingua della pagina, che l'azione non può leggere dalla sua richiesta", async () => {
+    const document = await renderToFragment(
+      ContactForm,
+      { request: new Request('https://example.com/en/contact') },
+      twoLocaleManifest,
+    )
+
+    expect(document.querySelector('form[data-contact-form]')?.getAttribute('data-locale')).toBe('en')
   })
 
   it('senza JavaScript rimanda ai recapiti, con il testo del dizionario', async () => {

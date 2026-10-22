@@ -13,10 +13,18 @@ import {
 } from '@test/helpers/actions'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { SITE } from '@/lib/site'
+
 import { it as dictionary } from '@/i18n/strings/it'
+import { useTranslations } from '@/i18n/translate'
 
 vi.mock('@/lib/vendor/brevo', () => brevoMock)
 vi.mock('botid/server', () => ({ checkBotId: vi.fn() }))
+vi.mock('astro:config/client', () => import('@test/helpers/second-locale').then((m) => m.twoLocaleConfig))
+vi.mock('@/i18n/ui', async (importOriginal) => {
+  const { withSecondLocaleDictionary } = await import('@test/helpers/second-locale')
+  return withSecondLocaleDictionary(await importOriginal())
+})
 
 beforeEach(resetActionMocks)
 afterEach(restoreActionEnv)
@@ -71,6 +79,29 @@ describe('contact handler', () => {
   })
 })
 
+describe('la lingua del payload', () => {
+  it('risponde a chi scrive nella sua lingua, e avvisa il titolare in quella di default', async () => {
+    const { handleContact } = await importContactAction()
+
+    await handleContact({ ...CONTACT_INPUT, locale: 'en' }, CLIENT)
+
+    const subjectOf = (tag: string) =>
+      brevoMock.sendTransactionalEmail.mock.calls.find((call) => call[0].tags?.includes(tag))?.[0].subject
+    expect(subjectOf('autoreply')).toBe(`${useTranslations('en')('email.autoreplySubject')} — ${SITE.name}`)
+    expect(subjectOf('contact')).toBe(`[${SITE.name}] ${dictionary['email.notificationSubject']} — Mario Rossi`)
+  })
+
+  it('riporta un invio fallito nella lingua del payload', async () => {
+    spyOnConsoleError()
+    brevoAnswers({ notify: KO })
+    const { handleContact } = await importContactAction()
+
+    const error = await rejectionOf(handleContact({ ...CONTACT_INPUT, locale: 'en' }, CLIENT))
+
+    expect(error.message).toBe(useTranslations('en')('forms.action.sendFailed'))
+  })
+})
+
 describe('lead recovery', () => {
   it('quando la notifica fallisce registra chi ha scritto e la lunghezza del messaggio, mai il testo', async () => {
     const consoleError = spyOnConsoleError()
@@ -86,6 +117,7 @@ describe('lead recovery', () => {
       firstName: CONTACT_INPUT.firstName,
       lastName: CONTACT_INPUT.lastName,
       email: CONTACT_INPUT.email,
+      locale: CONTACT_INPUT.locale,
       messageLength: CONTACT_INPUT.message.length,
     })
     expect(record).not.toHaveProperty('message')

@@ -6,7 +6,7 @@ import { HONEYPOT_FIELD } from '@/lib/forms/honeypot'
 // buildPayload mappa per NOME del controllo: un controllo rinominato invia in silenzio una stringa vuota.
 function renderForm(): HTMLFormElement {
   document.body.innerHTML = `
-    <form data-contact-form>
+    <form data-contact-form data-locale="en">
       <input name="firstName" value="Ada" />
       <input name="lastName" value="Lovelace" />
       <input name="email" value="ada@example.test" />
@@ -56,6 +56,12 @@ describe('contact form payload', () => {
     })
   })
 
+  it("porta la lingua della pagina, che l'azione non può leggere dalla sua richiesta", async () => {
+    const payload = await submitAndCapture()
+
+    expect(payload.locale).toBe('en')
+  })
+
   it('carries the decoy through so the handler can drop it silently', async () => {
     const payload = await submitAndCapture()
 
@@ -78,6 +84,6 @@ describe('contact form payload', () => {
       expect(spy).toHaveBeenCalled()
     })
 
-    expect(spy.mock.calls[0]?.[0]).toMatchObject({ email: '', consent: false })
+    expect(spy.mock.calls[0]?.[0]).toMatchObject({ locale: '', email: '', consent: false })
   })
 })

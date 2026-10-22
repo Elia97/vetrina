@@ -19,7 +19,9 @@ export const translatedSlugPaths = {
 export const SECOND_LOCALE_DESCRIPTION = 'A short description of the site, in English'
 
 export function withSecondLocaleDictionary(ui: typeof import('@/i18n/ui')) {
-  const translated = { ...ui.dictionaries[DEFAULT_LOCALE], 'site.description': SECOND_LOCALE_DESCRIPTION }
+  const base = ui.dictionaries[DEFAULT_LOCALE]
+  const marked = Object.fromEntries(Object.entries(base).map(([key, text]) => [key, `[${SECOND_LOCALE}] ${text}`]))
+  const translated = { ...(marked as typeof base), 'site.description': SECOND_LOCALE_DESCRIPTION }
   return { ...ui, dictionaries: { ...ui.dictionaries, [SECOND_LOCALE]: translated } }
 }
 

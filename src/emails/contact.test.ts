@@ -1,14 +1,16 @@
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import type { ContactRequest } from '@/lib/contact'
 import { HONEYPOT_FIELD } from '@/lib/forms/honeypot'
-import { SITE } from '@/lib/site'
+import { DEFAULT_LOCALE, SITE } from '@/lib/site'
 
+import { localeName } from '@/i18n/locales'
 import { it as dictionary } from '@/i18n/strings/it'
 
 import { renderContactAutoreply, renderContactNotification } from '@/emails/contact'
 
 const baseRequest: ContactRequest = {
+  locale: DEFAULT_LOCALE,
   // Fa parte del payload validato, mai dell'email resa: una richiesta che arriva al
   // renderer ha già superato l'esca.
   [HONEYPOT_FIELD]: '',
@@ -62,25 +64,66 @@ describe('renderContactNotification', () => {
       expect(html).toContain(dictionary[key])
     }
   })
+
+  it('con una lingua sola non dice la lingua di chi ha scritto', () => {
+    const { html } = renderContactNotification({ ...baseRequest, message: 'Hello' })
+
+    expect(html).not.toContain(dictionary['email.localeLabel'])
+  })
 })
 
 describe('renderContactAutoreply', () => {
   it('tells the visitor where to write for urgent matters', () => {
-    const { html } = renderContactAutoreply('info@example.com')
+    const { html } = renderContactAutoreply('info@example.com', DEFAULT_LOCALE)
     expect(html).toContain('info@example.com')
   })
 
   it('signs with the site name', () => {
-    const { subject, html } = renderContactAutoreply('info@example.com')
+    const { subject, html } = renderContactAutoreply('info@example.com', DEFAULT_LOCALE)
     expect(subject).toContain('<PROJECT_NAME>')
     expect(html).toContain('&lt;PROJECT_NAME&gt;')
   })
 
   it("prende oggetto, titolo e corpo dal dizionario, con l'indirizzo al posto del segnaposto", () => {
-    const { subject, html } = renderContactAutoreply('sales@acme.test')
+    const { subject, html } = renderContactAutoreply('sales@acme.test', DEFAULT_LOCALE)
 
     expect(subject).toBe(`${dictionary['email.autoreplySubject']} — ${SITE.name}`)
     expect(html).toContain(dictionary['email.autoreplyHeading'])
     expect(html).toContain(dictionary['email.autoreplyBody'].replace('{email}', 'sales@acme.test'))
+  })
+})
+
+describe('con due lingue', () => {
+  async function emailsWithTwoLocales() {
+    vi.resetModules()
+    vi.doMock('astro:config/client', () => import('@test/helpers/second-locale').then((m) => m.twoLocaleConfig))
+    vi.doMock('@/i18n/ui', async (importOriginal) => {
+      const { withSecondLocaleDictionary } = await import('@test/helpers/second-locale')
+      return withSecondLocaleDictionary(await importOriginal())
+    })
+    const [emails, { useTranslations }] = await Promise.all([import('@/emails/contact'), import('@/i18n/translate')])
+    return { ...emails, t: useTranslations('en') }
+  }
+
+  afterEach(() => {
+    vi.doUnmock('astro:config/client')
+    vi.doUnmock('@/i18n/ui')
+    vi.resetModules()
+  })
+
+  it('risponde nella lingua del payload, con il lang di quella lingua', async () => {
+    const { renderContactAutoreply: autoreply, t } = await emailsWithTwoLocales()
+    const { subject, html } = autoreply('info@example.com', 'en')
+
+    expect(subject).toBe(`${t('email.autoreplySubject')} — ${SITE.name}`)
+    expect(html).toContain(`<html lang="${t('email.lang')}">`)
+  })
+
+  it('nella notifica dice la lingua di chi ha scritto', async () => {
+    const { renderContactNotification: notification } = await emailsWithTwoLocales()
+    const { html } = notification({ ...baseRequest, locale: 'en' })
+
+    expect(html).toContain(dictionary['email.localeLabel'])
+    expect(html).toContain(localeName('en'))
   })
 })
