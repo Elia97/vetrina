@@ -3,6 +3,8 @@
 
   "entry": [
     "src/components/ui/**",
+    "src/components/layout/header.astro",
+    "src/components/layout/footer.astro",
     "src/lib/motion/index.ts",
     // `officina` lo cerca per nome nella radice e lo importa a runtime: nessun import lo raggiunge.
     "officina.config.ts"
