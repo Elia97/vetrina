@@ -43,6 +43,7 @@ src/
                #   badge, breadcrumb, cta-banner, reveal, select         machinery
     forms/     # binder di invio, errori di campo, honeypot, BotID       machinery
     layout/    # header, footer, nav mobile, skip-link                   chrome
+               #   chrome.ts: da dove main.astro prende header e footer  config
     contact/   # riferimento svolto: un form dietro un'azione            example
     legal/     # riferimento svolto: una pagina legale                   example
     homepage/  # le sezioni della homepage                               example
@@ -154,8 +155,9 @@ come le pagine legali erano andate alla deriva prima che il controllo esistesse.
 
 Un template derivato, come `ecommerce`, riceve la base con il cherry-pick dei commit di vetrina e
 la estende solo nei punti qui sotto. In ognuno aggiunge **in coda**, una voce per riga, così un
-allineamento successivo non tocca le righe di vetrina. Ogni altra modifica alla base si fa in
-vetrina, e arriva al template derivato con il cherry-pick.
+allineamento successivo non tocca le righe di vetrina; header e footer sono l'unico punto che si
+sostituisce invece di allungarsi. Ogni altra modifica alla base si fa in vetrina, e arriva al
+template derivato con il cherry-pick.
 
 - **Azioni**: `src/actions/index.ts` è il solo registro, `server`. Un'azione nuova sta in un suo
   `src/actions/<nome>.ts` e si registra in coda a `server` (`docs/guides/forms-email.md` § Un form
@@ -171,6 +173,14 @@ vetrina, e arriva al template derivato con il cherry-pick.
   `ClientRouter` e il focus dopo la navigazione. Ha lo slot `head`, lo slot del corpo e la prop
   `class` per `<html>`. Un layout nuovo lo compone con il suo arredo, come fa `main.astro`, e rende
   `<main id="main-content" tabindex="-1">`.
+- **Header e footer**: `main.astro` li prende da `src/components/layout/chrome.ts`, che nella base
+  esporta `Header` e `Footer` da `header.astro` e `footer.astro`. Un template derivato con una
+  chrome sua riscrive quelle due righe verso i suoi componenti, e la ricevono tutte le pagine che
+  usano `main.astro`, 404 e 500 comprese. All'header `main.astro` passa `heroOverlay`,
+  `overlayChrome`, `locales` e `languagePrefetch`, e se quello del derivato non le accetta tutte
+  `astro check` si ferma su `main.astro`. La chrome della base resta dov'è, come base del
+  cherry-pick, e `.fallowrc.jsonc` la tiene fra gli ingressi: `check:deadcode` non la segnala
+  quando nessuno la importa più.
 - **CSP a richiesta**: `src/middleware.ts` scrive la policy nell'HTML di ogni pagina con
   `prerender = false`, sugli script che porta. Una pagina nuova non aggiunge niente
   (`docs/guides/deploy-ops.md` § Content-Security-Policy).

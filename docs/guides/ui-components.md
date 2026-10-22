@@ -246,6 +246,10 @@ compositi, il contratto deve vivere in un test unitario che calcola luminanza re
 
 ## Contenuti dell'arredo
 
+Header e footer arrivano a `main.astro` da `src/components/layout/chrome.ts`, il modulo che un
+template derivato riscrive con i suoi (`docs/ARCHITECTURE.md` § I punti di aggancio dei template
+derivati).
+
 La struttura di header, footer e skip-link viene da `src/lib/site.ts` (`SITE`): nav, CTA, link
 legali, social. I testi NON stanno lì: le voci portano chiavi di dizionario i18n risolte tramite
 `useTranslations(Astro.currentLocale)` (`src/i18n/strings/<lingua>.ts`). Nessuna etichetta fissa nei
