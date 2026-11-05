@@ -17,7 +17,7 @@ export const alertVariants = cva(
         warning:
           'border-warning bg-muted text-foreground *:data-[slot=alert-description]:text-foreground [&>svg]:text-warning',
         muted:
-          'rounded-[max(0px,calc(var(--alert-radius)-2px))] border-border/60 mix:bg-muted/40 text-muted-foreground',
+          'border-border/60 mix:bg-muted/40 text-muted-foreground rounded-[max(0px,calc(var(--alert-radius)-2px))]',
       },
     },
     defaultVariants: { variant: 'default' },

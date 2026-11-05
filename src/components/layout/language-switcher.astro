@@ -17,7 +17,7 @@ const { locales, class: className, itemClass, prefetch = true } = Astro.props
 const available = pageLocales(locales)
 const current = Astro.currentLocale ?? DEFAULT_LOCALE
 const t = useTranslations(Astro.currentLocale)
-const item = cn('font-medium text-sm underline-offset-4 transition-colors aria-[current]:underline', itemClass)
+const item = cn('text-sm font-medium underline-offset-4 transition-colors aria-[current]:underline', itemClass)
 ---
 
 {
