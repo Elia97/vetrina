@@ -5,19 +5,19 @@ import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '@/lib/utils'
 
 export const buttonVariants = cva(
-  'type-control inline-flex cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-md transition-colors focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring active:scale-press disabled:pointer-events-none disabled:opacity-50',
+  'type-control focus-visible:ring-ring active:scale-press inline-flex cursor-pointer items-center justify-center gap-2 rounded-md whitespace-nowrap transition-colors focus-visible:ring-2 focus-visible:outline-hidden disabled:pointer-events-none disabled:opacity-50',
   {
     variants: {
       variant: {
-        default: 'border border-transparent bg-primary text-primary-foreground hover:bg-hover-primary',
-        secondary: 'border border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80',
-        destructive: 'border border-transparent bg-destructive text-destructive-foreground hover:bg-hover-destructive',
+        default: 'bg-primary text-primary-foreground hover:bg-hover-primary border border-transparent',
+        secondary: 'bg-secondary text-secondary-foreground hover:bg-secondary/80 border border-transparent',
+        destructive: 'bg-destructive text-destructive-foreground hover:bg-hover-destructive border border-transparent',
         outline:
-          'inset-ring-(--control-outline-border-color) inset-ring-[calc(var(--control-outline-border-width)-1px)] border border-(--control-outline-border-color) bg-background hover:bg-accent hover:text-accent-foreground',
-        ghost: 'border border-transparent hover:bg-accent hover:text-accent-foreground',
+          'bg-background hover:bg-accent hover:text-accent-foreground border border-(--control-outline-border-color) inset-ring-[calc(var(--control-outline-border-width)-1px)] inset-ring-(--control-outline-border-color)',
+        ghost: 'hover:bg-accent hover:text-accent-foreground border border-transparent',
         link: 'text-primary underline-offset-4 hover:underline',
-        accent: 'border border-transparent bg-accent text-accent-foreground hover:bg-accent/90',
-        soft: 'border border-transparent mix:bg-foreground/10 hover:mix:bg-foreground/20',
+        accent: 'bg-accent text-accent-foreground hover:bg-accent/90 border border-transparent',
+        soft: 'mix:bg-foreground/10 hover:mix:bg-foreground/20 border border-transparent',
       },
       size: {
         sm: 'control-sm gap-1.5 px-4',
@@ -37,7 +37,7 @@ export const buttonVariants = cva(
     compoundVariants: [
       {
         variant: ['default', 'secondary', 'destructive', 'accent'],
-        class: 'focus-visible:ring-offset-[length:var(--control-ring-offset)] focus-visible:ring-offset-background',
+        class: 'focus-visible:ring-offset-background focus-visible:ring-offset-[length:var(--control-ring-offset)]',
       },
     ],
     defaultVariants: { variant: 'default', size: 'md', shape: 'default' },
