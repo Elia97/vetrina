@@ -59,10 +59,12 @@ describe('il campo trappola di contact-form-fields.astro', () => {
     expect(HONEYPOT_FIELD).not.toMatch(AUTOFILL_HINTS)
   })
 
-  it('chiede al browser di non compilarlo e resta fuori dal Tab', async () => {
+  it('resta in sola lettura, perché Edge e Chrome ignorano autocomplete off ma non riempiono un campo readonly', async () => {
     const trap = (await renderToFragment(ContactFormFields)).querySelector(`[name="${HONEYPOT_FIELD}"]`)
 
     expect(trap?.getAttribute('type')).toBe('text')
+    expect(trap?.hasAttribute('readonly')).toBe(true)
+    expect(trap?.hasAttribute('disabled')).toBe(false)
     expect(trap?.getAttribute('autocomplete')).toBe('off')
     expect(trap?.getAttribute('tabindex')).toBe('-1')
   })
