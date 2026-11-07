@@ -6,7 +6,8 @@ import ContactForm from '@/components/contact/contact-form.astro'
 import ContactFormFields from '@/components/contact/contact-form-fields.astro'
 
 import { contactSchema } from '@/lib/contact'
-import { HONEYPOT_FIELD } from '@/lib/forms/honeypot'
+import { HONEYPOT_FIELD, isHoneypotFilled } from '@/lib/forms/honeypot'
+import { DEFAULT_LOCALE } from '@/lib/site'
 
 import { it as dictionary } from '@/i18n/strings/it'
 
@@ -48,6 +49,38 @@ describe('contact form markup contract', () => {
     const document = await renderToFragment(ContactFormFields)
     expect(document.querySelector(`[name="${HONEYPOT_FIELD}"]`)).not.toBeNull()
     expect(document.querySelector(`[data-field-error="${HONEYPOT_FIELD}"]`)).toBeNull()
+  })
+})
+
+const AUTOFILL_HINTS = /web|site|url|home|mail|name|phone|tel|address|company|org|city|zip|postal|country/i
+
+describe('il campo trappola di contact-form-fields.astro', () => {
+  it("porta un nome che l'autocompilazione non riconosce", () => {
+    expect(HONEYPOT_FIELD).not.toMatch(AUTOFILL_HINTS)
+  })
+
+  it('chiede al browser di non compilarlo e resta fuori dal Tab', async () => {
+    const trap = (await renderToFragment(ContactFormFields)).querySelector(`[name="${HONEYPOT_FIELD}"]`)
+
+    expect(trap?.getAttribute('type')).toBe('text')
+    expect(trap?.getAttribute('autocomplete')).toBe('off')
+    expect(trap?.getAttribute('tabindex')).toBe('-1')
+  })
+
+  it('scarta un bot che riempie tutti i campi testuali', async () => {
+    const document = await renderToFragment(ContactFormFields)
+    const controls = document.querySelectorAll('input[type="text"], input[type="email"], textarea')
+    const typed = Object.fromEntries(
+      [...controls].map((control) => [
+        control.getAttribute('name'),
+        control.getAttribute('type') === 'email' ? 'bot@example.com' : 'spam',
+      ]),
+    )
+
+    const parsed = contactSchema.safeParse({ ...typed, locale: DEFAULT_LOCALE, consent: true })
+
+    expect(parsed.success).toBe(true)
+    if (parsed.success) expect(isHoneypotFilled(parsed.data)).toBe(true)
   })
 })
 
