@@ -61,6 +61,7 @@
       "Bash(curl:*)",
       "Bash(tree:*)"
     ],
+    "ask": ["Bash(rm -rf *)"],
     "deny": [
       "Bash(git push --force:*)",
       "Bash(git push -f:*)",
@@ -74,7 +75,6 @@
       "Bash(git filter-branch:*)",
       "Bash(rm -rf /:*)",
       "Bash(rm -rf ~:*)",
-      "Bash(rm -rf *:*)",
       "Bash(rm -rf .:*)",
       "Bash(rm -rf node_modules*)",
       "Bash(sudo:*)",
