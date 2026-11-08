@@ -16,11 +16,23 @@ updates:
   # il resto dell'ecosistema smette di aggiornarsi senza nessun errore (dependabot-core#12437).
   - package-ecosystem: 'npm'
     directory: '/'
+    # Il preset di Biome di officina nomina regole che una minor può rinominare:
+    # con la 2.6 `useSortedClasses` è diventata `useTailwindSortedClasses`.
     patterns:
       - '@elia97/officina'
+      - '@biomejs/biome'
     multi-ecosystem-group: 'officina'
     schedule:
       interval: 'weekly'
+    # Senza la chiave Dependabot applica comunque 3 giorni di cooldown, e 0 a un pacchetto in `exclude`:
+    # va tenuto uguale all'`exclude` di `Elia97/officina` nella voce github-actions del gruppo.
+    cooldown:
+      default-days: 7
+      exclude:
+        - '@elia97/officina'
+    ignore:
+      - dependency-name: '@biomejs/biome'
+        update-types: ['version-update:semver-major']
 
   - package-ecosystem: 'npm'
     directory: '/'
@@ -38,6 +50,7 @@ updates:
       semver-major-days: 14
     ignore:
       - dependency-name: '@elia97/officina'
+      - dependency-name: '@biomejs/biome'
       - dependency-name: '*'
         update-types: ['version-update:semver-major']
       # `astro check` usa l'API programmatica di TypeScript, che il compilatore nativo 7.x
@@ -57,6 +70,9 @@ updates:
     multi-ecosystem-group: 'officina'
     schedule:
       interval: 'weekly'
+    cooldown:
+      exclude:
+        - 'Elia97/officina'
 
   - package-ecosystem: 'github-actions'
     directory: '/'
