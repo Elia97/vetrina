@@ -164,7 +164,7 @@ CI per assenza, che è il modo peggiore di passare.
   più vecchio atterrano entrambe e lasciano `main` rosso sulla loro combinazione. Il costo è un
   rebase per PR aperta ogni volta che `main` si muove, ed è il motivo per cui
   `.github/dependabot.yml` apre una PR sola per ecosistema, più una per officina che porta insieme
-  pacchetto e action.
+  pacchetto, action e Biome.
 - **`perf:bundle` resta fuori dal job `deploy` per scelta, non per impossibilità.** `vercel build`
   emette `dist/client` come ogni `astro build` — il log di un deploy lo mostra: `[build] directory:
   /vercel/path0/dist/`, poi `[@astrojs/vercel] Copying static files to .vercel/output/static`.
