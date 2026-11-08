@@ -7,7 +7,7 @@ import { DEFAULT_LOCALE, localeTag } from '@/lib/site'
 import { useTranslations } from '@/i18n/translate'
 
 import NotFound from '@/pages/404.astro'
-import ServerError from '@/pages/500.astro'
+import ServerError, { prerender as serverErrorPrerender } from '@/pages/500.astro'
 
 vi.mock('astro:config/client', () => import('@test/helpers/second-locale').then((m) => m.twoLocaleConfig))
 
@@ -24,5 +24,11 @@ describe.each([
     expect(document.querySelector('a[href^="/en"]')).toBeNull()
     expect(document.querySelector(`link[rel="alternate"][hreflang="${localeTag('en')}"]`)).toBeNull()
     expect(document.querySelector('meta[property="og:locale:alternate"]')).toBeNull()
+  })
+})
+
+describe('la pagina 500', () => {
+  it('è resa a richiesta, così la funzione la rende invece di scaricarla dal proprio origin', () => {
+    expect(serverErrorPrerender).toBe(false)
   })
 })

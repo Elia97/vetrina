@@ -440,7 +440,9 @@ BotID passi davvero dal proxy.
 
 **Le rotte non le elenca: le deriva.** `@elia97/officina` legge `src/pages`, tiene le pagine
 prerenderizzate e ci toglie le due eccezioni dichiarate — `/404` e `/500`, che rispondono con il
-proprio stato e non 200. Alle pagine aggiunge le uscite che non nascono da un `.astro` e che nessuna
+proprio stato e non 200. Nella base la 500 è resa a richiesta (`rendering-performance.md` § Politica
+di rendering), quindi fra le pagine prerenderizzate c'è solo la 404; l'eccezione `/500` serve a un
+derivato che la prerenderizza ancora. Alle pagine aggiunge le uscite che non nascono da un `.astro` e che nessuna
 derivazione produrrebbe: `/robots.txt`, `/sitemap-index.xml`, `/site.webmanifest` e `/api/health`,
 ognuna col content-type atteso. Una pagina nuova entra quindi da sola sia qui sia nell'audit
 Lighthouse, e un'eccezione rimasta senza pagina fa fallire un test del pacchetto.
