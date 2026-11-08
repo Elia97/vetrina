@@ -304,8 +304,8 @@ puramente additiva.
    default resta piatto, e i loader lo impongono).
 8. Pagine: rispecchia l'albero di default sotto `src/pages/<lingua>/…`;
    `getHomepageSections(Astro.currentLocale)` e `useTranslations(Astro.currentLocale)` risolvono già
-   per lingua. 404 e 500 restano fuori: Vercel serve sempre quelle della radice, e dichiarano già la
-   sola lingua di default.
+   per lingua. 404 e 500 restano fuori: la 404 della radice la serve sempre Vercel, la 500 della
+   radice la rende la funzione, e tutte e due dichiarano già la sola lingua di default.
 9. Consenso: con iubenda configurato, l'id di policy della lingua nuova va in
    `PUBLIC_IUBENDA_COOKIE_POLICY_IDS` (§ Configurare consenso e analytics, sopra). Senza, le sue
    pagine legali dicono che il documento non è disponibile.

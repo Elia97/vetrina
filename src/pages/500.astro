@@ -11,6 +11,10 @@ import { DEFAULT_LOCALE } from '@/lib/site'
 import { localizedHref } from '@/i18n/href'
 import { useTranslations } from '@/i18n/translate'
 
+// Astro scarica la 500 prerenderizzata da `http://localhost` quando manca `security.allowedDomains`
+// (core/errors/default-handler.js), e su Vercel l'errore arriva col corpo vuoto.
+export const prerender = false
+
 const t = useTranslations(Astro.currentLocale)
 const home = localizedHref(Astro.currentLocale, '/')
 ---

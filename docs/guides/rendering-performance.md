@@ -10,6 +10,13 @@
   lo porta, per la sua CSP (`deploy-ops.md` § Content-Security-Policy). Conseguenze per gli script:
   quelli inline non rigirano alla navigazione (si ascolta `astro:after-swap`, come fa lo script del
   tema), e quelli a modulo girano una volta per modulo, non per pagina.
+- **La 500 è resa nella funzione**, con `prerender = false` in `src/pages/500.astro`. Quando una
+  pagina a richiesta fallisce, Astro va a scaricare una 500 prerenderizzata dall'origin della
+  richiesta e, senza `security.allowedDomains`, ripiega su `http://localhost`, che dentro la
+  funzione di Vercel non risponde: l'errore arriverebbe con il corpo vuoto
+  (`core/errors/default-handler.js`). Resa a richiesta, la 500 passa dal middleware e prende la
+  sua CSP, sta fuori da `ClientRouter` e compare come `NOTE` nel budget di bundle. La 404 resta
+  prerenderizzata: la serve Vercel.
 - **[HARD] Tutto ciò che emette un custom element va nel `<body>`, mai nell'`<head>`** — il caso
   tipico sono Vercel Analytics e Speed Insights (`<vercel-analytics>`,
   `<vercel-speed-insights>`). Un custom element nell'head non è valido, quindi il parser chiude
