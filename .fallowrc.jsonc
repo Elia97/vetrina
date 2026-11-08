@@ -11,12 +11,7 @@
   ],
   "ignoreDependencies": [
     // fallow non conta gli import di astro.config.mjs come uso in produzione.
-    "@astrojs/vercel",
-    "@astrojs/sitemap",
-    // Raggiunta da `@import "tailwindcss"` in globals.css, che fallow non traccia.
-    "tailwindcss",
-    // Il servizio immagini di astro la carica con un import dinamico, in build e in `/_image`.
-    "sharp"
+    "@astrojs/vercel"
   ],
   "ignoreExports": [
     { "file": "src/components/ui/button.astro", "exports": ["buttonVariants"] },
