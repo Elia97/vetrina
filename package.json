@@ -48,9 +48,9 @@
   "dependencies": {
     "@astrojs/check": "^0.9.12",
     "@astrojs/sitemap": "^3.7.4",
-    "@astrojs/vercel": "^11.0.17",
-    "@lucide/astro": "^1.66.0",
-    "astro": "^7.4.4",
+    "@astrojs/vercel": "^11.0.18",
+    "@lucide/astro": "^1.68.0",
+    "astro": "^7.4.5",
     "botid": "^1.5.12",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
@@ -65,13 +65,13 @@
     "@commitlint/config-conventional": "^21.2.4",
     "@elia97/officina": "^0.17.0",
     "@playwright/test": "^1.64.1",
-    "@tailwindcss/vite": "^4.3.3",
+    "@tailwindcss/vite": "^4.3.4",
     "@types/node": "^26.6.6",
     "@vitest/coverage-v8": "^4.1.12",
-    "fallow": "^3.38.1",
+    "fallow": "^3.39.0",
     "happy-dom": "^20.14.6",
     "lefthook": "^2.2.2",
-    "tailwindcss": "^4.3.3",
+    "tailwindcss": "^4.3.4",
     "vitest": "^4.1.12"
   }
 }
