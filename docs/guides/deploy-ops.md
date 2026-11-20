@@ -349,6 +349,14 @@ Conseguenze che vale la pena dichiarare apertamente:
   `frame-src` non lo permette, il pannello resta vuoto e a dirlo è solo la console (verificato il
   2026-09-16). iubenda chiede che la pagina collegata non usi cookie non tecnici — quella del
   template è statica e non ne usa.
+- **Il banner lo configura il codice, non il pannello.** Il template carica `iubenda_cs.js` con una
+  `_iub.csConfiguration` propria, e iubenda non la fonde con il banner salvato nel pannello: quello
+  vale solo per lo snippet che il pannello genera. Senza un blocco `banner` i bottoni del primo
+  livello sono spenti e resta la sola X, che chiude senza registrare un rifiuto
+  ([guida avanzata di iubenda](https://www.iubenda.com/en/help/1205-how-to-configure-your-cookie-solution-advanced-guide-2/)).
+  `buildCsConfiguration()` accende quindi «Accetta», «Rifiuta» e «Personalizza», con lo stesso peso
+  come chiedono le linee guida del Garante del 2021, elenca le finalità e spegne la X. Colori, logo
+  o una posizione diversa da `float-bottom-center` un progetto li aggiunge lì, non nel pannello.
 - **Due cose le decide il pannello di iubenda, non questo codice.** Le finalità le porta la cookie
   policy: se dichiara solo cookie tecnici, `_iub.csPurposes` resta `[1]`, non c'è nessun consenso da
   chiedere e **non compare nessun banner**, per quanto il sito sia configurato bene. E su un piano
