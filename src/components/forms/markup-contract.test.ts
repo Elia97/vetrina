@@ -112,6 +112,12 @@ describe('il contratto di invio di contact-form.astro', () => {
     expect(document.querySelector('form[data-contact-form]')?.getAttribute('data-locale')).toBe('en')
   })
 
+  it("dà al binder il messaggio del dizionario per un invio che solleva un'eccezione", async () => {
+    const form = await contactForm()
+
+    expect(form?.getAttribute('data-i18n-send-failed')).toBe(dictionary['contact.error'])
+  })
+
   it('senza JavaScript rimanda ai recapiti, con il testo del dizionario', async () => {
     const form = await contactForm()
 

@@ -241,7 +241,10 @@ Regole che vale la pena tenere in un progetto:
   aggancia il form, lo disabilita e ne cambia l'etichetta durante l'attesa (`data-i18n-sending` e
   `data-i18n-submit` sul form — i moduli di comportamento non portano stringhe), commuta i
   paragrafi `[data-form-success]` e `[data-form-error]` (`role="status"` e `role="alert"`), e
-  chiama `form.reset()` in caso di successo. Non reimplementarlo mai per singolo form.
+  chiama `form.reset()` in caso di successo. Quando l'invio solleva un'eccezione invece di
+  restituire `{ error }` — un guasto di rete, un 413 — il riquadro d'errore mostra
+  `data-i18n-send-failed`, mai il `message` dell'eccezione, che è testo del browser in inglese.
+  Non reimplementarlo mai per singolo form.
 - **Multi-istanza per default**: il binder aggancia **ogni** form corrispondente con
   `querySelectorAll` e resta idempotente attraverso le view transition. Quando lo stesso form viene
   reso più di una volta nella stessa pagina, si passa una prop `idPrefix` per dare uno spazio dei

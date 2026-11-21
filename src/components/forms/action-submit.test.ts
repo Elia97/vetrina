@@ -14,7 +14,8 @@ function buildForm(): HTMLFormElement {
     <form data-contact-form
           data-i18n-submit="Invia"
           data-i18n-sending="Invio…"
-          data-i18n-generic-error="Errore generico">
+          data-i18n-generic-error="Errore generico"
+          data-i18n-send-failed="Invio non riuscito">
       <input name="email" aria-describedby="${fieldErrorId('email')}" />
       <p id="${fieldErrorId('email')}" data-field-error="email"></p>
       <textarea name="message" aria-describedby="${fieldErrorId('message')}"></textarea>
@@ -64,8 +65,18 @@ describe('a submit that throws', () => {
     )
 
     expect(submitButton(form).disabled).toBe(false)
-    expect(errorBox(form).hidden).toBe(false)
-    expect(errorBox(form).textContent).toContain('Content too large')
+    expect(errorBox(form).classList.contains('hidden')).toBe(false)
+    expect(errorBox(form).textContent).toBe('Invio non riuscito')
+    expect(errorBox(form).textContent).not.toContain('Content too large')
+  })
+
+  it('shows the dictionary message for a network failure, never the browser text', async () => {
+    const form = await submitWith(
+      {},
+      vi.fn(() => Promise.reject(new TypeError('Failed to fetch'))),
+    )
+
+    expect(errorBox(form).textContent).toBe('Invio non riuscito')
   })
 })
 
