@@ -239,12 +239,16 @@ Regole che vale la pena tenere in un progetto:
   `src/components/forms/action-submit.ts`): il modulo di un singolo form fornisce solo un
   `formSelector`, un `buildPayload` e l'azione. Il binder abilita il bottone di invio quando
   aggancia il form, lo disabilita e ne cambia l'etichetta durante l'attesa (`data-i18n-sending` e
-  `data-i18n-submit` sul form — i moduli di comportamento non portano stringhe), commuta i
-  paragrafi `[data-form-success]` e `[data-form-error]` (`role="status"` e `role="alert"`), e
-  chiama `form.reset()` in caso di successo. Quando l'invio solleva un'eccezione invece di
-  restituire `{ error }` — un guasto di rete, un 413 — il riquadro d'errore mostra
-  `data-i18n-send-failed`, mai il `message` dell'eccezione, che è testo del browser in inglese.
-  Non reimplementarlo mai per singolo form.
+  `data-i18n-submit` sul form — i moduli di comportamento non portano stringhe), scrive il testo
+  dei paragrafi `[data-form-success]` e `[data-form-error]` (`role="status"` e `role="alert"`), e
+  chiama `form.reset()` in caso di successo. I due paragrafi si rendono vuoti, con
+  `empty:sr-only` e mai `hidden`: una regione live che compare invece di cambiare testo non si
+  annuncia in modo affidabile, e con NVDA su Firefox un `role="status"` mostrato così resta muto.
+  Il binder li svuota all'inizio di ogni invio e ci scrive l'esito, la conferma da
+  `data-i18n-success`, così anche un secondo invio riuscito si annuncia. Quando l'invio solleva
+  un'eccezione invece di restituire `{ error }` — un guasto di rete, un 413 — il riquadro
+  d'errore mostra `data-i18n-send-failed`, mai il `message` dell'eccezione, che è testo del
+  browser in inglese. Non reimplementarlo mai per singolo form.
 - **Multi-istanza per default**: il binder aggancia **ogni** form corrispondente con
   `querySelectorAll` e resta idempotente attraverso le view transition. Quando lo stesso form viene
   reso più di una volta nella stessa pagina, si passa una prop `idPrefix` per dare uno spazio dei
@@ -366,9 +370,9 @@ fixture condivise e i mock di fornitore e BotID stanno in `test/helpers/actions.
    produzione rifiuta» quando manca la configurazione — chiave API e id facoltativi allo stesso
    modo.
 4. **Interfaccia** in `src/components/<nome>/*.astro`: il contratto di presentazione fatto di
-   `data-*` — il marcatore del form, le etichette `data-i18n-*` e i paragrafi
-   `[data-form-success|error]` — più `<HoneypotField />`, un `<FieldError>` per chiave dello schema,
-   e il form `method="post"` con il pulsante di invio `disabled` nel markup.
+   `data-*` — il marcatore del form, le etichette `data-i18n-*` (`data-i18n-success` compresa) e i
+   paragrafi `[data-form-success|error]`, resi vuoti — più `<HoneypotField />`, un `<FieldError>`
+   per chiave dello schema, e il form `method="post"` con il pulsante di invio `disabled` nel markup.
 5. **Comportamento** in `src/components/<nome>/<nome>-form-behavior.ts`: un solo
    `createActionFormBinding({ formSelector, buildPayload, submit })` — si riusa il binder condiviso,
    non si reimplementa il ciclo di invio. `buildPayload` fa passare `HONEYPOT_FIELD`.

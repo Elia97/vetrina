@@ -26,18 +26,15 @@ const t = useTranslations(Astro.currentLocale)
     data-i18n-submit={t('contact.submit')}
     data-i18n-generic-error={t('contact.genericFieldError')}
     data-i18n-send-failed={t('contact.error')}
+    data-i18n-success={t('contact.success')}
   >
     <CardContent class="flex flex-col gap-4 pt-6">
       <ContactFormFields />
     </CardContent>
 
     <CardFooter class="flex flex-col gap-3 pt-2">
-      <p data-form-success role="status" class="hidden w-full font-medium text-success text-sm">
-        {t('contact.success')}
-      </p>
-      <p data-form-error role="alert" class="hidden w-full font-medium text-destructive text-sm">
-        {t('contact.error')}
-      </p>
+      <p data-form-success role="status" class="w-full font-medium text-success text-sm empty:sr-only"></p>
+      <p data-form-error role="alert" class="w-full font-medium text-destructive text-sm empty:sr-only"></p>
 
       <noscript>
         <p class="w-full text-muted-foreground text-sm">{t('contact.noscript')}</p>
