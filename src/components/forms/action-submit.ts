@@ -62,8 +62,8 @@ async function submitActionForm<P>(form: HTMLFormElement, payload: P, submit: Ac
       return
     }
     reportError(form, error)
-  } catch (error) {
-    reportError(form, error)
+  } catch {
+    showFeedback(form, 'error', form.dataset.i18nSendFailed)
   } finally {
     setPending(form, false)
   }
