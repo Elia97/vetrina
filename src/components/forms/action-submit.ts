@@ -6,8 +6,10 @@ import { applyFieldErrors, clearFieldErrors, focusFirstInvalid } from './field-e
 
 type ActionSubmit<P> = (payload: P) => Promise<{ error?: unknown }>
 
-function submitLabel(form: HTMLFormElement, pending: boolean): string {
-  return (pending ? form.dataset.i18nSending : form.dataset.i18nSubmit) ?? ''
+type FormLabel = 'i18nSending' | 'i18nSubmit' | 'i18nSuccess' | 'i18nGenericError' | 'i18nSendFailed'
+
+function label(form: HTMLFormElement, key: FormLabel): string {
+  return form.dataset[key] ?? ''
 }
 
 function setPending(form: HTMLFormElement, pending: boolean): void {
@@ -15,36 +17,35 @@ function setPending(form: HTMLFormElement, pending: boolean): void {
   /* v8 ignore next -- ogni form di azione che il template renderizza ha un pulsante di invio */
   if (!submit) return
   submit.disabled = pending
-  submit.textContent = submitLabel(form, pending)
+  submit.textContent = label(form, pending ? 'i18nSending' : 'i18nSubmit')
 }
 
-function messageOf(form: HTMLFormElement, error: unknown): string | undefined {
+function messageOf(form: HTMLFormElement, error: unknown): string {
   if (error && typeof error === 'object' && 'message' in error) {
     return String((error as { message: unknown }).message)
   }
-  return form.dataset.i18nGenericError
+  return label(form, 'i18nGenericError')
 }
 
 // Un lettore di schermo legge due volte un messaggio che sta sia nello slot del campo sia
 // nell'avviso di form, quindi l'avviso parla solo per ciò che non ha trovato uno slot.
 function reportError(form: HTMLFormElement, error: unknown): void {
   if (!isInputError(error)) {
-    showFeedback(form, 'error', messageOf(form, error))
+    showFeedback(form, '', messageOf(form, error))
     return
   }
   const { matched, unmatched } = applyFieldErrors(form, error.fields)
   focusFirstInvalid(form)
   if (matched && unmatched.length === 0) return
   /* v8 ignore next -- ci si arriva solo se applyFieldErrors non ha trovato nulla E non ha raccolto nulla, che il suo contratto esclude */
-  showFeedback(form, 'error', unmatched[0] ?? form.dataset.i18nGenericError)
+  showFeedback(form, '', unmatched[0] ?? label(form, 'i18nGenericError'))
 }
 
-function showFeedback(form: HTMLFormElement, kind: 'success' | 'error' | 'none', message?: string): void {
-  const success = form.querySelector<HTMLElement>('[data-form-success]')
-  const error = form.querySelector<HTMLElement>('[data-form-error]')
-  success?.classList.toggle('hidden', kind !== 'success')
-  error?.classList.toggle('hidden', kind !== 'error')
-  if (kind === 'error' && error && message) error.textContent = message
+function showFeedback(form: HTMLFormElement, success: string, error: string): void {
+  const successRegion = form.querySelector<HTMLElement>('[data-form-success]')
+  const errorRegion = form.querySelector<HTMLElement>('[data-form-error]')
+  if (successRegion) successRegion.textContent = success
+  if (errorRegion) errorRegion.textContent = error
 }
 
 // [HARD] Un'azione fallisce per due strade: l'`{ error }` restituito e un'eccezione — un 413
@@ -58,12 +59,12 @@ async function submitActionForm<P>(form: HTMLFormElement, payload: P, submit: Ac
     if (!error) {
       form.reset()
       clearFieldErrors(form)
-      showFeedback(form, 'success')
+      showFeedback(form, label(form, 'i18nSuccess'), '')
       return
     }
     reportError(form, error)
   } catch {
-    showFeedback(form, 'error', form.dataset.i18nSendFailed)
+    showFeedback(form, '', label(form, 'i18nSendFailed'))
   } finally {
     setPending(form, false)
   }
@@ -79,7 +80,7 @@ export function createActionFormBinding<P>(config: {
     const form = event.currentTarget
     /* v8 ignore next -- il listener è agganciato al form, quindi currentTarget è sempre lui */
     if (!(form instanceof HTMLFormElement)) return
-    showFeedback(form, 'none')
+    showFeedback(form, '', '')
     clearFieldErrors(form)
     await submitActionForm(form, config.buildPayload(form), config.submit)
   }

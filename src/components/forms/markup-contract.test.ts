@@ -118,6 +118,27 @@ describe('il contratto di invio di contact-form.astro', () => {
     expect(form?.getAttribute('data-i18n-send-failed')).toBe(dictionary['contact.error'])
   })
 
+  it('dà al binder il messaggio del dizionario per un invio riuscito', async () => {
+    const form = await contactForm()
+
+    expect(form?.getAttribute('data-i18n-success')).toBe(dictionary['contact.success'])
+  })
+
+  it("rende vuote e visibili all'albero dell'accessibilità le due regioni d'esito, che il binder scrive", async () => {
+    const form = await contactForm()
+
+    for (const [selector, role] of [
+      ['[data-form-success]', 'status'],
+      ['[data-form-error]', 'alert'],
+    ] as const) {
+      const region = form?.querySelector(selector)
+      expect(region?.getAttribute('role')).toBe(role)
+      expect(region?.textContent).toBe('')
+      expect(region?.classList.contains('hidden')).toBe(false)
+      expect(region?.hasAttribute('hidden')).toBe(false)
+    }
+  })
+
   it('senza JavaScript rimanda ai recapiti, con il testo del dizionario', async () => {
     const form = await contactForm()
 
