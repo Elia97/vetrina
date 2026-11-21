@@ -1,9 +1,11 @@
+import { SITE_URL } from './site-url.ts'
+
 export const DEFAULT_LOCALE = 'it'
 
 export const SITE = {
   name: '<PROJECT_NAME>',
   // Alimenta `site` in astro.config.mjs e ogni URL assoluto canonical/OG/hreflang.
-  url: 'https://example.com',
+  url: SITE_URL,
   defaultOgImage: '/og-default.png',
   defaultOgImageSize: { width: 1200, height: 630 },
   // In esadecimale, non oklch: `<meta name="theme-color">` lo interpreta lo strato di interfaccia del browser, non il motore CSS.

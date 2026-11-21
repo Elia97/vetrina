@@ -1,3 +1,4 @@
+import { okResponse, stubRejectedFetch, stubResolvedFetch, stubUncalledFetch } from '@test/helpers/fetch'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { sendTransactionalEmail, upsertContact } from '@/lib/vendor/brevo'
@@ -8,30 +9,6 @@ const EMAIL_PARAMS = {
   subject: 'Subject',
   htmlContent: '<p>hi</p>',
   tags: ['contact'],
-}
-
-function okResponse(): Response {
-  return new Response(JSON.stringify({ messageId: 'abc' }), { status: 201 })
-}
-
-type FetchMock = ReturnType<typeof vi.fn<typeof fetch>>
-
-function stubUncalledFetch(): FetchMock {
-  const fetchMock = vi.fn<typeof fetch>()
-  vi.stubGlobal('fetch', fetchMock)
-  return fetchMock
-}
-
-function stubResolvedFetch(response: Response): FetchMock {
-  const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(response)
-  vi.stubGlobal('fetch', fetchMock)
-  return fetchMock
-}
-
-function stubRejectedFetch(error: Error): FetchMock {
-  const fetchMock = vi.fn<typeof fetch>().mockRejectedValue(error)
-  vi.stubGlobal('fetch', fetchMock)
-  return fetchMock
 }
 
 afterEach(() => {

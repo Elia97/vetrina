@@ -102,7 +102,7 @@ La superficie completa, in un posto solo — la milestone `foundations` la distr
 
 - `package.json#name` (e `release-please-config.json`): trapela nel changelog che release-please
   genera, quindi deve corrispondere al progetto nuovo e non restare `vetrina`;
-- `src/lib/site.ts`: nome, url, voci di nav, CTA e legali (la chrome si rende da qui, e le voci
+- `src/lib/site.ts`: nome, voci di nav, CTA e legali (la chrome si rende da qui, e le voci
   portano chiavi i18n, non testo), più i profili di `SITE.social`, che arriva vuoto: ogni profilo
   aggiunto finisce nel footer e nel `sameAs` del JSON-LD;
 - `site.description` in `src/i18n/strings/it.ts`: la descrizione del sito, sotto il nome nel footer
@@ -128,13 +128,16 @@ La superficie completa, in un posto solo — la milestone `foundations` la distr
   lingua di default e lo stub dei test. Non copre la chiave di `SITE.localeTags` né il dizionario
   `src/i18n/strings/it.ts`, che si rinomina insieme alla costante che esporta: `src/i18n/ui.ts` ne
   deriva `UIKey` e il tipo di ogni dizionario;
+- `SITE_URL` su Vercel, non nel codice: l'indirizzo del sito, che finché è `*.vercel.app` tiene il
+  sito in prova, con le mail solo verso `STAGING_EMAIL_RECIPIENTS` (`docs/guides/deploy-ops.md` §
+  Procedure);
 - `vercel.json`: il redirect da `www.example.com` a `example.com`, sul dominio vero e verso l'host
   canonico scelto (`docs/guides/deploy-ops.md` § Checklist per il go-live);
 - `src/content/homepage/hero.yml`: il copy vero della homepage.
 
 Quello che resta lo trova il deploy: `pnpm run check:placeholders` elenca, con file e riga, i
-segnaposto rimasti in `src/lib/site.ts`, `src/lib/company.ts` e nei dizionari, e il deploy di
-produzione si ferma finché ce n'è uno. Un link a `#`, o a una pagina che non esiste, lo ferma prima
+segnaposto rimasti in `src/lib/site.ts`, `src/lib/company.ts` e nei dizionari, poi `SITE_URL` e le
+`CONTACT_*` nell'ambiente di produzione, e il deploy si ferma finché ce n'è uno. Un link a `#`, o a una pagina che non esiste, lo ferma prima
 la CI, con `pnpm run check:links` sulla build.
 
 ## Cosa ti dà lo scaffold

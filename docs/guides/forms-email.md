@@ -172,6 +172,11 @@ Regole che vale la pena tenere in un progetto:
   `{ ok: true, skipped: true }`), **in produzione rifiuta** (errore esplicito). È quello che permette
   di spedire una funzionalità **dietro un gate** — mergiata e collegata, dormiente finché non
   esistono le credenziali vere — senza rischiare un invio perso in silenzio in produzione.
+- **Sul sito in prova** (`SITE_URL` su `*.vercel.app`, `deploy-ops.md` § Procedure) le mail partono
+  solo verso `STAGING_EMAIL_RECIPIENTS`, indirizzi o domini: gli altri destinatari si scartano con un
+  `console.warn` che ne dice il numero e mai gli indirizzi, e se non ne resta nessuno il risultato è
+  `{ ok: true, skipped: true }`, così il form riesce anche per chi collauda. `upsertContact` in prova
+  non scrive mai. Un fornitore che sostituisca Brevo tiene lo stesso filtro.
 - Mittente e destinatario vengono dall'ambiente (`CONTACT_FROM_EMAIL`, `CONTACT_FROM_NAME`,
   `CONTACT_TO_EMAIL` — schema in `astro.config.mjs`, elenco in `.env.example`). Verifica DKIM, SPF e
   DMARC del dominio mittente prima del go-live.
