@@ -69,6 +69,7 @@ export const it = {
   'forms.action.tooManyRequests': 'Troppe richieste, riprova tra poco.',
   'forms.action.securityCheckFailed': 'Verifica di sicurezza non superata, riprova.',
   'forms.action.sendFailed': 'Invio non riuscito, riprova.',
+  'forms.action.unexpected': 'Si è verificato un errore, riprova.',
 
   'email.lang': 'it',
   'email.notificationHeading': 'Nuova richiesta dal sito',

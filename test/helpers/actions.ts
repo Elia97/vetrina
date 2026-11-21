@@ -37,11 +37,29 @@ export interface Env {
 
 // Un grafo di moduli fresco azzera anche la finestra scorrevole: lo stato a livello di modulo in
 // src/lib/forms/rate-limit.ts.
-export async function importContactAction(env: Env = {}) {
+function stubActionEnv(env: Env): void {
   vi.stubEnv('PROD', env.prod ?? false)
   vi.stubEnv('BOTID_ENFORCE', env.botidEnforce ? 'true' : 'false')
   vi.resetModules()
+}
+
+export async function importContactAction(env: Env = {}) {
+  stubActionEnv(env)
   return import('@/actions/contact')
+}
+
+export async function importActionRegistry(env: Env = {}) {
+  stubActionEnv(env)
+  return import('@/actions')
+}
+
+type RegisteredHandler = (input: ContactRequest, context: typeof CLIENT) => Promise<unknown>
+
+export function registeredHandler(action: unknown): RegisteredHandler {
+  if (typeof action === 'object' && action !== null && 'handler' in action && typeof action.handler === 'function') {
+    return action.handler as RegisteredHandler
+  }
+  throw new Error('registeredHandler: the action carries no handler — is astro:actions stubbed?')
 }
 
 interface BrevoAnswers {

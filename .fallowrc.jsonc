@@ -33,7 +33,10 @@
         "PUBLIC_IUBENDA_COOKIE_POLICY_IDS"
       ]
     },
-    { "file": "test/stubs/astro-actions.ts", "exports": ["isInputError", "ActionError", "defineAction", "actions"] },
+    {
+      "file": "test/stubs/astro-actions.ts",
+      "exports": ["isInputError", "isActionError", "ActionError", "defineAction", "actions"]
+    },
     { "file": "test/stubs/astro-config-client.ts", "exports": ["i18n"] },
     {
       "file": "test/stubs/astro-i18n.ts",
