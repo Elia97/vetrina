@@ -1,4 +1,21 @@
 {
   "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
-  "extends": ["@elia97/officina/biome"]
+  "extends": ["@elia97/officina/biome"],
+  "linter": {
+    "rules": {
+      "style": {
+        "noRestrictedImports": {
+          "level": "error",
+          "options": {
+            "paths": {
+              "astro:actions": {
+                "importNames": ["defineAction"],
+                "message": "Un'azione nasce da defineSafeAction (src/lib/forms/action-boundary.ts), che registra l'errore sfuggito e ne tiene il messaggio lontano dal browser."
+              }
+            }
+          }
+        }
+      }
+    }
+  }
 }

@@ -1,8 +1,9 @@
-import { ActionError, defineAction } from 'astro:actions'
+import { ActionError } from 'astro:actions'
 import { BOTID_ENFORCE, CONTACT_FROM_EMAIL, CONTACT_FROM_NAME, CONTACT_TO_EMAIL } from 'astro:env/server'
 import { checkBotId } from 'botid/server'
 
 import { type ContactRequest, contactAttributes, contactSchema, leadRecoveryRecord } from '@/lib/contact'
+import { defineSafeAction } from '@/lib/forms/action-boundary'
 import { isHoneypotFilled } from '@/lib/forms/honeypot'
 import { rateLimit } from '@/lib/forms/rate-limit'
 import { type BrevoResult, sendTransactionalEmail, upsertContact } from '@/lib/vendor/brevo'
@@ -90,7 +91,7 @@ function reportContactResults(
     console.error('[contact] notification failed:', notified.error)
     console.error('[contact] lead-recovery', JSON.stringify(leadRecoveryRecord(input)))
     throw new ActionError({
-      code: 'INTERNAL_SERVER_ERROR',
+      code: 'BAD_GATEWAY',
       message: useTranslations(input.locale)('forms.action.sendFailed'),
     })
   }
@@ -114,8 +115,7 @@ export async function handleContact(input: ContactRequest, context: ActionContex
   return { ok: true }
 }
 
-export const contact = defineAction({
-  accept: 'json',
+export const contact = defineSafeAction('contact', {
   input: contactSchema,
   handler: handleContact,
 })
