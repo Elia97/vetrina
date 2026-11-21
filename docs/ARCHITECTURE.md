@@ -63,6 +63,7 @@ src/
     vendor/    #   client di terze parti (brevo)                         machinery
     schemas/   #   schemi delle content collection                       seed
     site.ts    #   identità del sito, fonte unica                        config
+    site-url.ts #  SITE_URL, il ripiego e il sito in prova               machinery
     company.ts #   soggetto giuridico, fonte unica                       config
     utils.ts   #   cn()                                                  machinery
     contact.ts, homepage.ts # i moduli di dominio dell'esempio svolto    seed

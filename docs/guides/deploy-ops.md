@@ -131,10 +131,14 @@ e di chi rivede.
 che dei segnaposto è fatto, e fallirebbe sempre. Nel job `deploy` gira due volte. Subito dopo
 l'installazione legge `src/lib/site.ts`, `src/lib/company.ts` e i dizionari di `src/i18n/strings/`,
 e ferma il deploy in pochi secondi su ogni segnaposto, con file e riga. Dopo `vercel pull` legge
-l'ambiente di produzione e si ferma se `CONTACT_FROM_EMAIL`, `CONTACT_FROM_NAME` o
-`CONTACT_TO_EMAIL` mancano o portano un segnaposto, perché allora varrebbero i default di
-`astro.config.mjs`. Il redirect di `vercel.json` non lo guarda: lo lega già a `SITE.url`
-`src/vercel-redirects.test.ts`, dentro `pnpm run ci`.
+l'ambiente di produzione e si ferma se `CONTACT_FROM_EMAIL`, `CONTACT_FROM_NAME`, `CONTACT_TO_EMAIL`
+o `SITE_URL` mancano o portano un segnaposto, perché allora varrebbero i default di
+`astro.config.mjs` e di `src/lib/site-url.ts`: l'elenco lo dichiara `placeholders.contactEnvKeys` in
+`officina.config.ts`. Il ripiego di `SITE_URL` sta in `site-url.ts` e non in `site.ts` proprio
+perché il primo controllo non lo legga: un sito in prova va in produzione senza dominio. Il redirect
+di `vercel.json` non lo guarda nessuno dei due: `src/vercel-redirects.test.ts`, dentro `pnpm run ci`,
+verifica che riconosca il `www` della sua stessa destinazione, e il dominio lì si cambia a mano al
+passaggio al dominio.
 
 ⚠️ **Restano due derivati senza gate, e per la stessa ragione.** La roadmap contro le issue di
 GitHub vuole la rete, quindi vive dentro `/metodo:milestone` in rilettura e non nel gate. La stima sta nel
@@ -474,6 +478,22 @@ sull'ambiente `production`. Si conferma con `pnpm smoke:prod` contro l'apice.
 `dependabot/**`, e non serve nessuna PR. Gli host di preview sono in noindex per la regola di
 `vercel.json`; si conferma con `curl -sI https://<preview>.vercel.app/ | grep -i x-robots-tag`.
 
+**Mettere online un sito in prova** — un progetto può andare in produzione prima del suo dominio,
+sull'indirizzo `*.vercel.app` del progetto. Su Vercel si impostano `SITE_URL` con quell'indirizzo,
+per Production e anche per Preview, e `STAGING_EMAIL_RECIPIENTS` con gli indirizzi o i domini di chi
+collauda. Finché l'host di `SITE_URL` è `*.vercel.app` (`isStagingSite()` in `src/lib/site-url.ts`)
+il sito è **in prova**: `src/lib/vendor/brevo.ts` manda le mail solo ai destinatari dell'elenco e
+scarta gli altri con un log `[brevo]` e un esito `skipped`, quindi il form riesce anche per chi
+collauda fuori elenco; e non scrive niente nella lista dei contatti di Brevo. Canonical, sitemap,
+`robots.txt`, OG e JSON-LD puntano all'indirizzo di Vercel, e il `noindex` della regola di
+`vercel.json` su `*.vercel.app` copre anche la produzione.
+
+**Passare al dominio** — dominio aggiunto in Vercel e HTTPS emesso, si cambia `SITE_URL` nel valore
+del dominio e si rilancia il deploy di produzione: il sito esce dalla prova, le mail vanno a chiunque,
+i contatti si scrivono, e il `noindex` smette da solo perché l'host non è più `*.vercel.app`. Il
+codice non si tocca, tranne il redirect `www` di `vercel.json` (§ Checklist per il go-live, punto 2).
+`STAGING_EMAIL_RECIPIENTS` si può togliere: fuori dalla prova non la legge nessuno.
+
 **Tornare indietro** — vedi sotto.
 
 ## Rollback
@@ -529,6 +549,11 @@ spedire qualcosa che la strada della release avrebbe preso.
 - **Un URL del sito letto dall'ambiente prende `||`, non `??`.** Una stringa vuota è un valore, quindi
   `??` la lascia passare e Astro fa fallire la build con «Invalid URL»; `||` ricade sul valore
   letterale di ripiego.
+- **`SITE_URL` si legge dall'ambiente del processo, non da `.env`.** Astro valuta `astro.config.mjs`
+  prima di copiare `.env` in `process.env`, che fa solo all'inizio della build: un `SITE_URL` scritto
+  in `.env` darebbe `site` al ripiego e le pagine al valore del file, senza nessun errore. Su Vercel
+  e nel job di deploy l'ambiente c'è dall'inizio; in locale si passa alla shell,
+  `SITE_URL=https://… pnpm run build`.
 - **Una cache di build pnpm parziale su Vercel si manifesta come instabilità inspiegabile**: una
   preview che fallisce con «Rollup failed to resolve tslib» e che un nuovo deploy sistema.
   `VERCEL_FORCE_NO_BUILD_CACHE` sul progetto è la cura brutale; una volta impostata, si lascia.
@@ -571,9 +596,10 @@ spedire qualcosa che la strada della release avrebbe preso.
 
 ## Checklist per il go-live
 
-1. `SITE.url` è il dominio vero (alimenta ogni canonical, OG e hreflang, e `pnpm smoke:prod` si
-   rifiuta di girare finché è il segnaposto), e `pnpm run check:placeholders` esce 0: il job di
-   deploy si ferma su ogni segnaposto rimasto in `site.ts`, `company.ts` e nei dizionari.
+1. `SITE_URL` su Vercel è il dominio vero (alimenta ogni canonical, OG e hreflang, e
+   `pnpm smoke:prod` si rifiuta di girare senza un URL finché è il segnaposto), e
+   `pnpm run check:placeholders` esce 0: il job di deploy si ferma su ogni segnaposto rimasto in
+   `site.ts`, `company.ts` e nei dizionari, e su `SITE_URL` assente dall'ambiente di produzione.
 2. Dominio aggiunto in Vercel, DNS puntato, HTTPS emesso. Si decide l'host canonico (apice o `www`) e
    si dichiara il redirect in `vercel.json`.
 3. Ignored Build Step vuoto nella dashboard: il comando lo dichiara `ignoreCommand` in `vercel.json`,
