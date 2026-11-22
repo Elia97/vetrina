@@ -41,6 +41,7 @@ export const it = {
   'contact.address': 'Sede',
   'contact.formTitle': 'Richiesta informazioni',
   'contact.formIntro': 'Compila il form e ti ricontatteremo al più presto.',
+  'contact.requiredHint': 'I campi contrassegnati con * sono obbligatori.',
   'contact.firstName': 'Nome',
   'contact.lastName': 'Cognome',
   'contact.email': 'Email',

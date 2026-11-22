@@ -53,6 +53,18 @@ describe('contact form markup contract', () => {
     }
   })
 
+  it('marks the label of every required control, and of no optional one', async () => {
+    const document = await renderToFragment(ContactFormFields)
+    for (const field of expectedFields) {
+      const control = document.querySelector(`[name="${field}"]`)
+      const label = document.querySelector(`label[for="${control?.id}"]`)
+      const mark = [...(label?.querySelectorAll('[aria-hidden="true"]') ?? [])].find((el) => el.textContent === '*')
+
+      expect(label, `no label for ${field}`).not.toBeNull()
+      expect(Boolean(mark), field).toBe(control?.hasAttribute('required'))
+    }
+  })
+
   it('renders the honeypot without a slot to give it away', async () => {
     const document = await renderToFragment(ContactFormFields)
     expect(document.querySelector(`[name="${HONEYPOT_FIELD}"]`)).not.toBeNull()
@@ -160,5 +172,17 @@ describe('il contratto di invio di contact-form.astro', () => {
     const form = await contactForm()
 
     expect(form?.querySelector('noscript')?.textContent).toContain(dictionary['contact.noscript'])
+  })
+})
+
+describe("la spiegazione dell'asterisco in contact-form.astro", () => {
+  it('sta prima del form, con il testo del dizionario', async () => {
+    const document = await renderToFragment(ContactForm)
+    const form = document.querySelector('form[data-contact-form]')
+    const hint = [...document.querySelectorAll('p')].find((el) => el.textContent === dictionary['contact.requiredHint'])
+
+    expect(hint).toBeDefined()
+    expect(hint?.closest('form')).toBeNull()
+    expect(hint && form && hint.compareDocumentPosition(form) & form.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
   })
 })

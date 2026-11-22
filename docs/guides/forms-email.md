@@ -261,6 +261,9 @@ Regole che vale la pena tenere in un progetto:
   identici, perché hanno come ambito il singolo `<form>`.
 - I campi compongono le primitive `Field` con **etichette visibili**, che è il default accessibile
   (un progetto può passare a `sr-only` più placeholder come scelta estetica).
+- Ogni campo `required` ha l'asterisco sull'etichetta (`<FieldLabel required>`), nessun campo
+  facoltativo lo porta, e una riga del dizionario lo spiega prima del form
+  (`contact.requiredHint`). `markup-contract.test.ts` fissa tutte e due le cose.
 - **[HARD] Senza JavaScript il form non invia niente, e non mette niente nell'URL.** L'invio è una
   chiamata a un'Astro Action (`accept: 'json'`) da una pagina prerenderizzata, quindi non c'è un
   ripiego con `action=`, e il markup si difende da solo in tre pezzi:

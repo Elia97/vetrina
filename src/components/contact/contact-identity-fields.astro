@@ -10,7 +10,7 @@ const t = useTranslations(Astro.currentLocale)
 
 <div class="grid gap-4 sm:grid-cols-2">
   <Field>
-    <FieldLabel for="firstName">{t('contact.firstName')}</FieldLabel>
+    <FieldLabel for="firstName" required>{t('contact.firstName')}</FieldLabel>
     <Input
       id="firstName"
       type="text"
@@ -23,7 +23,7 @@ const t = useTranslations(Astro.currentLocale)
     <FieldError field="firstName" />
   </Field>
   <Field>
-    <FieldLabel for="lastName">{t('contact.lastName')}</FieldLabel>
+    <FieldLabel for="lastName" required>{t('contact.lastName')}</FieldLabel>
     <Input
       id="lastName"
       type="text"
@@ -38,7 +38,7 @@ const t = useTranslations(Astro.currentLocale)
 </div>
 
 <Field>
-  <FieldLabel for="email">{t('contact.email')}</FieldLabel>
+  <FieldLabel for="email" required>{t('contact.email')}</FieldLabel>
   <Input
     id="email"
     type="email"
