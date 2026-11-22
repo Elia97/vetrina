@@ -38,6 +38,14 @@ describe('contact form markup contract', () => {
     }
   })
 
+  it('renders each control with a slot as not invalid, until an error arrives', async () => {
+    const document = await renderToFragment(ContactFormFields)
+    for (const field of expectedFields) {
+      expect(document.querySelector(`[name="${field}"]`)?.getAttribute('aria-invalid'), field).toBe('false')
+    }
+    expect(document.querySelector(`[name="${HONEYPOT_FIELD}"]`)?.hasAttribute('aria-invalid')).toBe(false)
+  })
+
   it('gives every slot the id its control references', async () => {
     const document = await renderToFragment(ContactFormFields)
     for (const field of expectedFields) {
