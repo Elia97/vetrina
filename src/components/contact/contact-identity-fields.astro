@@ -44,6 +44,8 @@ const t = useTranslations(Astro.currentLocale)
     type="email"
     name="email"
     autocomplete="email"
+    spellcheck="false"
+    autocapitalize="none"
     maxlength="254"
     required
     {...fieldErrorAttributes('email')}

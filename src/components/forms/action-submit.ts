@@ -12,11 +12,17 @@ function label(form: HTMLFormElement, key: FormLabel): string {
   return form.dataset[key] ?? ''
 }
 
+const pendingForms = new WeakSet<HTMLFormElement>()
+
 function setPending(form: HTMLFormElement, pending: boolean): void {
+  if (pending) pendingForms.add(form)
+  else pendingForms.delete(form)
   const submit = form.querySelector<HTMLButtonElement>('button[type="submit"]')
   /* v8 ignore next -- ogni form di azione che il template renderizza ha un pulsante di invio */
   if (!submit) return
-  submit.disabled = pending
+  submit.disabled = false
+  if (pending) submit.setAttribute('aria-disabled', 'true')
+  else submit.removeAttribute('aria-disabled')
   submit.textContent = label(form, pending ? 'i18nSending' : 'i18nSubmit')
 }
 
@@ -50,7 +56,7 @@ function showFeedback(form: HTMLFormElement, success: string, error: string): vo
 
 // [HARD] Un'azione fallisce per due strade: l'`{ error }` restituito e un'eccezione — un 413
 // oltre `actionBodySizeLimit`, o un guasto di rete, arriva per la seconda. Non intercettata, il
-// form resta in attesa col bottone disabilitato e non dice niente.
+// form resta in attesa col pulsante bloccato e non dice niente.
 async function submitActionForm<P>(form: HTMLFormElement, payload: P, submit: ActionSubmit<P>): Promise<void> {
   setPending(form, true)
   try {
@@ -80,6 +86,7 @@ export function createActionFormBinding<P>(config: {
     const form = event.currentTarget
     /* v8 ignore next -- il listener è agganciato al form, quindi currentTarget è sempre lui */
     if (!(form instanceof HTMLFormElement)) return
+    if (pendingForms.has(form)) return
     showFeedback(form, '', '')
     clearFieldErrors(form)
     await submitActionForm(form, config.buildPayload(form), config.submit)

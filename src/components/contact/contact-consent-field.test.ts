@@ -20,6 +20,18 @@ describe('contact-consent-field.astro', () => {
     expect(label?.querySelector('a')?.textContent).toBe(t('contact.privacyPolicy'))
   })
 
+  it("allarga l'area di tocco della casella a 24px senza cambiarne il disegno", async () => {
+    const checkbox = (await renderToFragment(ContactConsentField)).querySelector('input[name="consent"]')
+    const target = checkbox?.parentElement
+    const classes = (target?.getAttribute('class') ?? '').split(' ')
+
+    expect(target?.tagName).toBe('LABEL')
+    expect(target?.hasAttribute('for')).toBe(false)
+    expect(target?.textContent?.trim()).toBe('')
+    expect(classes).toEqual(expect.arrayContaining(['relative', 'size-4', 'after:absolute', 'after:-inset-1']))
+    expect(checkbox?.getAttribute('class')?.split(' ')).toContain('size-4')
+  })
+
   it('non è un contenitore flex, che metterebbe testo, link e punto in colonne affiancate', async () => {
     const classes = ((await renderLabel())?.getAttribute('class') ?? '').split(' ')
 
