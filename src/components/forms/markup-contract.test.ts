@@ -60,6 +60,15 @@ describe('contact form markup contract', () => {
   })
 })
 
+describe("l'email di contact-identity-fields.astro", () => {
+  it('non passa dal correttore né dalla maiuscola automatica della tastiera', async () => {
+    const email = (await renderToFragment(ContactFormFields)).querySelector('[name="email"]')
+
+    expect(email?.getAttribute('spellcheck')).toBe('false')
+    expect(email?.getAttribute('autocapitalize')).toBe('none')
+  })
+})
+
 const AUTOFILL_HINTS = /web|site|url|home|mail|name|phone|tel|address|company|org|city|zip|postal|country/i
 
 describe('il campo trappola di contact-form-fields.astro', () => {

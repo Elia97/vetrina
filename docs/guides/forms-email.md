@@ -126,12 +126,13 @@ La politica si sceglie dalla **forma** dell'azione:
 L'azione è pubblica e non autenticata, quindi le guardie stanno nell'handler **dalla più economica**:
 quella che costa una chiamata di rete gira solo per un invio che sembra già umano.
 
-1. **Honeypot** — `HONEYPOT_FIELD` (`website`) in `src/lib/forms/honeypot.ts`. Lo schema *accetta*
+1. **Honeypot** — `HONEYPOT_FIELD` in `src/lib/forms/honeypot.ts`. Lo schema *accetta*
    l'esca riempita invece di rifiutarla: un errore di validazione direbbe al bot quale campo lo ha
    tradito. Riempita → `console.warn` e `{ ok: true }`, senza nessuna chiamata al fornitore. Un solo
    nome condiviso dalla forma dello schema (`honeypotShape`), dall'input nascosto
    (`src/components/forms/honeypot-field.astro` — `sr-only`, `aria-hidden`, `tabindex="-1"`,
-   `autocomplete="off"`) e da ogni `buildPayload`: si importa la costante, non si riscrive mai la
+   `autocomplete="off"`, e `readonly`, perché Edge e Chrome ignorano `autocomplete="off"` ma non
+   riempiono un campo in sola lettura) e da ogni `buildPayload`: si importa la costante, non si riscrive mai la
    stringa.
 2. **Rate limit** — la finestra in memoria qui sopra.
 3. **Controllo bot** — Vercel BotID Basic (gratuito su ogni piano, invisibile, senza sfide visibili).
@@ -238,7 +239,7 @@ Regole che vale la pena tenere in un progetto:
   (`createActionFormBinding({ formSelector, buildPayload, submit })`,
   `src/components/forms/action-submit.ts`): il modulo di un singolo form fornisce solo un
   `formSelector`, un `buildPayload` e l'azione. Il binder abilita il bottone di invio quando
-  aggancia il form, lo disabilita e ne cambia l'etichetta durante l'attesa (`data-i18n-sending` e
+  aggancia il form, ne cambia l'etichetta durante l'attesa (`data-i18n-sending` e
   `data-i18n-submit` sul form — i moduli di comportamento non portano stringhe), scrive il testo
   dei paragrafi `[data-form-success]` e `[data-form-error]` (`role="status"` e `role="alert"`), e
   chiama `form.reset()` in caso di successo. I due paragrafi si rendono vuoti, con
@@ -248,7 +249,11 @@ Regole che vale la pena tenere in un progetto:
   `data-i18n-success`, così anche un secondo invio riuscito si annuncia. Quando l'invio solleva
   un'eccezione invece di restituire `{ error }` — un guasto di rete, un 413 — il riquadro
   d'errore mostra `data-i18n-send-failed`, mai il `message` dell'eccezione, che è testo del
-  browser in inglese. Non reimplementarlo mai per singolo form.
+  browser in inglese. In attesa il bottone non si disabilita, perché un elemento disabilitato
+  perde il focus e chi usa la tastiera perderebbe il segno: resta focalizzabile con
+  `aria-disabled="true"`, e il binder ignora un secondo invio finché il primo non è tornato. Il
+  focus resta sul bottone anche dopo l'esito, che le regioni live annunciano già: spostato sul
+  messaggio, lo farebbe leggere due volte. Non reimplementarlo mai per singolo form.
 - **Multi-istanza per default**: il binder aggancia **ogni** form corrispondente con
   `querySelectorAll` e resta idempotente attraverso le view transition. Quando lo stesso form viene
   reso più di una volta nella stessa pagina, si passa una prop `idPrefix` per dare uno spazio dei
