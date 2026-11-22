@@ -2,7 +2,7 @@ import { isInputError } from 'astro:actions'
 
 import { createMotionBinding } from '@/lib/motion'
 
-import { applyFieldErrors, clearFieldErrors, focusFirstInvalid } from './field-errors'
+import { applyFieldErrors, clearFieldErrorOnInput, clearFieldErrors, focusFirstInvalid } from './field-errors'
 
 type ActionSubmit<P> = (payload: P) => Promise<{ error?: unknown }>
 
@@ -88,6 +88,7 @@ export function createActionFormBinding<P>(config: {
   function setup(): void {
     for (const form of document.querySelectorAll<HTMLFormElement>(config.formSelector)) {
       form.addEventListener('submit', handleSubmit)
+      form.addEventListener('input', clearFieldErrorOnInput)
       setPending(form, false)
     }
   }
@@ -95,6 +96,7 @@ export function createActionFormBinding<P>(config: {
   function cleanup(): void {
     for (const form of document.querySelectorAll<HTMLFormElement>(config.formSelector)) {
       form.removeEventListener('submit', handleSubmit)
+      form.removeEventListener('input', clearFieldErrorOnInput)
     }
   }
 

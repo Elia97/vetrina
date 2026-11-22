@@ -288,6 +288,10 @@ in una riga di riepilogo:
   (`select-a11y.ts`) passa l'`aria-describedby` dal nativo nascosto. Poi `focusFirstInvalid` sposta il focus sul primo controllo non
   valido **nell'ordine del DOM**, non nell'ordine delle chiavi di `error.fields`, che manderebbe il
   focus all'indietro oltre un campo che l'utente non ha ancora raggiunto;
+- un campo in errore si ripulisce mentre l'utente lo corregge: `createActionFormBinding` aggancia
+  `clearFieldErrorOnInput` all'evento `input` del form, che svuota lo slot e riporta `aria-invalid`
+  a `"false"` appena il valore è valido per il browser. Un valore ancora non valido non cambia
+  niente, quindi mentre si scrive non compaiono errori nuovi: quelli arrivano solo all'invio;
 - l'avviso `[data-form-error]` parla **solo** per i messaggi che non hanno uno slot in cui atterrare.
   Ripetere lì quello che un campo porta già farebbe annunciare due volte la stessa cosa a un lettore
   di schermo;
