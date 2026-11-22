@@ -1,57 +1,16 @@
 // @vitest-environment happy-dom
+import {
+  buildForm,
+  errorBox,
+  inputError,
+  slot,
+  submitButton,
+  submitWith,
+  successBox,
+} from '@test/helpers/action-form-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { createActionFormBinding } from './action-submit'
-import { fieldErrorId } from './field-errors'
-
-// La forma che `astro:actions` produce davvero (rispecchiata da test/stubs/astro-actions.ts).
-function inputError(fields: Record<string, string[]>): unknown {
-  return { type: 'AstroActionInputError', issues: [], fields }
-}
-
-function buildForm(): HTMLFormElement {
-  document.body.innerHTML = `
-    <form data-contact-form
-          data-i18n-submit="Invia"
-          data-i18n-sending="Invio…"
-          data-i18n-generic-error="Errore generico"
-          data-i18n-send-failed="Invio non riuscito"
-          data-i18n-success="Request sent">
-      <input name="email" aria-describedby="${fieldErrorId('email')}" />
-      <p id="${fieldErrorId('email')}" data-field-error="email"></p>
-      <textarea name="message" aria-describedby="${fieldErrorId('message')}"></textarea>
-      <p id="${fieldErrorId('message')}" data-field-error="message"></p>
-      <p data-form-success role="status"></p>
-      <p data-form-error role="alert"></p>
-      <button type="submit">Invia</button>
-    </form>`
-  const form = document.querySelector('form')
-  if (!form) throw new Error('fixture form missing')
-  return form
-}
-
-type SubmitSpy = (payload: unknown) => Promise<{ error?: unknown }>
-
-async function submitWith(result: { error?: unknown }, spy?: SubmitSpy): Promise<HTMLFormElement> {
-  const form = buildForm()
-  const submit = spy ?? vi.fn(() => Promise.resolve(result))
-  createActionFormBinding({
-    formSelector: '[data-contact-form]',
-    buildPayload: (f) => ({ email: f.querySelector<HTMLInputElement>('[name="email"]')?.value ?? '' }),
-    submit,
-  })()
-  form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }))
-  await vi.waitFor(() => {
-    expect(submit).toHaveBeenCalled()
-  })
-  await Promise.resolve()
-  return form
-}
-
-const successBox = (f: HTMLFormElement) => f.querySelector('[data-form-success]') as HTMLElement
-const errorBox = (f: HTMLFormElement) => f.querySelector('[data-form-error]') as HTMLElement
-const slot = (f: HTMLFormElement, field: string) => f.querySelector(`[data-field-error="${field}"]`) as HTMLElement
-const submitButton = (f: HTMLFormElement) => f.querySelector('button[type="submit"]') as HTMLButtonElement
 
 beforeEach(() => {
   vi.restoreAllMocks()
@@ -153,6 +112,32 @@ describe('non-validation errors', () => {
     form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }))
 
     expect(errorBox(form).textContent).toBe('')
+  })
+})
+
+describe('a field corrected after the submit', () => {
+  const correctEmail = (form: HTMLFormElement) => {
+    const email = form.querySelector('[name="email"]') as HTMLInputElement
+    email.value = 'ada@example.com'
+    email.dispatchEvent(new Event('input', { bubbles: true }))
+  }
+
+  it('drops its error as the user types', async () => {
+    const form = await submitWith({ error: inputError({ email: ['Email non valida'] }) })
+
+    correctEmail(form)
+
+    expect(slot(form, 'email').textContent).toBe('')
+    expect(form.querySelector('[name="email"]')?.getAttribute('aria-invalid')).toBe('false')
+  })
+
+  it('keeps its error once the binding is gone', async () => {
+    const form = await submitWith({ error: inputError({ email: ['Email non valida'] }) })
+
+    document.dispatchEvent(new Event('astro:before-swap'))
+    correctEmail(form)
+
+    expect(slot(form, 'email').textContent).toBe('Email non valida')
   })
 })
 
