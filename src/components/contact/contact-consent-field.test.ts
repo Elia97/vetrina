@@ -14,7 +14,9 @@ async function renderLabel() {
 describe('contact-consent-field.astro', () => {
   it('si legge come una frase sola, con il link alla privacy in linea e il punto attaccato', async () => {
     const label = await renderLabel()
-    const text = label?.textContent?.replace(/\s+/g, ' ').trim()
+    const spoken = label?.cloneNode(true) as Element | undefined
+    for (const hidden of spoken?.querySelectorAll('[aria-hidden="true"]') ?? []) hidden.remove()
+    const text = spoken?.textContent?.replace(/\s+/g, ' ').trim()
 
     expect(text).toBe(`${t('contact.consent')} ${t('contact.privacyPolicy')}.`)
     expect(label?.querySelector('a')?.textContent).toBe(t('contact.privacyPolicy'))
