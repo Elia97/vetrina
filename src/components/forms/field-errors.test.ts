@@ -9,9 +9,9 @@ import { applyFieldErrors, clearFieldErrors, fieldErrorId, focusFirstInvalid } f
 function buildForm(): HTMLFormElement {
   document.body.innerHTML = `
     <form>
-      <input name="email" aria-describedby="${fieldErrorId('email')}" />
+      <input name="email" aria-describedby="${fieldErrorId('email')}" aria-invalid="false" />
       <p id="${fieldErrorId('email')}" data-field-error="email"></p>
-      <textarea name="message" aria-describedby="${fieldErrorId('message')}"></textarea>
+      <textarea name="message" aria-describedby="${fieldErrorId('message')}" aria-invalid="false"></textarea>
       <p id="${fieldErrorId('message')}" data-field-error="message"></p>
       <input name="${HONEYPOT_FIELD}" />
     </form>`
@@ -40,7 +40,7 @@ describe('applyFieldErrors', () => {
   it('leaves untouched fields alone', () => {
     applyFieldErrors(form, { email: ['Email non valida'] })
     expect(slot('message')?.textContent).toBe('')
-    expect(control('message')?.hasAttribute('aria-invalid')).toBe(false)
+    expect(control('message')?.getAttribute('aria-invalid')).toBe('false')
   })
 
   it('never surfaces a honeypot error, in a slot or form-level', () => {
@@ -61,11 +61,13 @@ describe('applyFieldErrors', () => {
 })
 
 describe('clearFieldErrors', () => {
-  it('empties every slot and drops every aria-invalid', () => {
+  it('empties every slot and turns every aria-invalid back to false', () => {
     applyFieldErrors(form, { email: ['Email non valida'], message: ['Troppo lungo'] })
     clearFieldErrors(form)
     expect(slot('email')?.textContent).toBe('')
-    expect(form.querySelectorAll('[aria-invalid]')).toHaveLength(0)
+    expect(control('email')?.getAttribute('aria-invalid')).toBe('false')
+    expect(control('message')?.getAttribute('aria-invalid')).toBe('false')
+    expect(control(HONEYPOT_FIELD)?.hasAttribute('aria-invalid')).toBe(false)
   })
 })
 

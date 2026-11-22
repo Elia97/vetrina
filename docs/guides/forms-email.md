@@ -278,10 +278,14 @@ in una riga di riepilogo:
   `aria-describedby` **statico** (`fieldErrorId()` costruisce l'id a entrambi i capi, così non
   possono divergere). Lo slot si rende vuoto, e un elemento vuoto non contribuisce nessuna
   descrizione: il riferimento resta inerte finché non c'è un messaggio;
-- `applyFieldErrors` scrive il primo messaggio per campo e gira `aria-invalid` sul controllo il cui
-  `aria-describedby` nomina lo slot, cioè quello che il lettore di schermo annuncia: per un
-  `ui/select` attivo è il trigger, a cui `adoptNativeRelationships` (`select-a11y.ts`) passa
-  l'attributo dal nativo nascosto. Poi `focusFirstInvalid` sposta il focus sul primo controllo non
+- il controllo nasce con `aria-invalid="false"`: senza l'attributo Firefox e Safari espongono un
+  campo `required` vuoto come non valido già al caricamento, e il lettore di schermo dice «non
+  valido» prima che si scriva. I due attributi li porta insieme `fieldErrorAttributes()`, e
+  `clearFieldErrors` riporta a `"false"` quelli in errore;
+- `applyFieldErrors` scrive il primo messaggio per campo e porta a `"true"` l'`aria-invalid` del
+  controllo il cui `aria-describedby` nomina lo slot, cioè quello che il lettore di schermo
+  annuncia: per un `ui/select` attivo è il trigger, a cui `adoptNativeRelationships`
+  (`select-a11y.ts`) passa l'`aria-describedby` dal nativo nascosto. Poi `focusFirstInvalid` sposta il focus sul primo controllo non
   valido **nell'ordine del DOM**, non nell'ordine delle chiavi di `error.fields`, che manderebbe il
   focus all'indietro oltre un campo che l'utente non ha ancora raggiunto;
 - l'avviso `[data-form-error]` parla **solo** per i messaggi che non hanno uno slot in cui atterrare.
@@ -340,7 +344,7 @@ fixture condivise e i mock di fornitore e BotID stanno in `test/helpers/actions.
 
 1. Aggiungilo a `contactSchemaFor()` in `src/lib/contact.ts`, limiti compresi.
 2. Rendilo nel componente `contact-*.astro` giusto (con le chiavi i18n), col suo
-   `aria-describedby={fieldErrorId('<nome>')}` e un `<FieldError field="<nome>" />` fratello:
+   `{...fieldErrorAttributes('<nome>')}` e un `<FieldError field="<nome>" />` fratello:
    `markup-contract.test.ts` fallisce senza.
 3. Raccoglilo in `buildPayload` (`contact-form-behavior.ts`).
 4. Mostralo nell'email di notifica (`detailRow` in `emails/contact.ts`).

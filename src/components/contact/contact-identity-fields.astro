@@ -1,5 +1,5 @@
 ---
-import { fieldErrorId } from '@/components/forms/field-errors'
+import { fieldErrorAttributes } from '@/components/forms/field-errors'
 import { Field, FieldError, FieldLabel } from '@/components/ui/field'
 import Input from '@/components/ui/input.astro'
 
@@ -18,7 +18,7 @@ const t = useTranslations(Astro.currentLocale)
       autocomplete="given-name"
       maxlength="100"
       required
-      aria-describedby={fieldErrorId('firstName')}
+      {...fieldErrorAttributes('firstName')}
     />
     <FieldError field="firstName" />
   </Field>
@@ -31,7 +31,7 @@ const t = useTranslations(Astro.currentLocale)
       autocomplete="family-name"
       maxlength="100"
       required
-      aria-describedby={fieldErrorId('lastName')}
+      {...fieldErrorAttributes('lastName')}
     />
     <FieldError field="lastName" />
   </Field>
@@ -46,7 +46,7 @@ const t = useTranslations(Astro.currentLocale)
     autocomplete="email"
     maxlength="254"
     required
-    aria-describedby={fieldErrorId('email')}
+    {...fieldErrorAttributes('email')}
   />
   <FieldError field="email" />
 </Field>

@@ -11,13 +11,18 @@ export function fieldErrorId(field: string): string {
   return `${field}-error`
 }
 
+// Firefox e Safari espongono come non valido un `required` vuoto senza aria-invalid, e il lettore lo annuncia subito.
+export function fieldErrorAttributes(field: string) {
+  return { 'aria-describedby': fieldErrorId(field), 'aria-invalid': 'false' } as const
+}
+
 function controlFor(form: HTMLFormElement, name: string): HTMLElement | null {
   return form.querySelector<HTMLElement>(`[aria-describedby~="${fieldErrorId(name)}"]`)
 }
 
 export function clearFieldErrors(form: HTMLFormElement): void {
   for (const slot of form.querySelectorAll<HTMLElement>('[data-field-error]')) slot.textContent = ''
-  for (const control of form.querySelectorAll('[aria-invalid]')) control.removeAttribute('aria-invalid')
+  for (const control of form.querySelectorAll('[aria-invalid="true"]')) control.setAttribute('aria-invalid', 'false')
 }
 
 // Mostrare l'errore dell'honeypot direbbe a un bot quale campo lo ha tradito, quindi si scarta.
