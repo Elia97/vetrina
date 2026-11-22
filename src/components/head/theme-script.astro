@@ -2,6 +2,10 @@
 ---
 
 <script is:inline>
+  function systemDark() {
+    return window.matchMedia('(prefers-color-scheme: dark)')
+  }
+
   function syncThemeToggles() {
     const dark = document.documentElement.classList.contains('dark')
     const toggles = document.querySelectorAll('[data-theme-toggle]')
@@ -15,9 +19,7 @@
     try {
       stored = localStorage.getItem('theme')
     } catch {}
-    const dark = stored
-      ? stored === 'dark'
-      : window.matchMedia('(prefers-color-scheme: dark)').matches
+    const dark = stored ? stored === 'dark' : systemDark().matches
     document.documentElement.classList.toggle('dark', dark)
     syncThemeToggles()
     syncThemeColor(dark)
@@ -42,6 +44,7 @@
     window.__themeInit = true
     document.addEventListener('DOMContentLoaded', syncFromDom)
     document.addEventListener('astro:after-swap', applyTheme)
+    systemDark().addEventListener('change', applyTheme)
     document.addEventListener('click', function (event) {
       const target = event.target
       const toggle = target && target.closest && target.closest('[data-theme-toggle]')
@@ -50,7 +53,8 @@
       syncThemeToggles()
       syncThemeColor(isDark)
       try {
-        localStorage.setItem('theme', isDark ? 'dark' : 'light')
+        if (isDark === systemDark().matches) localStorage.removeItem('theme')
+        else localStorage.setItem('theme', isDark ? 'dark' : 'light')
       } catch {}
     })
   }

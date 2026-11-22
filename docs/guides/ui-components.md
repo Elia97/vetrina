@@ -201,6 +201,11 @@ regole sul numero di righe contano quei file.
 - Il tema è la classe `.dark` su `<html>`, commutata da `src/components/head/theme-script.astro`
   (inline anti-FOUC nell'`<head>`, gestore di click delegato su `[data-theme-toggle]`, riapplicato
   su `astro:after-swap`).
+- Il pulsante ha due stati, il tema del sistema e il suo opposto: il clic passa al tema opposto a
+  quello mostrato, lo salva in `localStorage` se è diverso da quello del sistema e altrimenti
+  toglie la voce, così il sito torna a seguire il sistema. Il confronto si fa solo al clic: una
+  scelta salvata resta anche quando il sistema cambia, mentre senza una scelta salvata lo script
+  ascolta `prefers-color-scheme` e segue il sistema anche a pagina aperta.
 - Entrambi i temi dichiarano `color-scheme`, così l'interfaccia nativa (controlli di form, barre di
   scorrimento) segue il tema.
 - I bottoni di commutazione portano `aria-pressed`, sincronizzato dallo script del tema: un
