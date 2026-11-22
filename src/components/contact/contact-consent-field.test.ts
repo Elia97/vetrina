@@ -28,7 +28,9 @@ describe('contact-consent-field.astro', () => {
     expect(target?.tagName).toBe('LABEL')
     expect(target?.hasAttribute('for')).toBe(false)
     expect(target?.textContent?.trim()).toBe('')
-    expect(classes).toEqual(expect.arrayContaining(['relative', 'size-4', 'after:absolute', 'after:-inset-1']))
+    expect(classes).toEqual(
+      expect.arrayContaining(['relative', 'isolate', 'size-4', 'after:absolute', 'after:-inset-1', 'after:-z-10']),
+    )
     expect(checkbox?.getAttribute('class')?.split(' ')).toContain('size-4')
   })
 
