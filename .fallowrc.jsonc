@@ -1,6 +1,9 @@
 {
   "$schema": "https://raw.githubusercontent.com/fallow-rs/fallow/main/schema.json",
 
+  // fallow rifiuta il `return` di primo livello nel frontmatter Astro: https://github.com/fallow-rs/fallow/issues/5129
+  "ignorePatterns": ["test/fixtures/rewrite-to-privacy.astro"],
+
   "entry": [
     "src/components/ui/**",
     "src/components/layout/header.astro",
