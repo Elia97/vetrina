@@ -1,0 +1,3 @@
+@source not "../**/*.test.ts";
+/* Lo scanner di Tailwind legge come utility i comandi dei tracciati SVG: `m-1729` diventa un margine. */
+@source not "../assets";

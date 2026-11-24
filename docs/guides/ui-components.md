@@ -177,6 +177,9 @@ head).
   layer di base e il CSS delle animazioni.
 - `src/styles/typography.css` — le utility `type-*` dei ruoli tipografici, ciascuna sui quattro
   token del suo ruolo in `tokens.css`. La importa `globals.css`.
+- `src/styles/sources.css` — i `@source` e `@source not` che allargano o restringono la scansione
+  di Tailwind, una voce per riga. La importa `globals.css`, e un template derivato ci aggiunge in
+  coda le sue righe.
 
 I token dei gradienti seguono la stessa logica di livello — il livello È la decisione sul tema. Un
 gradiente che deve reagire al tema vive in `light.css` e `dark.css` con una sovrascrittura per lo
@@ -307,7 +310,7 @@ apre il pannello della CMP, non porta a una pagina.
 - **Le classi vengono solo da `src/`**: `globals.css` importa Tailwind con `source("..")`. Senza, il
   rilevamento automatico legge ogni file che git non ignora, e le parole delle guide, di `CLAUDE.md`
   o di `astro.config.mjs` diventano regole del CSS costruito che nessun componente usa. Una classe
-  che vive in un file fuori da `src/` si dichiara con `@source` in `globals.css`. Dentro `src/`
+  che vive in un file fuori da `src/` si dichiara con `@source` in `sources.css`. Dentro `src/`
   restano fuori, con `@source not`, i test `*.test.ts`, che citano classi che nessun elemento usa, e
   `src/assets`, dove i comandi dei tracciati SVG si leggerebbero come utility: una classe scritta
   dentro un file di `src/assets` non arriva al CSS, e va sul componente che lo rende.
