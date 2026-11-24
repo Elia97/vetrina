@@ -1,5 +1,7 @@
 import { getSecret } from 'astro:env/server'
 
+import { isStagingSite, SITE_URL } from '@/lib/site-url'
+
 const BREVO_API = 'https://api.brevo.com/v3'
 
 // [HARD] `fetch` non ha nessun timeout di default, e tre di queste girano in parallelo:
@@ -28,6 +30,8 @@ export interface UpsertContactParams {
 
 export type BrevoResult = { ok: true; skipped?: boolean } | { ok: false; error: string }
 
+const SKIPPED: BrevoResult = { ok: true, skipped: true }
+
 async function brevoFetch(path: string, body: unknown): Promise<BrevoResult> {
   const key = getSecret('BREVO_API_KEY')
   if (!key) {
@@ -38,7 +42,7 @@ async function brevoFetch(path: string, body: unknown): Promise<BrevoResult> {
       }
     }
     console.warn(`[brevo] BREVO_API_KEY unset — skipping POST ${path} (dev/no-op)`)
-    return { ok: true, skipped: true }
+    return SKIPPED
   }
   try {
     const res = await fetch(`${BREVO_API}${path}`, {
@@ -67,10 +71,37 @@ async function brevoFetch(path: string, body: unknown): Promise<BrevoResult> {
   }
 }
 
-export function sendTransactionalEmail(params: SendEmailParams): Promise<BrevoResult> {
+function stagingAllowlist(): string[] {
+  return (getSecret('STAGING_EMAIL_RECIPIENTS') ?? '')
+    .split(',')
+    .map((entry) => entry.trim().toLowerCase().replace(/^@/, ''))
+    .filter((entry) => entry !== '')
+}
+
+function isAllowedInStaging(email: string, allowlist: readonly string[]): boolean {
+  const address = email.toLowerCase()
+  const domain = address.slice(address.lastIndexOf('@') + 1)
+  return allowlist.some((entry) => entry === address || entry === domain)
+}
+
+function stagingRecipients(to: EmailAddress[]): EmailAddress[] {
+  if (!isStagingSite(SITE_URL)) return to
+  const allowlist = stagingAllowlist()
+  const kept = to.filter((recipient) => isAllowedInStaging(recipient.email, allowlist))
+  if (kept.length < to.length) {
+    console.warn(
+      `[brevo] staging site — dropped ${String(to.length - kept.length)} recipient(s) outside STAGING_EMAIL_RECIPIENTS`,
+    )
+  }
+  return kept
+}
+
+export async function sendTransactionalEmail(params: SendEmailParams): Promise<BrevoResult> {
+  const to = stagingRecipients(params.to)
+  if (to.length === 0) return SKIPPED
   return brevoFetch('/smtp/email', {
     sender: params.sender,
-    to: params.to,
+    to,
     replyTo: params.replyTo,
     subject: params.subject,
     htmlContent: params.htmlContent,
@@ -78,7 +109,11 @@ export function sendTransactionalEmail(params: SendEmailParams): Promise<BrevoRe
   })
 }
 
-export function upsertContact(params: UpsertContactParams): Promise<BrevoResult> {
+export async function upsertContact(params: UpsertContactParams): Promise<BrevoResult> {
+  if (isStagingSite(SITE_URL)) {
+    console.warn('[brevo] staging site — skipping POST /contacts')
+    return SKIPPED
+  }
   return brevoFetch('/contacts', {
     email: params.email,
     attributes: params.attributes,

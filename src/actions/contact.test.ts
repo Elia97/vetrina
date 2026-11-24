@@ -55,7 +55,7 @@ describe('contact handler', () => {
 
     const error = await rejectionOf(handleContact(CONTACT_INPUT, CLIENT))
 
-    expect(error.code).toBe('INTERNAL_SERVER_ERROR')
+    expect(error.code).toBe('BAD_GATEWAY')
     expect(error.message).toBe(dictionary['forms.action.sendFailed'])
     expect(consoleError).toHaveBeenCalledWith('[contact] notification failed:', KO_ERROR)
   })

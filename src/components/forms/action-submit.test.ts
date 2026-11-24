@@ -1,55 +1,16 @@
 // @vitest-environment happy-dom
+import {
+  buildForm,
+  errorBox,
+  inputError,
+  slot,
+  submitButton,
+  submitWith,
+  successBox,
+} from '@test/helpers/action-form-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { createActionFormBinding } from './action-submit'
-import { fieldErrorId } from './field-errors'
-
-// La forma che `astro:actions` produce davvero (rispecchiata da test/stubs/astro-actions.ts).
-function inputError(fields: Record<string, string[]>): unknown {
-  return { type: 'AstroActionInputError', issues: [], fields }
-}
-
-function buildForm(): HTMLFormElement {
-  document.body.innerHTML = `
-    <form data-contact-form
-          data-i18n-submit="Invia"
-          data-i18n-sending="Invio…"
-          data-i18n-generic-error="Errore generico">
-      <input name="email" aria-describedby="${fieldErrorId('email')}" />
-      <p id="${fieldErrorId('email')}" data-field-error="email"></p>
-      <textarea name="message" aria-describedby="${fieldErrorId('message')}"></textarea>
-      <p id="${fieldErrorId('message')}" data-field-error="message"></p>
-      <p data-form-success class="hidden"></p>
-      <p data-form-error class="hidden"></p>
-      <button type="submit">Invia</button>
-    </form>`
-  const form = document.querySelector('form')
-  if (!form) throw new Error('fixture form missing')
-  return form
-}
-
-type SubmitSpy = (payload: unknown) => Promise<{ error?: unknown }>
-
-async function submitWith(result: { error?: unknown }, spy?: SubmitSpy): Promise<HTMLFormElement> {
-  const form = buildForm()
-  const submit = spy ?? vi.fn(() => Promise.resolve(result))
-  createActionFormBinding({
-    formSelector: '[data-contact-form]',
-    buildPayload: (f) => ({ email: f.querySelector<HTMLInputElement>('[name="email"]')?.value ?? '' }),
-    submit,
-  })()
-  form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }))
-  await vi.waitFor(() => {
-    expect(submit).toHaveBeenCalled()
-  })
-  await Promise.resolve()
-  return form
-}
-
-const successBox = (f: HTMLFormElement) => f.querySelector('[data-form-success]') as HTMLElement
-const errorBox = (f: HTMLFormElement) => f.querySelector('[data-form-error]') as HTMLElement
-const slot = (f: HTMLFormElement, field: string) => f.querySelector(`[data-field-error="${field}"]`) as HTMLElement
-const submitButton = (f: HTMLFormElement) => f.querySelector('button[type="submit"]') as HTMLButtonElement
 
 beforeEach(() => {
   vi.restoreAllMocks()
@@ -64,19 +25,37 @@ describe('a submit that throws', () => {
     )
 
     expect(submitButton(form).disabled).toBe(false)
-    expect(errorBox(form).hidden).toBe(false)
-    expect(errorBox(form).textContent).toContain('Content too large')
+    expect(errorBox(form).textContent).toBe('Invio non riuscito')
+    expect(errorBox(form).textContent).not.toContain('Content too large')
+  })
+
+  it('shows the dictionary message for a network failure, never the browser text', async () => {
+    const form = await submitWith(
+      {},
+      vi.fn(() => Promise.reject(new TypeError('Failed to fetch'))),
+    )
+
+    expect(errorBox(form).textContent).toBe('Invio non riuscito')
   })
 })
 
 describe('successful submit', () => {
-  it('resets the form, clears field errors and shows the success box', async () => {
+  it("svuota il form e gli errori di campo, e scrive il messaggio d'esito", async () => {
     const form = await submitWith({})
     form.querySelector<HTMLInputElement>('[name="email"]')?.setAttribute('value', 'a@b.test')
 
-    expect(successBox(form).classList.contains('hidden')).toBe(false)
-    expect(errorBox(form).classList.contains('hidden')).toBe(true)
+    expect(successBox(form).textContent).toBe('Request sent')
+    expect(errorBox(form).textContent).toBe('')
     expect(slot(form, 'email').textContent).toBe('')
+  })
+
+  it("svuota la conferma quando parte l'invio successivo, e la riscrive", async () => {
+    const form = await submitWith({})
+
+    form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }))
+    expect(successBox(form).textContent).toBe('')
+
+    await vi.waitFor(() => expect(successBox(form).textContent).toBe('Request sent'))
   })
 
   it('re-enables the submit button and restores its label', async () => {
@@ -98,13 +77,12 @@ describe('validation errors land on their field', () => {
   it('stays silent at form level when every message found a slot', async () => {
     const form = await submitWith({ error: inputError({ email: ['Email non valida'] }) })
 
-    expect(errorBox(form).classList.contains('hidden')).toBe(true)
+    expect(errorBox(form).textContent).toBe('')
   })
 
   it('speaks at form level for a message with no slot to land in', async () => {
     const form = await submitWith({ error: inputError({ captcha: ['Verifica fallita'] }) })
 
-    expect(errorBox(form).classList.contains('hidden')).toBe(false)
     expect(errorBox(form).textContent).toBe('Verifica fallita')
   })
 
@@ -126,6 +104,40 @@ describe('non-validation errors', () => {
     const form = await submitWith({ error: 'boom' })
 
     expect(errorBox(form).textContent).toBe('Errore generico')
+  })
+
+  it("svuota l'errore precedente quando parte l'invio successivo", async () => {
+    const form = await submitWith({ error: { message: 'Too many requests' } })
+
+    form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }))
+
+    expect(errorBox(form).textContent).toBe('')
+  })
+})
+
+describe('a field corrected after the submit', () => {
+  const correctEmail = (form: HTMLFormElement) => {
+    const email = form.querySelector('[name="email"]') as HTMLInputElement
+    email.value = 'ada@example.com'
+    email.dispatchEvent(new Event('input', { bubbles: true }))
+  }
+
+  it('drops its error as the user types', async () => {
+    const form = await submitWith({ error: inputError({ email: ['Email non valida'] }) })
+
+    correctEmail(form)
+
+    expect(slot(form, 'email').textContent).toBe('')
+    expect(form.querySelector('[name="email"]')?.getAttribute('aria-invalid')).toBe('false')
+  })
+
+  it('keeps its error once the binding is gone', async () => {
+    const form = await submitWith({ error: inputError({ email: ['Email non valida'] }) })
+
+    document.dispatchEvent(new Event('astro:before-swap'))
+    correctEmail(form)
+
+    expect(slot(form, 'email').textContent).toBe('Email non valida')
   })
 })
 
@@ -170,9 +182,7 @@ describe('binding lifecycle', () => {
 
     expect(event.defaultPrevented).toBe(true)
   })
-})
 
-describe("l'aggancio del form", () => {
   it('abilita il pulsante di invio che il markup consegna disabilitato', () => {
     const form = buildForm()
     submitButton(form).disabled = true

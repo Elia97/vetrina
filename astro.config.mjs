@@ -59,6 +59,11 @@ export default defineConfig({
         access: 'secret',
         optional: true,
       }),
+      STAGING_EMAIL_RECIPIENTS: envField.string({
+        context: 'server',
+        access: 'secret',
+        optional: true,
+      }),
       CONTACT_FROM_EMAIL: envField.string({
         context: 'server',
         access: 'public',

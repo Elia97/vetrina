@@ -38,6 +38,14 @@ describe('contact form markup contract', () => {
     }
   })
 
+  it('renders each control with a slot as not invalid, until an error arrives', async () => {
+    const document = await renderToFragment(ContactFormFields)
+    for (const field of expectedFields) {
+      expect(document.querySelector(`[name="${field}"]`)?.getAttribute('aria-invalid'), field).toBe('false')
+    }
+    expect(document.querySelector(`[name="${HONEYPOT_FIELD}"]`)?.hasAttribute('aria-invalid')).toBe(false)
+  })
+
   it('gives every slot the id its control references', async () => {
     const document = await renderToFragment(ContactFormFields)
     for (const field of expectedFields) {
@@ -45,10 +53,31 @@ describe('contact form markup contract', () => {
     }
   })
 
+  it('marks the label of every required control, and of no optional one', async () => {
+    const document = await renderToFragment(ContactFormFields)
+    for (const field of expectedFields) {
+      const control = document.querySelector(`[name="${field}"]`)
+      const label = document.querySelector(`label[for="${control?.id}"]`)
+      const mark = [...(label?.querySelectorAll('[aria-hidden="true"]') ?? [])].find((el) => el.textContent === '*')
+
+      expect(label, `no label for ${field}`).not.toBeNull()
+      expect(Boolean(mark), field).toBe(control?.hasAttribute('required'))
+    }
+  })
+
   it('renders the honeypot without a slot to give it away', async () => {
     const document = await renderToFragment(ContactFormFields)
     expect(document.querySelector(`[name="${HONEYPOT_FIELD}"]`)).not.toBeNull()
     expect(document.querySelector(`[data-field-error="${HONEYPOT_FIELD}"]`)).toBeNull()
+  })
+})
+
+describe("l'email di contact-identity-fields.astro", () => {
+  it('non passa dal correttore né dalla maiuscola automatica della tastiera', async () => {
+    const email = (await renderToFragment(ContactFormFields)).querySelector('[name="email"]')
+
+    expect(email?.getAttribute('spellcheck')).toBe('false')
+    expect(email?.getAttribute('autocapitalize')).toBe('none')
   })
 })
 
@@ -112,9 +141,48 @@ describe('il contratto di invio di contact-form.astro', () => {
     expect(document.querySelector('form[data-contact-form]')?.getAttribute('data-locale')).toBe('en')
   })
 
+  it("dà al binder il messaggio del dizionario per un invio che solleva un'eccezione", async () => {
+    const form = await contactForm()
+
+    expect(form?.getAttribute('data-i18n-send-failed')).toBe(dictionary['contact.error'])
+  })
+
+  it('dà al binder il messaggio del dizionario per un invio riuscito', async () => {
+    const form = await contactForm()
+
+    expect(form?.getAttribute('data-i18n-success')).toBe(dictionary['contact.success'])
+  })
+
+  it("rende vuote e visibili all'albero dell'accessibilità le due regioni d'esito, che il binder scrive", async () => {
+    const form = await contactForm()
+
+    for (const [selector, role] of [
+      ['[data-form-success]', 'status'],
+      ['[data-form-error]', 'alert'],
+    ] as const) {
+      const region = form?.querySelector(selector)
+      expect(region?.getAttribute('role')).toBe(role)
+      expect(region?.textContent).toBe('')
+      expect(region?.classList.contains('hidden')).toBe(false)
+      expect(region?.hasAttribute('hidden')).toBe(false)
+    }
+  })
+
   it('senza JavaScript rimanda ai recapiti, con il testo del dizionario', async () => {
     const form = await contactForm()
 
     expect(form?.querySelector('noscript')?.textContent).toContain(dictionary['contact.noscript'])
+  })
+})
+
+describe("la spiegazione dell'asterisco in contact-form.astro", () => {
+  it('sta prima del form, con il testo del dizionario', async () => {
+    const document = await renderToFragment(ContactForm)
+    const form = document.querySelector('form[data-contact-form]')
+    const hint = [...document.querySelectorAll('p')].find((el) => el.textContent === dictionary['contact.requiredHint'])
+
+    expect(hint).toBeDefined()
+    expect(hint?.closest('form')).toBeNull()
+    expect(hint && form && hint.compareDocumentPosition(form) & form.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
   })
 })

@@ -63,6 +63,7 @@ src/
     vendor/    #   client di terze parti (brevo)                         machinery
     schemas/   #   schemi delle content collection                       seed
     site.ts    #   identità del sito, fonte unica                        config
+    site-url.ts #  SITE_URL, il ripiego e il sito in prova               machinery
     company.ts #   soggetto giuridico, fonte unica                       config
     utils.ts   #   cn()                                                  machinery
     contact.ts, homepage.ts # i moduli di dominio dell'esempio svolto    seed
@@ -160,8 +161,9 @@ sostituisce invece di allungarsi. Ogni altra modifica alla base si fa in vetrina
 template derivato con il cherry-pick.
 
 - **Azioni**: `src/actions/index.ts` è il solo registro, `server`. Un'azione nuova sta in un suo
-  `src/actions/<nome>.ts` e si registra in coda a `server` (`docs/guides/forms-email.md` § Un form
-  nuovo dietro un'azione).
+  `src/actions/<nome>.ts`, nasce da `defineSafeAction` (`src/lib/forms/action-boundary.ts`, che
+  Biome impone al posto del `defineAction` di Astro: `docs/guides/forms-email.md` § Politica d'errore)
+  e si registra in coda a `server` (`docs/guides/forms-email.md` § Un form nuovo dietro un'azione).
 - **Dizionari di dominio**: i testi di un dominio stanno in `src/i18n/<dominio>/<lingua>.ts`,
   raccolti in `src/i18n/<dominio>/index.ts`, accanto ai dizionari del sito e fuori da `strings/`.
   `useTranslations(locale, domain)` li risolve insieme a quelli del sito

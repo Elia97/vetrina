@@ -12,6 +12,10 @@ export function isInputError(
   )
 }
 
+export function isActionError(error?: unknown): error is ActionError {
+  return typeof error === 'object' && error != null && 'type' in error && error.type === 'AstroActionError'
+}
+
 // Stessa fonte, meno `status` e `codeToStatus`: in uscita il runtime deriva lo stato HTTP
 // dalla mappa dei codici IANA, e niente di ciò che è in prova lo legge.
 export class ActionError extends Error {

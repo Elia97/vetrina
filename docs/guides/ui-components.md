@@ -201,6 +201,11 @@ regole sul numero di righe contano quei file.
 - Il tema è la classe `.dark` su `<html>`, commutata da `src/components/head/theme-script.astro`
   (inline anti-FOUC nell'`<head>`, gestore di click delegato su `[data-theme-toggle]`, riapplicato
   su `astro:after-swap`).
+- Il pulsante ha due stati, il tema del sistema e il suo opposto: il clic passa al tema opposto a
+  quello mostrato, lo salva in `localStorage` se è diverso da quello del sistema e altrimenti
+  toglie la voce, così il sito torna a seguire il sistema. Il confronto si fa solo al clic: una
+  scelta salvata resta anche quando il sistema cambia, mentre senza una scelta salvata lo script
+  ascolta `prefers-color-scheme` e segue il sistema anche a pagina aperta.
 - Entrambi i temi dichiarano `color-scheme`, così l'interfaccia nativa (controlli di form, barre di
   scorrimento) segue il tema.
 - I bottoni di commutazione portano `aria-pressed`, sincronizzato dallo script del tema: un
@@ -486,7 +491,9 @@ tailwind-merge): la forma dell'API di shadcn senza il runtime React o Radix.
   comportamento attaccato: il suo contratto e il test che lo presidia stanno in `forms-email.md` §
   La superficie di validazione. `FieldLabel` è flex: un'etichetta che è una frase con un link, come
   quella del consenso, gli passa `block`, e lo spazio prima del link si scrive `{' '}`, perché
-  `compressHTML` toglie quello fra un'espressione e un tag anche sulla stessa riga.
+  `compressHTML` toglie quello fra un'espressione e un tag anche sulla stessa riga. Su un campo
+  `required` l'etichetta prende la prop `required`, che aggiunge l'asterisco con `aria-hidden`: il
+  lettore di schermo annuncia già l'obbligo dal controllo.
 - `Alert` non porta nessun `role` di suo. `role="alert"` è una live region assertiva: interrompe
   quello che lo screen reader sta dicendo, e su un avviso presente al caricamento alcuni lo
   annunciano prima del titolo della pagina. Si passa `role="alert"` per un errore che compare in

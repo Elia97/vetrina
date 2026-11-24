@@ -11,13 +11,35 @@ export function fieldErrorId(field: string): string {
   return `${field}-error`
 }
 
+const NOT_INVALID = 'false'
+
+// Firefox e Safari espongono come non valido un `required` vuoto senza aria-invalid, e il lettore lo annuncia subito.
+export function fieldErrorAttributes(field: string) {
+  return { 'aria-describedby': fieldErrorId(field), 'aria-invalid': NOT_INVALID } as const
+}
+
 function controlFor(form: HTMLFormElement, name: string): HTMLElement | null {
   return form.querySelector<HTMLElement>(`[aria-describedby~="${fieldErrorId(name)}"]`)
 }
 
 export function clearFieldErrors(form: HTMLFormElement): void {
   for (const slot of form.querySelectorAll<HTMLElement>('[data-field-error]')) slot.textContent = ''
-  for (const control of form.querySelectorAll('[aria-invalid]')) control.removeAttribute('aria-invalid')
+  for (const control of form.querySelectorAll('[aria-invalid="true"]'))
+    control.setAttribute('aria-invalid', NOT_INVALID)
+}
+
+type ValidatedControl = Element & Pick<HTMLInputElement, 'form' | 'name' | 'validity'>
+
+const isValidatedControl = (target: EventTarget | null): target is ValidatedControl =>
+  target instanceof Element && 'validity' in target
+
+export function clearFieldErrorOnInput(event: Event): void {
+  const { target } = event
+  if (!isValidatedControl(target) || !target.form || !target.validity.valid) return
+  const control = controlFor(target.form, target.name)
+  if (control?.getAttribute('aria-invalid') !== 'true') return
+  control.setAttribute('aria-invalid', NOT_INVALID)
+  for (const slot of target.form.querySelectorAll(`[data-field-error="${target.name}"]`)) slot.textContent = ''
 }
 
 // Mostrare l'errore dell'honeypot direbbe a un bot quale campo lo ha tradito, quindi si scarta.

@@ -41,6 +41,7 @@ export const it = {
   'contact.address': 'Sede',
   'contact.formTitle': 'Richiesta informazioni',
   'contact.formIntro': 'Compila il form e ti ricontatteremo al più presto.',
+  'contact.requiredHint': 'I campi contrassegnati con * sono obbligatori.',
   'contact.firstName': 'Nome',
   'contact.lastName': 'Cognome',
   'contact.email': 'Email',
@@ -69,6 +70,7 @@ export const it = {
   'forms.action.tooManyRequests': 'Troppe richieste, riprova tra poco.',
   'forms.action.securityCheckFailed': 'Verifica di sicurezza non superata, riprova.',
   'forms.action.sendFailed': 'Invio non riuscito, riprova.',
+  'forms.action.unexpected': 'Si è verificato un errore, riprova.',
 
   'email.lang': 'it',
   'email.notificationHeading': 'Nuova richiesta dal sito',

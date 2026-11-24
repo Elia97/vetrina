@@ -55,6 +55,22 @@ describe('buildCsConfiguration', () => {
     expect(buildCsConfiguration(csOptions()).consentOnContinuedBrowsing).toBe(false)
   })
 
+  it('shows accept, reject and customize on the first layer, without the close button', () => {
+    const { banner } = buildCsConfiguration(csOptions())
+
+    expect(banner.acceptButtonDisplay).toBe(true)
+    expect(banner.rejectButtonDisplay).toBe(true)
+    expect(banner.customizeButtonDisplay).toBe(true)
+    expect(banner.closeButtonDisplay).toBe(false)
+  })
+
+  it('lists the purposes on the banner and offers explicit withdrawal', () => {
+    const { banner } = buildCsConfiguration(csOptions())
+
+    expect(banner.listPurposes).toBe(true)
+    expect(banner.explicitWithdrawal).toBe(true)
+  })
+
   it('asks for per-purpose consent, which is what the gate maps', () => {
     expect(buildCsConfiguration(csOptions()).perPurposeConsent).toBe(true)
   })

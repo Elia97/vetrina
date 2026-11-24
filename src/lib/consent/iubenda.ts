@@ -5,6 +5,25 @@ export interface IubendaCsCallback {
   onConsentRead: (pref: ConsentPreference) => void
 }
 
+export interface IubendaCsBanner {
+  acceptButtonDisplay: boolean
+  rejectButtonDisplay: boolean
+  customizeButtonDisplay: boolean
+  closeButtonDisplay: boolean
+  listPurposes: boolean
+  explicitWithdrawal: boolean
+  position:
+    | 'float-top-left'
+    | 'float-top-center'
+    | 'float-top-right'
+    | 'float-bottom-left'
+    | 'float-bottom-center'
+    | 'float-bottom-right'
+    | 'float-center'
+    | 'top'
+    | 'bottom'
+}
+
 export interface IubendaCsConfiguration {
   siteId: number
   cookiePolicyId: number
@@ -16,7 +35,19 @@ export interface IubendaCsConfiguration {
   privacyPolicyUrl?: string
   cookiePolicyInOtherWindow: boolean
   privacyPolicyInOtherWindow: boolean
+  banner: IubendaCsBanner
   callback: IubendaCsCallback
+}
+
+// iubenda non fonde questo blocco con il banner del pannello; i bottoni valgono false di default.
+const BANNER: IubendaCsBanner = {
+  acceptButtonDisplay: true,
+  rejectButtonDisplay: true,
+  customizeButtonDisplay: true,
+  closeButtonDisplay: false,
+  listPurposes: true,
+  explicitWithdrawal: true,
+  position: 'float-bottom-center',
 }
 
 /** [HARD] Con `floatingPreferencesButtonDisplay` a false, il
@@ -42,6 +73,7 @@ export function buildCsConfiguration(opts: {
     ...(opts.privacyPolicyUrl === '' ? {} : { privacyPolicyUrl: opts.privacyPolicyUrl }),
     cookiePolicyInOtherWindow: true,
     privacyPolicyInOtherWindow: true,
+    banner: BANNER,
     callback: {
       // onConsentRead porta la preferenza salvata quando si torna sul sito;
       // onPreferenceExpressed scatta solo su una scelta nuova.

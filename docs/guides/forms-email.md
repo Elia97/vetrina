@@ -75,15 +75,34 @@ l'unico controllo che gira davvero: un campo marcato `required` ma con default `
 vuoto da qualunque cosa che non sia un browser. `form-fields.test.ts` fissa quella parità campo per
 campo.
 
-## Politica d'errore (rumorosa dove conta)
+## Politica d'errore
+
+**[HARD] Ogni azione nasce da `defineSafeAction(scope, { input, handler })`**, in
+`src/lib/forms/action-boundary.ts`, mai dal `defineAction` di Astro: Biome rifiuta l'import
+(`noRestrictedImports` in `biome.json`). Il motivo è come Astro tratta un errore che non è un
+`ActionError`: `callSafely` lo trasforma in un 500 che porta il suo `message`, e
+`serializeActionResult` lo scrive nel corpo della risposta anche in produzione, senza registrarlo da
+nessuna parte. Un errore del database o di un fornitore uscirebbe così al browser con il suo testo,
+che può contenere SQL e dati personali, e nel log della funzione non resterebbe niente. Il confine
+attorno all'handler fa tre cose:
+
+- un `ActionError` sollevato di proposito passa invariato, codice e messaggio;
+- ogni altro errore si registra con `console.error('[<scope>] unhandled error:', error)`, stack
+  compreso, e diventa un `INTERNAL_SERVER_ERROR` con il messaggio generico
+  `forms.action.unexpected` nella lingua di `input.locale`;
+- per questo l'input dell'azione porta sempre `locale`, come vuole già § Validazione.
+
+**Un 500 vuol dire «errore sfuggito»**, e chi osserva i log lo può contare come tale. Un guasto a
+monte che l'handler ha già registrato risponde con un codice suo: `BAD_GATEWAY` (502) quando il
+fornitore ha fallito, come la notifica del contatto qui sotto.
 
 La politica si sceglie dalla **forma** dell'azione:
 
 - **A ventaglio** (più chiamate al fornitore, alcune best-effort): si fallisce rumorosamente
   **solo** sulla chiamata che perderebbe il dato. Nel contatto, se fallisce la **notifica al
-  titolare** il contatto è perso → `ActionError` (che diventa lo stato d'errore del form); risposta
-  automatica e inserimento nel CRM sono best-effort, si registrano con `console.error` e non
-  arrivano mai all'utente.
+  titolare** il contatto è perso → `ActionError` `BAD_GATEWAY` (che diventa lo stato d'errore del
+  form); risposta automatica e inserimento nel CRM sono best-effort, si registrano con
+  `console.error` e non arrivano mai all'utente.
 - **A chiamata singola**: l'unica risposta dell'azione *è* l'esito, e non c'è niente da tenere
   best-effort. La politica si inverte e si fallisce rumorosamente subito: un risultato non `ok` →
   `ActionError`, senza inghiottire niente.
@@ -107,12 +126,13 @@ La politica si sceglie dalla **forma** dell'azione:
 L'azione è pubblica e non autenticata, quindi le guardie stanno nell'handler **dalla più economica**:
 quella che costa una chiamata di rete gira solo per un invio che sembra già umano.
 
-1. **Honeypot** — `HONEYPOT_FIELD` (`website`) in `src/lib/forms/honeypot.ts`. Lo schema *accetta*
+1. **Honeypot** — `HONEYPOT_FIELD` in `src/lib/forms/honeypot.ts`. Lo schema *accetta*
    l'esca riempita invece di rifiutarla: un errore di validazione direbbe al bot quale campo lo ha
    tradito. Riempita → `console.warn` e `{ ok: true }`, senza nessuna chiamata al fornitore. Un solo
    nome condiviso dalla forma dello schema (`honeypotShape`), dall'input nascosto
    (`src/components/forms/honeypot-field.astro` — `sr-only`, `aria-hidden`, `tabindex="-1"`,
-   `autocomplete="off"`) e da ogni `buildPayload`: si importa la costante, non si riscrive mai la
+   `autocomplete="off"`, e `readonly`, perché Edge e Chrome ignorano `autocomplete="off"` ma non
+   riempiono un campo in sola lettura) e da ogni `buildPayload`: si importa la costante, non si riscrive mai la
    stringa.
 2. **Rate limit** — la finestra in memoria qui sopra.
 3. **Controllo bot** — Vercel BotID Basic (gratuito su ogni piano, invisibile, senza sfide visibili).
@@ -172,6 +192,11 @@ Regole che vale la pena tenere in un progetto:
   `{ ok: true, skipped: true }`), **in produzione rifiuta** (errore esplicito). È quello che permette
   di spedire una funzionalità **dietro un gate** — mergiata e collegata, dormiente finché non
   esistono le credenziali vere — senza rischiare un invio perso in silenzio in produzione.
+- **Sul sito in prova** (`SITE_URL` su `*.vercel.app`, `deploy-ops.md` § Procedure) le mail partono
+  solo verso `STAGING_EMAIL_RECIPIENTS`, indirizzi o domini: gli altri destinatari si scartano con un
+  `console.warn` che ne dice il numero e mai gli indirizzi, e se non ne resta nessuno il risultato è
+  `{ ok: true, skipped: true }`, così il form riesce anche per chi collauda. `upsertContact` in prova
+  non scrive mai. Un fornitore che sostituisca Brevo tiene lo stesso filtro.
 - Mittente e destinatario vengono dall'ambiente (`CONTACT_FROM_EMAIL`, `CONTACT_FROM_NAME`,
   `CONTACT_TO_EMAIL` — schema in `astro.config.mjs`, elenco in `.env.example`). Verifica DKIM, SPF e
   DMARC del dominio mittente prima del go-live.
@@ -214,10 +239,21 @@ Regole che vale la pena tenere in un progetto:
   (`createActionFormBinding({ formSelector, buildPayload, submit })`,
   `src/components/forms/action-submit.ts`): il modulo di un singolo form fornisce solo un
   `formSelector`, un `buildPayload` e l'azione. Il binder abilita il bottone di invio quando
-  aggancia il form, lo disabilita e ne cambia l'etichetta durante l'attesa (`data-i18n-sending` e
-  `data-i18n-submit` sul form — i moduli di comportamento non portano stringhe), commuta i
-  paragrafi `[data-form-success]` e `[data-form-error]` (`role="status"` e `role="alert"`), e
-  chiama `form.reset()` in caso di successo. Non reimplementarlo mai per singolo form.
+  aggancia il form, ne cambia l'etichetta durante l'attesa (`data-i18n-sending` e
+  `data-i18n-submit` sul form — i moduli di comportamento non portano stringhe), scrive il testo
+  dei paragrafi `[data-form-success]` e `[data-form-error]` (`role="status"` e `role="alert"`), e
+  chiama `form.reset()` in caso di successo. I due paragrafi si rendono vuoti, con
+  `empty:sr-only` e mai `hidden`: una regione live che compare invece di cambiare testo non si
+  annuncia in modo affidabile, e con NVDA su Firefox un `role="status"` mostrato così resta muto.
+  Il binder li svuota all'inizio di ogni invio e ci scrive l'esito, la conferma da
+  `data-i18n-success`, così anche un secondo invio riuscito si annuncia. Quando l'invio solleva
+  un'eccezione invece di restituire `{ error }` — un guasto di rete, un 413 — il riquadro
+  d'errore mostra `data-i18n-send-failed`, mai il `message` dell'eccezione, che è testo del
+  browser in inglese. In attesa il bottone non si disabilita, perché un elemento disabilitato
+  perde il focus e chi usa la tastiera perderebbe il segno: resta focalizzabile con
+  `aria-disabled="true"`, e il binder ignora un secondo invio finché il primo non è tornato. Il
+  focus resta sul bottone anche dopo l'esito, che le regioni live annunciano già: spostato sul
+  messaggio, lo farebbe leggere due volte. Non reimplementarlo mai per singolo form.
 - **Multi-istanza per default**: il binder aggancia **ogni** form corrispondente con
   `querySelectorAll` e resta idempotente attraverso le view transition. Quando lo stesso form viene
   reso più di una volta nella stessa pagina, si passa una prop `idPrefix` per dare uno spazio dei
@@ -225,6 +261,9 @@ Regole che vale la pena tenere in un progetto:
   identici, perché hanno come ambito il singolo `<form>`.
 - I campi compongono le primitive `Field` con **etichette visibili**, che è il default accessibile
   (un progetto può passare a `sr-only` più placeholder come scelta estetica).
+- Ogni campo `required` ha l'asterisco sull'etichetta (`<FieldLabel required>`), nessun campo
+  facoltativo lo porta, e una riga del dizionario lo spiega prima del form
+  (`contact.requiredHint`). `markup-contract.test.ts` fissa tutte e due le cose.
 - **[HARD] Senza JavaScript il form non invia niente, e non mette niente nell'URL.** L'invio è una
   chiamata a un'Astro Action (`accept: 'json'`) da una pagina prerenderizzata, quindi non c'è un
   ripiego con `action=`, e il markup si difende da solo in tre pezzi:
@@ -247,12 +286,20 @@ in una riga di riepilogo:
   `aria-describedby` **statico** (`fieldErrorId()` costruisce l'id a entrambi i capi, così non
   possono divergere). Lo slot si rende vuoto, e un elemento vuoto non contribuisce nessuna
   descrizione: il riferimento resta inerte finché non c'è un messaggio;
-- `applyFieldErrors` scrive il primo messaggio per campo e gira `aria-invalid` sul controllo il cui
-  `aria-describedby` nomina lo slot, cioè quello che il lettore di schermo annuncia: per un
-  `ui/select` attivo è il trigger, a cui `adoptNativeRelationships` (`select-a11y.ts`) passa
-  l'attributo dal nativo nascosto. Poi `focusFirstInvalid` sposta il focus sul primo controllo non
+- il controllo nasce con `aria-invalid="false"`: senza l'attributo Firefox e Safari espongono un
+  campo `required` vuoto come non valido già al caricamento, e il lettore di schermo dice «non
+  valido» prima che si scriva. I due attributi li porta insieme `fieldErrorAttributes()`, e
+  `clearFieldErrors` riporta a `"false"` quelli in errore;
+- `applyFieldErrors` scrive il primo messaggio per campo e porta a `"true"` l'`aria-invalid` del
+  controllo il cui `aria-describedby` nomina lo slot, cioè quello che il lettore di schermo
+  annuncia: per un `ui/select` attivo è il trigger, a cui `adoptNativeRelationships`
+  (`select-a11y.ts`) passa l'`aria-describedby` dal nativo nascosto. Poi `focusFirstInvalid` sposta il focus sul primo controllo non
   valido **nell'ordine del DOM**, non nell'ordine delle chiavi di `error.fields`, che manderebbe il
   focus all'indietro oltre un campo che l'utente non ha ancora raggiunto;
+- un campo in errore si ripulisce mentre l'utente lo corregge: `createActionFormBinding` aggancia
+  `clearFieldErrorOnInput` all'evento `input` del form, che svuota lo slot e riporta `aria-invalid`
+  a `"false"` appena il valore è valido per il browser. Un valore ancora non valido non cambia
+  niente, quindi mentre si scrive non compaiono errori nuovi: quelli arrivano solo all'invio;
 - l'avviso `[data-form-error]` parla **solo** per i messaggi che non hanno uno slot in cui atterrare.
   Ripetere lì quello che un campo porta già farebbe annunciare due volte la stessa cosa a un lettore
   di schermo;
@@ -274,7 +321,7 @@ verde mentre l'ordine delle guardie o la politica d'errore sono invertiti — qu
 `src/actions/{contact,guards}.test.ts`, un file per area (Biome limita i file a 200 righe). Le
 fixture condivise e i mock di fornitore e BotID stanno in `test/helpers/actions.ts`.
 
-- **Gli handler sono esportati per nome** (`handleContact`) e passati a `defineAction`, così i test
+- **Gli handler sono esportati per nome** (`handleContact`) e passati a `defineSafeAction`, così i test
   guidano l'orchestrazione vera senza il wrapper dell'azione. `ActionContext` restringe quello che
   leggono dal contesto al solo `clientAddress`: tieni ogni azione nuova su quella forma invece di
   ricorrere all'`ActionAPIContext` di Astro.
@@ -288,11 +335,17 @@ fixture condivise e i mock di fornitore e BotID stanno in `test/helpers/actions.
   che rende testabili i rami che esistono solo in produzione. Il nuovo import consegna anche a ogni
   test una finestra di rate limit pulita, dato che la finestra scorrevole è stato a livello di
   modulo.
-- **`test/stubs/astro-actions.ts`** porta `isInputError` (preso parola per parola da Astro, per il
-  binder lato client) più un `ActionError` rispecchiato e un `defineAction` identità. Poiché
+- **`test/stubs/astro-actions.ts`** porta `isInputError` e `isActionError` (presi parola per parola
+  da Astro, per il binder lato client e per il confine d'errore) più un `ActionError` rispecchiato e
+  un `defineAction` identità. Poiché
   `resetModules` ricrea quello stub, la classe sollevata non è mai quella che un file di test aveva
   importato: si verifica su `type` e `code`, mai con `instanceof` (`rejectionOf` nell'helper fa
   esattamente questo).
+- **Il confine d'errore si prova sull'azione registrata**, non sull'handler nudo:
+  `src/actions/index.test.ts` prende l'azione da `server` con `importActionRegistry()` e ne chiama
+  l'handler avvolto con `registeredHandler()`, e fissa i tre casi — l'errore sfuggito registrato e
+  coperto dal messaggio generico, l'`ActionError` di proposito invariato, il guasto a monte in 502.
+  Un'azione nuova aggiunge lì il suo caso di errore sfuggito.
 - **Cosa fissano i test** (da rileggere prima di toccare un handler): la politica d'errore e
   l'ordine delle guardie qui sopra, più `TOO_MANY_REQUESTS` al sesto invio con finestre indipendenti
   per indirizzo, e `FORBIDDEN` quando BotID applica il verdetto.
@@ -303,7 +356,7 @@ fixture condivise e i mock di fornitore e BotID stanno in `test/helpers/actions.
 
 1. Aggiungilo a `contactSchemaFor()` in `src/lib/contact.ts`, limiti compresi.
 2. Rendilo nel componente `contact-*.astro` giusto (con le chiavi i18n), col suo
-   `aria-describedby={fieldErrorId('<nome>')}` e un `<FieldError field="<nome>" />` fratello:
+   `{...fieldErrorAttributes('<nome>')}` e un `<FieldError field="<nome>" />` fratello:
    `markup-contract.test.ts` fallisce senza.
 3. Raccoglilo in `buildPayload` (`contact-form-behavior.ts`).
 4. Mostralo nell'email di notifica (`detailRow` in `emails/contact.ts`).
@@ -321,8 +374,8 @@ fixture condivise e i mock di fornitore e BotID stanno in `test/helpers/actions.
    far rifiutare l'invio, così un visitatore su un bundle vecchio in cache passa comunque. La lingua
    fa eccezione, perché è il discriminante dell'unione.
 2. **Azione** in un suo `src/actions/<nome>.ts`: un handler esportato `handle<Nome>` passato a
-   `defineAction({ accept: 'json', input, handler })`, e l'azione registrata in coda a `server` in
-   `src/actions/index.ts`, una voce per riga. Le guardie girano nello stesso ordine (honeypot →
+   `defineSafeAction('<nome>', { input, handler })` (§ Politica d'errore), e l'azione registrata in
+   coda a `server` in `src/actions/index.ts`, una voce per riga. Le guardie girano nello stesso ordine (honeypot →
    rate limit sotto il **proprio prefisso di ambito** → `assertNotBot`); la politica d'errore si
    sceglie dalla forma — una chiamata fatale → si fallisce rumorosamente sul suo risultato; a
    ventaglio → si fallisce solo sulla chiamata che perderebbe il dato. Registra `/_actions/<nome>`
@@ -333,9 +386,9 @@ fixture condivise e i mock di fornitore e BotID stanno in `test/helpers/actions.
    produzione rifiuta» quando manca la configurazione — chiave API e id facoltativi allo stesso
    modo.
 4. **Interfaccia** in `src/components/<nome>/*.astro`: il contratto di presentazione fatto di
-   `data-*` — il marcatore del form, le etichette `data-i18n-*` e i paragrafi
-   `[data-form-success|error]` — più `<HoneypotField />`, un `<FieldError>` per chiave dello schema,
-   e il form `method="post"` con il pulsante di invio `disabled` nel markup.
+   `data-*` — il marcatore del form, le etichette `data-i18n-*` (`data-i18n-success` compresa) e i
+   paragrafi `[data-form-success|error]`, resi vuoti — più `<HoneypotField />`, un `<FieldError>`
+   per chiave dello schema, e il form `method="post"` con il pulsante di invio `disabled` nel markup.
 5. **Comportamento** in `src/components/<nome>/<nome>-form-behavior.ts`: un solo
    `createActionFormBinding({ formSelector, buildPayload, submit })` — si riusa il binder condiviso,
    non si reimplementa il ciclo di invio. `buildPayload` fa passare `HONEYPOT_FIELD`.
