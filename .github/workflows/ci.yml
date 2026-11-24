@@ -7,6 +7,7 @@ on:
 
 permissions:
   contents: read
+  pull-requests: read
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -19,12 +20,13 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - uses: Elia97/officina/actions/ci@v0.18.0
+      - uses: Elia97/officina/actions/ci@v0.20.0
         with:
           e2e: 'true'
 
   fallow:
     name: fallow (review informativa)
+    if: ${{ !startsWith(github.head_ref, 'release-please--') }}
     runs-on: ubuntu-latest
     steps:
-      - uses: Elia97/officina/actions/review@v0.18.0
+      - uses: Elia97/officina/actions/review@v0.20.0

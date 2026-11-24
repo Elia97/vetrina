@@ -37,7 +37,7 @@ updates:
   - package-ecosystem: 'npm'
     directory: '/'
     schedule:
-      interval: 'weekly'
+      interval: 'monthly'
     labels:
       - 'dependencies'
     # [HARD] `chore` è nascosto in `changelog-sections` e il job di deploy gira solo su un tag:
@@ -77,7 +77,7 @@ updates:
   - package-ecosystem: 'github-actions'
     directory: '/'
     schedule:
-      interval: 'weekly'
+      interval: 'monthly'
     labels:
       - 'github-actions'
     commit-message:
