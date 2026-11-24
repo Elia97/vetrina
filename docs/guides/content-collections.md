@@ -132,7 +132,10 @@ corrispondente.
   riconosciuta** e non con un errore di schema: non metterti a debuggare lo schema.
 - **Rendere il corpo.** Su una rotta di dettaglio prerenderizzata (un `getStaticPaths` che enumera
   le voci), `const { Content } = await render(entry)` (`render` da `astro:content`, la Content Layer
-  API) restituisce un `<Content />` per il corpo.
+  API) restituisce un `<Content />` per il corpo. Un documento legale scritto in una collection si
+  veste come quelli di iubenda: il contenitore di `<Content />` prende `legalProseClass` da
+  `@/components/legal/legal-prose`, la stessa tipografia di `legal-doc.astro`, invece di
+  ricopiarne le classi.
 - **`{…}` in MDX è JavaScript.** Qualunque marcatore di redazione (un suggerimento di layout su un
   titolo, la dimensione di un'immagine, …) va in **testo semplice**, mai come `{.classe}`, che viene
   letto come espressione JS e rompe la build.
