@@ -153,10 +153,18 @@ condiviso da entrambe le parti, si divide il file, non il nome.
   attraverso l'interoperabilità e lo preferisce; quel binario legge una user-data-dir Linux come un
   percorso UNC, non risolve `%LOCALAPPDATA%` (da cui percorsi tipo
   `undefined:\Users\undefined\...`), non prende nessun lock e muore con «Unable to connect to
-  Chrome», lasciando dietro cartelle con dei backslash nel nome che poi fanno inciampare `biome ci`.
-  L'indizio nel log è un riferimento a `crashpad\...\file_io_win.cc`. Valida il binario con
-  `--version` prima di usarlo: una cache può contenere build per un'altra architettura (un binario
-  puppeteer `linux_arm-*` è x86-64, e su aarch64 fallisce con `Exec format error`).
+  Chrome». L'indizio nel log è un riferimento a `crashpad\...\file_io_win.cc`. Valida il binario
+  con `--version` prima di usarlo: una cache può contenere build per un'altra architettura (un
+  binario puppeteer `linux_arm-*` è x86-64, e su aarch64 fallisce con `Exec format error`).
+- **Sotto WSL anche un Chrome per Linux lascia cartelle `C:\Users\…\lighthouse.*` nella radice del
+  progetto**, e fanno fallire `biome ci`. La causa è `chrome-launcher` (1.2.2), non Chrome: ricava
+  dal `PATH` la cartella `C:\Users\<utente>\AppData\Local`, ci crea la cartella temporanea e passa
+  a Chrome `--user-data-dir=` convertito con `wslpath -w`; un Chrome per Linux legge quel percorso
+  come relativo e crea il profilo nella cartella corrente. `pnpm run lhci:local` non le lascia più
+  da officina 0.16.0 (officina#111): sotto WSL avvia Chrome da una cartella sotto `$TMPDIR` e la
+  toglie alla fine. `pnpm run lhci <url>` invece non ha quel passaggio, e con un `CHROME_PATH` per
+  Linux le lascia ancora. Quelle già create si trovano con `git status --short --ignored` e si
+  tolgono a mano.
 - **Non lasciare che Lighthouse generi processi sotto WSL.** Un `pnpm` lanciato da lui eredita quel
   `LOCALAPPDATA` fasullo; corepack lo usa come radice della propria cache anche su Linux, non trova
   pnpm, prova a riscaricarlo sotto `/mnt/undefined/...` e muore con `EACCES`. Avvia tu il server e

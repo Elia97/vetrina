@@ -1,7 +1,8 @@
 import { z } from 'astro/zod'
 
-import { consentField, emailField, requiredText, schemaByLocale } from '@/lib/forms/form-fields'
+import { consentField, schemaByLocale } from '@/lib/forms/form-fields'
 import { honeypotShape } from '@/lib/forms/honeypot-schema'
+import { identityShape } from '@/lib/forms/identity-fields'
 
 import { useTranslations } from '@/i18n/translate'
 
@@ -11,13 +12,7 @@ function contactSchemaFor(locale: string) {
   return z.object({
     locale: z.literal(locale),
     ...honeypotShape,
-    firstName: requiredText(t('forms.error.firstNameRequired')).max(100, {
-      error: t('forms.error.firstNameTooLong'),
-    }),
-    lastName: requiredText(t('forms.error.lastNameRequired')).max(100, {
-      error: t('forms.error.lastNameTooLong'),
-    }),
-    email: emailField(locale),
+    ...identityShape(locale),
     message: z
       .string()
       .trim()

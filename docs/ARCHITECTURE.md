@@ -51,6 +51,7 @@ src/
     seo/       #   json-ld, crawl-policy, manifest                       machinery
                #   crawl-paths: fuori dalla ricerca, sitemap in più      config
     forms/     #   honeypot, honeypot-schema, rate-limit, form-fields    machinery
+               #   identity-fields: nome, cognome ed email               machinery
     emails/    #   layout: cornice, escapeHtml, detailRow                chrome
     overlay/   #   trap-focus, scroll-lock                               machinery
     motion/    #   ciclo di vita delle animazioni lato client            machinery
@@ -72,11 +73,12 @@ src/
                #   strings/<lingua>.ts, segments-by-locale.ts            config
   actions/     # l'azione di contatto; gli handler sono esportati per
                #   nome, così l'orchestrazione è testabile               seed
+               #   guards.ts: admitSubmission(), le guardie condivise    machinery
   emails/      # le email delle azioni, una per modulo                   seed
   content/     # dati delle collection                                   example
   assets/      # immagini locali; placeholder.jpg per gen:section        seed
   styles/      # tokens.css — la superficie del rebranding               config
-               #   light, dark, globals                                  machinery
+               #   light, dark, globals, sources                         machinery
   middleware.ts # X-Robots-Tag, e la CSP dell'HTML reso a richiesta      machinery
 test/          # infrastruttura di test, mai inclusa nel bundle          machinery
   stubs/       # i moduli virtuali astro:*, risolti dagli alias di vitest
@@ -182,7 +184,12 @@ template derivato con il cherry-pick.
   `overlayChrome`, `locales` e `languagePrefetch`, e se quello del derivato non le accetta tutte
   `astro check` si ferma su `main.astro`. La chrome della base resta dov'è, come base del
   cherry-pick, e `.fallowrc.jsonc` la tiene fra gli ingressi: `check:deadcode` non la segnala
-  quando nessuno la importa più.
+  quando nessuno la importa più. Tailwind invece la scansiona ancora, e le sue classi finirebbero
+  nel foglio di ogni pagina: insieme a `chrome.ts` il derivato aggiunge in coda a
+  `src/styles/sources.css` una riga per file, `@source not "../components/layout/header.astro";`,
+  e così per `footer.astro`, `mobile-nav.astro`, `language-switcher.astro` e `nav-link.astro`.
+  `skip-link.astro` e `company-address.astro` restano nella scansione: li montano anche
+  `main.astro` e `contact-details.astro`.
 - **CSP a richiesta**: `src/middleware.ts` scrive la policy nell'HTML di ogni pagina con
   `prerender = false`, sugli script che porta. Una pagina nuova non aggiunge niente
   (`docs/guides/deploy-ops.md` § Content-Security-Policy).

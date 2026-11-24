@@ -1,0 +1,16 @@
+// Il documento no-markup di iubenda arriva come HTML senza tema, h1 compreso.
+export const legalProseClass = [
+  'text-foreground leading-relaxed',
+  '[&_h1]:mb-6 [&_h1]:text-balance [&_h1]:type-heading [&_h1]:text-4xl sm:[&_h1]:text-5xl 2xl:[&_h1]:text-6xl',
+  '[&_h2]:mt-10 [&_h2]:mb-3 [&_h2]:text-balance [&_h2]:type-heading-minor [&_h2]:text-2xl sm:[&_h2]:text-3xl',
+  '[&_h3]:mt-8 [&_h3]:mb-2 [&_h3]:font-semibold [&_h3]:text-xl [&_h3]:tracking-tight',
+  '[&_h4]:mt-6 [&_h4]:mb-2 [&_h4]:font-semibold',
+  '[&_h5]:mt-4 [&_h5]:mb-1 [&_h5]:font-semibold [&_h5]:text-sm [&_h5]:uppercase [&_h5]:tracking-wide',
+  '[&_p]:mb-4 [&_p]:text-muted-foreground',
+  '[&_ul]:mb-4 [&_ul]:ml-5 [&_ul]:list-disc [&_ol]:mb-4 [&_ol]:ml-5 [&_ol]:list-decimal [&_li]:mb-1 [&_li]:text-muted-foreground',
+  '[&_a]:font-medium [&_a]:text-foreground [&_a]:underline [&_a]:underline-offset-4',
+  '[&_strong]:font-semibold [&_strong]:text-foreground',
+  '[&_hr]:my-8 [&_hr]:border-border',
+  '[&_details]:my-3 [&_summary]:cursor-pointer [&_summary]:font-medium',
+  '[&_aside]:my-8 [&_aside]:border [&_aside]:border-border [&_aside]:mix:bg-muted/40 [&_aside]:p-6 [&_aside_h2]:mt-0',
+].join(' ')
