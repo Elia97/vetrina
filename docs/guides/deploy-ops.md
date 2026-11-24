@@ -29,14 +29,22 @@ La produzione esce **solo da un tag di release**, mai da un push su `main`:
   prima del primo tag di release non esiste nessun deployment di produzione: vale la pena saperlo
   prima di promettere un link a un cliente.
 - Il deploy di produzione è `.github/workflows/deploy.yml`: fa il checkout del **tag** rilasciato
-  (non di quello che `main` punta in quel momento), poi `pnpm run check:placeholders` →
-  `pnpm run ci` → `vercel pull --prod` → `pnpm run check:placeholders --env` → `vercel build --prod`
-  → `vercel deploy --prebuilt --prod` → `pnpm smoke:prod`.
+  (non di quello che `main` punta in quel momento), poi il controllo che il tag installi la stessa
+  versione di `@elia97/officina` dell'action → `pnpm run check:placeholders` → `vercel pull --prod`
+  → `pnpm run check:placeholders --env` → `vercel build --prod` → `vercel deploy --prebuilt --prod`
+  → `pnpm smoke:prod`. Sul tag non gira `pnpm run ci`: il cancello è a monte, nel ruleset di `main`
+  (§ La catena dei gate).
 - **Ha due punti d'ingresso e una strada sola.** `release-please.yml` lo chiama su un tag nuovo;
   Actions → Deploy → *Run workflow* lo lancia a mano, e un input vuoto significa il tag più recente.
   Il bottone si usa quando la produzione va ricostruita senza una modifica al codice: un segreto
   ruotato, una policy iubenda ripubblicata, un ritorno a un tag più vecchio. Rifiuta un riferimento
   che non sia un tag, così un lancio a mano non può spedire in silenzio un branch.
+- **Il tag e l'action devono portare la stessa versione di officina.** Lanciato a mano, `deploy.yml`
+  — e con lui la versione dell'action `deploy` — viene dal ramo scelto in «Use workflow from», mentre
+  il pacchetto `@elia97/officina` viene dal lockfile del tag: se le due versioni differiscono l'action
+  si ferma prima di ogni altro passo. Un tag più vecchio si rideploya quindi scegliendo **quel tag**
+  sia in «Use workflow from» sia nell'input, così workflow e lockfile sono gli stessi della release;
+  in alternativa si fa una release nuova che porti la versione di officina dell'action.
 - Il job è subordinato a `check-vercel-secrets`: se `VERCEL_TOKEN`, `VERCEL_ORG_ID` o
   `VERCEL_PROJECT_ID` non ci sono, emette un avviso e si salta — un progetto appena creato non fa
   mai fallire la CI solo perché non è ancora collegato a Vercel. I due id vengono dal collegamento
@@ -85,13 +93,12 @@ regione della funzione.
 
 ## La catena dei gate
 
-Otto gate, e ognuno copre un momento che gli altri non coprono:
+Sette gate, e ognuno copre un momento che gli altri non coprono:
 
 | Gate | Dove | Copre |
 |---|---|---|
-| il check obbligatorio `ci` | ruleset di `main`, da `scripts/bootstrap-github.sh` | tutto ciò che atterra su `main` |
-| `pnpm run ci` | job `deploy`, sul tag | ciò che parte dal tag |
-| `pnpm run check:placeholders` | job `deploy`, prima di `pnpm run ci` e dopo `vercel pull` | i segnaposto del template nei sorgenti e nell'ambiente di produzione |
+| il check obbligatorio `ci` | ruleset di `main`, da `scripts/bootstrap-github.sh` | tutto ciò che atterra su `main`, e quindi ciò che parte dal tag |
+| `pnpm run check:placeholders` | job `deploy`, subito dopo l'installazione e dopo `vercel pull` | i segnaposto del template nei sorgenti e nell'ambiente di produzione |
 | `pnpm perf:bundle` | `ci.yml`, dopo la build | il JavaScript client per rotta, il foglio di stile e le sue media query |
 | `pnpm run check:links` | `ci.yml`, dopo la build | i link interni della build: nessuno porta a `#` o a una pagina che non esiste |
 | `pnpm run check:secrets` | `ci.yml`, dopo la build con i canary | le chiavi server e secret di `env.schema`: nessuna finisce nei file di `dist/client` |
@@ -145,8 +152,12 @@ GitHub vuole la rete, quindi vive dentro `/metodo:milestone` in rilettura e non 
 sistema, fuori dal repo, quindi su un clone pulito non esiste: un gate che la guardasse passerebbe in
 CI per assenza, che è il modo peggiore di passare.
 
-- **`pnpm run ci` sul tag non è ridondante.** `vercel build` è `astro build`: non verifica nessun
-  tipo e non esegue nessun test.
+- **Sul tag non gira nessun controllo statico né test.** `vercel build` è `astro build`: non
+  verifica nessun tipo e non esegue nessun test. Il cancello è il ruleset di `main`: PR obbligatoria,
+  check `ci` verde e branch aggiornato prima del merge, quindi l'albero che riceve il tag è quello già
+  provato sulla PR. Un push diretto su `main`, che il ruleset accetta solo con `ADMIN_BYPASS=1`, come
+  su questo template, arriva al tag e in produzione senza passare da nessun cancello: dopo un push
+  del genere, `pnpm run ci` si lancia a mano prima di unire la release PR.
 - **I confini sono dentro `pnpm run ci`, non solo in CI.** Erano un gate remoto che falliva su un
   branch verde in locale: adesso spostare codice fra le zone di `.fallowrc.jsonc` si scopre subito.
   In `ci.yml` resta `fallow review`, che è informativo ed esce sempre 0, e sta in un job suo:
@@ -155,8 +166,7 @@ CI per assenza, che è il modo peggiore di passare.
   request, quindi quello più esposto, e il default del repository vale solo finché nessuno lo
   cambia dalle impostazioni: la riga nel file no.
 - **`ci.yml` gira solo sulle pull request.** Il ruleset vuole il branch aggiornato prima del merge,
-  quindi dopo lo squash `main` ha l'albero già provato sulla PR, e la produzione rilancia
-  `pnpm run ci` sul tag. Nemmeno le cache valgono una corsa su `main`, misurato sulle corse di
+  quindi dopo lo squash `main` ha l'albero già provato sulla PR. Nemmeno le cache valgono una corsa su `main`, misurato sulle corse di
   vetrina: senza lo store pnpm, setup-node e l'installazione durano quanto con lo store ripristinato,
   e `playwright install --with-deps` gira comunque per i pacchetti di sistema, quindi la cache del
   browser fa risparmiare pochi secondi.
@@ -509,7 +519,8 @@ La produzione è viva e rotta:
 
 La promozione riusa la vecchia build così com'è. Quando la correzione è *fuori* dal codice — una
 variabile d'ambiente corretta, una policy ripubblicata — quella build va rifatta: Actions → Deploy →
-*Run workflow*, indicando il tag da ricostruire. Stessi gate, quindi una ricostruzione non può
+*Run workflow*, scegliendo il tag da ricostruire sia in «Use workflow from» sia nell'input
+(§ Modello di deploy). Stessi gate, quindi una ricostruzione non può
 spedire qualcosa che la strada della release avrebbe preso.
 
 ## Variabili d'ambiente
