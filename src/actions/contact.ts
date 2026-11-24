@@ -1,58 +1,17 @@
 import { ActionError } from 'astro:actions'
-import { BOTID_ENFORCE, CONTACT_FROM_EMAIL, CONTACT_FROM_NAME, CONTACT_TO_EMAIL } from 'astro:env/server'
-import { checkBotId } from 'botid/server'
+import { CONTACT_FROM_EMAIL, CONTACT_FROM_NAME, CONTACT_TO_EMAIL } from 'astro:env/server'
 
 import { type ContactRequest, contactAttributes, contactSchema, leadRecoveryRecord } from '@/lib/contact'
 import { defineSafeAction } from '@/lib/forms/action-boundary'
-import { isHoneypotFilled } from '@/lib/forms/honeypot'
-import { rateLimit } from '@/lib/forms/rate-limit'
 import { type BrevoResult, sendTransactionalEmail, upsertContact } from '@/lib/vendor/brevo'
 
 import { useTranslations } from '@/i18n/translate'
 
+import { type ActionContext, admitSubmission } from '@/actions/guards'
+
 import { renderContactAutoreply, renderContactNotification } from '@/emails/contact'
 
 const sender = { email: CONTACT_FROM_EMAIL, name: CONTACT_FROM_NAME }
-
-function droppedByHoneypot(input: Parameters<typeof isHoneypotFilled>[0]): boolean {
-  if (!isHoneypotFilled(input)) return false
-  console.warn('[contact] honeypot filled — submission dropped')
-  return true
-}
-
-function assertNotRateLimited(clientAddress: string, locale: string): void {
-  if (rateLimit(`contact:${clientAddress}`)) return
-  throw new ActionError({
-    code: 'TOO_MANY_REQUESTS',
-    message: useTranslations(locale)('forms.action.tooManyRequests'),
-  })
-}
-
-// checkBotId() legge la richiesta dal contesto di Vercel, quindi non prende argomenti —
-// e fuori da Vercel la sfida non gira mai, da cui il gate su PROD.
-async function detectBot(): Promise<boolean> {
-  if (!import.meta.env.PROD) return false
-  try {
-    const { isBot } = await checkBotId()
-    return isBot
-  } catch (error) {
-    console.error('[contact] bot check failed:', error)
-    return false
-  }
-}
-
-async function assertNotBot(locale: string): Promise<void> {
-  if (!(await detectBot())) return
-  if (!BOTID_ENFORCE) {
-    console.warn('[contact] bot detected — observe mode, submission allowed (BOTID_ENFORCE=false)')
-    return
-  }
-  console.warn('[contact] bot detected — submission rejected')
-  throw new ActionError({
-    code: 'FORBIDDEN',
-    message: useTranslations(locale)('forms.action.securityCheckFailed'),
-  })
-}
 
 function sendContactEmails(input: ContactRequest): Promise<[BrevoResult, BrevoResult, BrevoResult]> {
   const notify = renderContactNotification(input)
@@ -103,14 +62,8 @@ function reportContactResults(
   }
 }
 
-export interface ActionContext {
-  clientAddress: string
-}
-
 export async function handleContact(input: ContactRequest, context: ActionContext): Promise<{ ok: true }> {
-  if (droppedByHoneypot(input)) return { ok: true }
-  assertNotRateLimited(context.clientAddress, input.locale)
-  await assertNotBot(input.locale)
+  if (!(await admitSubmission('contact', input, context))) return { ok: true }
   reportContactResults(input, await sendContactEmails(input))
   return { ok: true }
 }

@@ -8,7 +8,8 @@ Rimandi: `ui-components.md` (le primitive Field e Select), `seo.md` (i meta a li
 | Strato | File | Possiede |
 |---|---|---|
 | Schema | `src/lib/contact.ts` | il contratto zod, condiviso client e server |
-| Azione | `src/actions/contact.ts` | orchestrazione, guardie anti-abuso, politica d'errore |
+| Azione | `src/actions/contact.ts` | orchestrazione, politica d'errore |
+| Guardie | `src/actions/guards.ts` | `admitSubmission()`: honeypot, rate limit e BotID per ambito, `ActionContext` (condiviso) |
 | Registro | `src/actions/index.ts` | `server`, l'elenco delle azioni che Astro espone (condiviso) |
 | Fornitore | `src/lib/vendor/brevo.ts` | client HTTP, risultato come valore, gestione della chiave (condiviso) |
 | Email | `src/emails/contact.ts` | le due email del contatto, testi |
@@ -18,6 +19,7 @@ Rimandi: `ui-components.md` (le primitive Field e Select), `seo.md` (i meta a li
 | Binder | `src/components/forms/action-submit.ts` | ciclo di invio, feedback, aggancio multi-istanza (condiviso) |
 | Errori di campo | `src/components/forms/field-errors.ts` | slot d'errore per campo, `aria-invalid`, focus (condiviso) |
 | Honeypot | `src/lib/forms/honeypot.ts` e `honeypot-schema.ts` | nome del campo esca e predicato, e la sua forma zod (condivisi) |
+| Identità | `src/lib/forms/identity-fields.ts` | `identityShape()`: nome, cognome ed email con i loro messaggi (condiviso) |
 
 Gli strati si parlano attraverso interfacce strette: `ContactPayload` deriva dall'azione
 (`Parameters<typeof actions.contact>[0]`), quindi una modifica allo schema si propaga al client al
@@ -123,8 +125,11 @@ La politica si sceglie dalla **forma** dell'azione:
 
 ## Protezione dagli abusi
 
-L'azione è pubblica e non autenticata, quindi le guardie stanno nell'handler **dalla più economica**:
-quella che costa una chiamata di rete gira solo per un invio che sembra già umano.
+L'azione è pubblica e non autenticata, quindi le guardie girano per prime nell'handler, **dalla più
+economica**: quella che costa una chiamata di rete gira solo per un invio che sembra già umano. Le
+tiene tutte e tre `admitSubmission(scope, input, context)` in `src/actions/guards.ts`, con
+`'contact'` come ambito qui: l'ambito dà il prefisso ai log e alla finestra del rate limit, e
+`false` vuol dire esca riempita, che l'handler chiude con `{ ok: true }`.
 
 1. **Honeypot** — `HONEYPOT_FIELD` in `src/lib/forms/honeypot.ts`. Lo schema *accetta*
    l'esca riempita invece di rifiutarla: un errore di validazione direbbe al bot quale campo lo ha
@@ -134,7 +139,7 @@ quella che costa una chiamata di rete gira solo per un invio che sembra già uma
    `autocomplete="off"`, e `readonly`, perché Edge e Chrome ignorano `autocomplete="off"` ma non
    riempiono un campo in sola lettura) e da ogni `buildPayload`: si importa la costante, non si riscrive mai la
    stringa.
-2. **Rate limit** — la finestra in memoria qui sopra.
+2. **Rate limit** — la finestra in memoria qui sopra, con chiave `<ambito>:<indirizzo>`.
 3. **Controllo bot** — Vercel BotID Basic (gratuito su ogni piano, invisibile, senza sfide visibili).
    Tre pezzi che devono restare allineati: i rewrite in `vercel.json` (proxy di stessa origine per lo
    script della sfida, presidiato da `src/vercel-botid.test.ts`), `initFormBotId()`
@@ -322,7 +327,7 @@ verde mentre l'ordine delle guardie o la politica d'errore sono invertiti — qu
 fixture condivise e i mock di fornitore e BotID stanno in `test/helpers/actions.ts`.
 
 - **Gli handler sono esportati per nome** (`handleContact`) e passati a `defineSafeAction`, così i test
-  guidano l'orchestrazione vera senza il wrapper dell'azione. `ActionContext` restringe quello che
+  guidano l'orchestrazione vera senza il wrapper dell'azione. `ActionContext` (`guards.ts`) restringe quello che
   leggono dal contesto al solo `clientAddress`: tieni ogni azione nuova su quella forma invece di
   ricorrere all'`ActionAPIContext` di Astro.
 - **Si simula il fornitore, non fetch**: `vi.mock('@/lib/vendor/brevo', …)` restituisce direttamente
@@ -367,7 +372,7 @@ fixture condivise e i mock di fornitore e BotID stanno in `test/helpers/actions.
 ### Un form nuovo dietro un'azione
 
 1. **Schema** in un suo `src/lib/<nome>.ts` (zod, condiviso client e server), che include
-   `honeypotShape`: una funzione della lingua, con `locale: z.literal(locale)` e i messaggi di quella
+   `honeypotShape` e, se il form chiede nome, cognome ed email, `identityShape(locale)`: una funzione della lingua, con `locale: z.literal(locale)` e i messaggi di quella
    lingua, che `schemaByLocale()` rende lo schema dell'azione (§ Validazione). Il form porta
    `data-locale={Astro.currentLocale}`, e `buildPayload` la manda. Un campo nascosto che il visitatore
    non vede prende `.catch(<ripiego>)`, non `.default()`: un valore inatteso si converte invece di
@@ -375,8 +380,9 @@ fixture condivise e i mock di fornitore e BotID stanno in `test/helpers/actions.
    fa eccezione, perché è il discriminante dell'unione.
 2. **Azione** in un suo `src/actions/<nome>.ts`: un handler esportato `handle<Nome>` passato a
    `defineSafeAction('<nome>', { input, handler })` (§ Politica d'errore), e l'azione registrata in
-   coda a `server` in `src/actions/index.ts`, una voce per riga. Le guardie girano nello stesso ordine (honeypot →
-   rate limit sotto il **proprio prefisso di ambito** → `assertNotBot`); la politica d'errore si
+   coda a `server` in `src/actions/index.ts`, una voce per riga. L'handler apre con
+   `if (!(await admitSubmission('<nome>', input, context))) return { ok: true }`, con il **proprio
+   ambito**, così log e finestra del rate limit restano separati da quelli del contatto; la politica d'errore si
    sceglie dalla forma — una chiamata fatale → si fallisce rumorosamente sul suo risultato; a
    ventaglio → si fallisce solo sulla chiamata che perderebbe il dato. Registra `/_actions/<nome>`
    in `PROTECTED_ACTIONS` (`src/components/forms/botid.ts`), altrimenti il controllo legge ogni
