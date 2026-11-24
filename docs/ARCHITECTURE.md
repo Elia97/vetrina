@@ -51,6 +51,7 @@ src/
     seo/       #   json-ld, crawl-policy, manifest                       machinery
                #   crawl-paths: fuori dalla ricerca, sitemap in più      config
     forms/     #   honeypot, honeypot-schema, rate-limit, form-fields    machinery
+               #   identity-fields: nome, cognome ed email               machinery
     emails/    #   layout: cornice, escapeHtml, detailRow                chrome
     overlay/   #   trap-focus, scroll-lock                               machinery
     motion/    #   ciclo di vita delle animazioni lato client            machinery
@@ -72,6 +73,7 @@ src/
                #   strings/<lingua>.ts, segments-by-locale.ts            config
   actions/     # l'azione di contatto; gli handler sono esportati per
                #   nome, così l'orchestrazione è testabile               seed
+               #   guards.ts: admitSubmission(), le guardie condivise    machinery
   emails/      # le email delle azioni, una per modulo                   seed
   content/     # dati delle collection                                   example
   assets/      # immagini locali; placeholder.jpg per gen:section        seed
