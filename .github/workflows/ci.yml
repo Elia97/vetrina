@@ -20,7 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - uses: Elia97/officina/actions/ci@v0.20.0
+      - uses: Elia97/officina/actions/ci@v0.20.2
         with:
           e2e: 'true'
 
@@ -29,4 +29,4 @@ jobs:
     if: ${{ !startsWith(github.head_ref, 'release-please--') }}
     runs-on: ubuntu-latest
     steps:
-      - uses: Elia97/officina/actions/review@v0.20.0
+      - uses: Elia97/officina/actions/review@v0.20.2
