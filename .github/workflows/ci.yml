@@ -19,8 +19,12 @@ jobs:
   ci:
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    permissions:
+      contents: read
+      pull-requests: read
+      statuses: read
     steps:
-      - uses: Elia97/officina/actions/ci@v0.20.2
+      - uses: Elia97/officina/actions/ci@v0.21.0
         with:
           e2e: 'true'
 
@@ -29,4 +33,4 @@ jobs:
     if: ${{ !startsWith(github.head_ref, 'release-please--') }}
     runs-on: ubuntu-latest
     steps:
-      - uses: Elia97/officina/actions/review@v0.20.2
+      - uses: Elia97/officina/actions/review@v0.21.0
